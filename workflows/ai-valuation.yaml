@@ -1,0 +1,76 @@
+name: "AssetPulse AI残值估算功能"
+agents_dir: "agency-agents-zh"
+llm:
+  provider: "deepseek"
+  model: "deepseek-chat"
+concurrency: 2
+inputs:
+  - name: feature_requirements
+    required: true
+steps:
+  - id: product_design
+    role: "product/product-manager"
+    task: |
+      为资产日均成本追踪应用设计"AI残值估算"功能：
+
+      核心需求：用户点击按钮，AI根据物品信息估算当前二手市场价值和残值
+
+      输入信息：物品名称、分类、购买价格、购买日期、使用时长、状态
+      输出信息：估算二手价格、残值比例、价格置信区间、估值依据简述
+
+      请设计：
+      1. 功能入口和交互流程
+      2. AI配置管理方案（支持多种LLM）
+      3. 估值结果展示方式
+      4. 隐私和安全考虑
+
+      {{feature_requirements}}
+    output: product_spec
+
+  - id: tech_design
+    role: "engineering/engineering-software-architect"
+    task: |
+      为以下AI估值功能设计技术方案：
+
+      {{product_spec}}
+
+      技术约束：
+      - 纯前端React应用，无后端
+      - 需要直接从浏览器调用LLM API（OpenAI兼容格式）
+      - 支持多种LLM提供商：DeepSeek、OpenAI、硅基流动、本地Ollama等
+      - API Key存储在IndexedDB中，加密存储
+      - 使用结构化输出确保估值结果可解析
+
+      请设计：
+      1. AI服务层架构
+      2. Prompt工程方案
+      3. 结构化输出解析
+      4. 错误处理和降级策略
+      5. API Key安全管理
+    output: tech_spec
+    depends_on: [product_design]
+
+  - id: security_review
+    role: "security/security-engineer"
+    task: |
+      审查AI估值功能的安全性：
+
+      {{tech_spec}}
+
+      重点：
+      1. API Key存储安全
+      2. 用户数据隐私（发送给LLM的数据）
+      3. Prompt注入风险
+      4. API调用成本控制
+    output: security_report
+    depends_on: [tech_design]
+
+  - id: final_plan
+    role: "engineering/engineering-software-architect"
+    task: |
+      综合以下内容输出最终实施方案：
+
+      产品设计：{{product_spec}}
+      技术方案：{{tech_spec}}
+      安全审查：{{security_report}}
+    depends_on: [security_review]

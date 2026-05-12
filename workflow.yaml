@@ -1,0 +1,116 @@
+name: "AssetPulse - 资产日均成本追踪应用"
+agents_dir: "agency-agents-zh"
+llm:
+  provider: "deepseek"
+  model: "deepseek-chat"
+concurrency: 3
+inputs:
+  - name: app_requirements
+    required: true
+steps:
+  - id: product_analysis
+    role: "product/product-manager"
+    task: |
+      分析以下需求，输出完整的产品需求文档（PRD）：
+
+      应用名称：AssetPulse（资产脉搏）
+      核心功能：追踪物品的日均使用成本，类似"有数APP"
+
+      核心数据模型：
+      - 物品名称
+      - 状态（使用中/已回收/已报废）
+      - 购买日期
+      - 购买价格
+      - 结束日期（可选）
+      - 回收金额（可选）
+      - 有效天数（自动计算）
+      - 日均成本（自动计算）
+
+      计算逻辑：
+      1. 有效天数 = 如果结束日期为空，则按今天计算；否则按结束日期计算
+      2. 日均成本 = (购买价格 - 回收金额) / 有效天数
+
+      使用场景：
+      - 使用中：只填购买信息，日均成本随时间自动下降
+      - 已回收：填入卖出日期和金额，自动扣除回血
+      - 已报废：只填结束日期
+
+      请输出：产品定位、用户画像、功能列表、交互流程、页面结构
+    output: prd
+
+  - id: ux_design
+    role: "design/design-ux-researcher"
+    task: |
+      基于以下产品需求，设计用户体验方案：
+
+      应用：AssetPulse - 资产日均成本追踪应用
+
+      核心页面：
+      1. 首页仪表盘 - 展示资产总览、日均成本排行、消费趋势
+      2. 资产列表 - 所有物品的卡片/列表视图，支持筛选排序
+      3. 添加/编辑资产 - 表单录入物品信息
+      4. 资产详情 - 单个物品的详细信息和使用成本曲线
+
+      设计要求：
+      - 移动端优先的响应式设计
+      - 简洁直观的数据可视化
+      - 流畅的交互动画
+      - 暗色/亮色主题支持
+
+      请输出：页面布局方案、交互设计、视觉风格指南
+    output: ux_design
+    depends_on: [product_analysis]
+
+  - id: tech_architecture
+    role: "engineering/engineering-software-architect"
+    task: |
+      为以下应用设计技术架构：
+
+      应用：AssetPulse - 资产日均成本追踪Web应用
+
+      技术要求：
+      - 纯前端Web应用（SPA），无需后端
+      - 使用 localStorage 持久化数据
+      - 支持数据导出/导入（JSON格式）
+      - 响应式设计，移动端优先
+      - 数据可视化图表
+
+      推荐技术栈：
+      - React + TypeScript + Vite
+      - Tailwind CSS 样式
+      - Recharts 图表库
+      - date-fns 日期处理
+
+      请输出：技术架构图、目录结构、核心模块设计、数据流方案
+    output: tech_arch
+    depends_on: [product_analysis]
+
+  - id: implementation_plan
+    role: "engineering/engineering-full-stack-developer"
+    task: |
+      基于以下产品需求、UX设计和架构方案，输出详细的实现计划：
+
+      产品需求：{{prd}}
+      UX设计：{{ux_design}}
+      技术架构：{{tech_arch}}
+
+      请输出：
+      1. 详细的开发任务分解
+      2. 每个任务的实现要点
+      3. 关键代码结构设计
+      4. 测试策略
+    output: impl_plan
+    depends_on: [product_analysis, ux_design, tech_architecture]
+
+  - id: final_summary
+    role: "product/product-manager"
+    task: |
+      综合以下所有分析结果，输出最终的项目执行摘要：
+
+      产品需求：{{prd}}
+      UX设计：{{ux_design}}
+      技术架构：{{tech_arch}}
+      实现计划：{{impl_plan}}
+
+      请输出：完整的项目方案，包含所有关键决策和实施步骤
+    depends_on: [implementation_plan]
