@@ -6,7 +6,7 @@ const tabs = [
   { to: "/assets", label: "资产", icon: Package },
   { to: "/assets/new", label: "添加", icon: PlusCircle },
   { to: "/review", label: "复盘", icon: TrendingUp },
-  { to: "/settings/backup", label: "设置", icon: Settings },
+  { to: "/settings/account", label: "我的", icon: Settings },
 ]
 
 export default function MobileNav() {
@@ -16,7 +16,8 @@ export default function MobileNav() {
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-white/5 bg-[#0D1B1E]/95 backdrop-blur-sm md:hidden">
       <div className="flex items-center justify-around pb-[env(safe-area-inset-bottom)] pt-2">
         {tabs.map((tab) => {
-          const isActive = location.pathname === tab.to
+          const isActive = location.pathname === tab.to ||
+            (tab.to === "/settings/account" && location.pathname.startsWith("/settings"))
           const Icon = tab.icon
           return (
             <Link
