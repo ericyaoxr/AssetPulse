@@ -7,11 +7,15 @@ services:
     container_name: assetpulse
     restart: unless-stopped
     ports:
-      - "${PORT:-80}:80"
+      - "${PORT:-3000}:3000"
     environment:
       - TZ=Asia/Shanghai
+      - JWT_SECRET=${JWT_SECRET:-assetpulse_secret_key_2024}
+      - DATA_DIR=/app/data
+    volumes:
+      - assetpulse-data:/app/data
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -21,3 +25,6 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+volumes:
+  assetpulse-data:

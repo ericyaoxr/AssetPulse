@@ -131,7 +131,7 @@ export default function AuthPage() {
         </div>
 
         <p className="text-center text-xs text-white/20">
-          数据存储在本地浏览器中，不会上传到任何服务器
+          数据安全存储在服务器上，登录即可访问
         </p>
       </div>
     </div>

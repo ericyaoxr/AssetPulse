@@ -1,26 +1,10 @@
 import { create } from "zustand"
 import type { Asset, AssetFormData, DeletedAsset } from "@/types"
 import { DEFAULT_CATEGORIES } from "@/types"
-import { calculateEffectiveDays, calculateDailyCost, generateId, recalculateAsset } from "@/utils/calculations"
+import { calculateEffectiveDays, calculateDailyCost, recalculateAsset } from "@/utils/calculations"
 import { exportAssets, importAssetsFromFile } from "@/utils/storage"
 import type { ExportFormat } from "@/utils/storage"
-import {
-  loadAssetsByUser,
-  safeReplaceAllAssets,
-  addAssetToDB,
-  updateAssetInDB,
-  deleteAssetFromDB,
-  loadTrashByUser,
-  saveAllTrash,
-  addTrashItem,
-  removeTrashItem,
-  clearTrashInDB,
-  loadCategoriesByUser,
-  saveAllCategories,
-  loadLocationsByUser,
-  saveAllLocations,
-  requestPersistentStorage,
-} from "@/utils/database"
+import { api } from "@/utils/api"
 import { useAuthStore } from "@/store/useAuthStore"
 
 interface AssetStore {
@@ -55,10 +39,6 @@ export function resetInitPromise(): void {
   initPromise = null
 }
 
-function getUserId(): string {
-  return useAuthStore.getState().currentUser?.id ?? ""
-}
-
 export const useAssetStore = create<AssetStore>((set, get) => ({
   assets: [],
   trash: [],
@@ -72,34 +52,31 @@ export const useAssetStore = create<AssetStore>((set, get) => ({
     set({ assets: [], trash: [], categories: [...DEFAULT_CATEGORIES], locations: [], initialized: false, loading: true })
   },
 
-  initialize: async (userId: string) => {
+  initialize: async (_userId: string) => {
     if (get().initialized) return
     if (initPromise) return initPromise
 
     initPromise = (async () => {
       set({ loading: true })
-
       try {
-        await requestPersistentStorage()
-      } catch { /* non-fatal */ }
+        const [assets, categories, locations, trash] = await Promise.all([
+          api.assets.list(),
+          api.categories.list(),
+          api.locations.list(),
+          api.trash.list(),
+        ])
 
-      try {
-        const assets = (await loadAssetsByUser(userId)).map(recalculateAsset)
+        const recalculated = assets.map(recalculateAsset)
+        const cats = categories.length > 0 ? categories : [...DEFAULT_CATEGORIES]
 
-        const savedCategories = await loadCategoriesByUser(userId)
-        const savedLocations = await loadLocationsByUser(userId)
-        const categories = savedCategories.length > 0 ? savedCategories : [...DEFAULT_CATEGORIES]
-
-        const trash = await loadTrashByUser(userId)
         const now = new Date()
         const validTrash = trash.filter((t) => {
           const deletedDate = new Date(t.deletedAt)
           const diffDays = (now.getTime() - deletedDate.getTime()) / (1000 * 60 * 60 * 24)
           return diffDays < 30
         })
-        await saveAllTrash(validTrash, userId)
 
-        set({ assets, trash: validTrash, categories, locations: savedLocations, initialized: true, loading: false })
+        set({ assets: recalculated, trash: validTrash, categories: cats, locations, initialized: true, loading: false })
       } catch (e) {
         console.error("Failed to initialize store:", e)
         set({ initialized: true, loading: false })
@@ -110,14 +87,11 @@ export const useAssetStore = create<AssetStore>((set, get) => ({
   },
 
   addAsset: async (form) => {
-    const userId = getUserId()
-    const now = new Date().toISOString()
     const effectiveDays = calculateEffectiveDays(form.purchaseDate, form.endDate || null, form.status)
     const dailyCost = calculateDailyCost(form.purchasePrice, form.recycleAmount || null, effectiveDays)
+    const now = new Date().toISOString()
 
-    const asset: Asset = {
-      id: generateId(),
-      userId,
+    const asset = await api.assets.create({
       name: form.name,
       status: form.status,
       category: form.category,
@@ -135,26 +109,24 @@ export const useAssetStore = create<AssetStore>((set, get) => ({
       aiValuation: null,
       createdAt: now,
       updatedAt: now,
-    }
+    })
 
-    await addAssetToDB(asset)
-    const assets = [...get().assets, asset]
-    set({ assets })
+    set({ assets: [...get().assets, recalculateAsset(asset)] })
   },
 
   updateAsset: async (id, form) => {
-    const updatedAsset = get().assets.find((a) => a.id === id)
-    if (!updatedAsset) return
+    const oldAsset = get().assets.find((a) => a.id === id)
+    if (!oldAsset) return
 
     const effectiveDays = calculateEffectiveDays(form.purchaseDate, form.endDate || null, form.status)
     const dailyCost = calculateDailyCost(form.purchasePrice, form.recycleAmount || null, effectiveDays)
-    const newAsset: Asset = {
-      ...updatedAsset,
+
+    const updated = await api.assets.update(id, {
       name: form.name,
       status: form.status,
       category: form.category,
       location: form.location,
-      imageUrl: form.imageUrl ?? updatedAsset.imageUrl,
+      imageUrl: form.imageUrl ?? oldAsset.imageUrl,
       purchaseDate: form.purchaseDate,
       purchasePrice: form.purchasePrice,
       endDate: form.endDate || null,
@@ -165,79 +137,66 @@ export const useAssetStore = create<AssetStore>((set, get) => ({
       rating: form.rating || null,
       note: form.note,
       updatedAt: new Date().toISOString(),
-    }
+    })
 
-    await updateAssetInDB(newAsset)
-    const assets = get().assets.map((a) => (a.id === id ? newAsset : a))
-    set({ assets })
+    set({ assets: get().assets.map((a) => (a.id === id ? recalculateAsset(updated) : a)) })
   },
 
   deleteAsset: async (id) => {
-    const userId = getUserId()
+    await api.assets.delete(id)
     const asset = get().assets.find((a) => a.id === id)
     if (!asset) return
-    const trashItem: DeletedAsset = { asset, deletedAt: new Date().toISOString(), userId }
-    await addTrashItem(trashItem)
-    await deleteAssetFromDB(id)
-    const trash = [...get().trash, trashItem]
-    const assets = get().assets.filter((a) => a.id !== id)
-    set({ assets, trash })
+    const trashItem: DeletedAsset = { asset, deletedAt: new Date().toISOString(), userId: asset.userId }
+    set({ assets: get().assets.filter((a) => a.id !== id), trash: [...get().trash, trashItem] })
   },
 
   restoreAsset: async (id) => {
+    await api.trash.restore(id)
     const trashItem = get().trash.find((t) => t.asset.id === id)
     if (!trashItem) return
-    await addAssetToDB(trashItem.asset)
-    await removeTrashItem(id)
-    const assets = [...get().assets, trashItem.asset]
+    const assets = [...get().assets, recalculateAsset(trashItem.asset)]
     const trash = get().trash.filter((t) => t.asset.id !== id)
     set({ assets, trash })
   },
 
   permanentDelete: async (id) => {
-    await removeTrashItem(id)
-    const trash = get().trash.filter((t) => t.asset.id !== id)
-    set({ trash })
+    await api.trash.delete(id)
+    set({ trash: get().trash.filter((t) => t.asset.id !== id) })
   },
 
   clearTrash: async () => {
-    const userId = getUserId()
-    await clearTrashInDB(userId)
+    await api.trash.clear()
     set({ trash: [] })
   },
 
   updateStatus: async (id, status, endDate, recycleAmount) => {
     const oldAsset = get().assets.find((a) => a.id === id)
     if (!oldAsset) return
-    const newAsset = recalculateAsset({
-      ...oldAsset,
+
+    const updated = await api.assets.update(id, {
       status,
       endDate,
       recycleAmount,
       updatedAt: new Date().toISOString(),
     })
-    await updateAssetInDB(newAsset)
-    const assets = get().assets.map((a) => (a.id === id ? newAsset : a))
-    set({ assets })
+
+    set({ assets: get().assets.map((a) => (a.id === id ? recalculateAsset(updated) : a)) })
   },
 
   updateAssetAIValuation: async (id, valuation) => {
     const oldAsset = get().assets.find((a) => a.id === id)
     if (!oldAsset) return
-    const newAsset: Asset = {
-      ...oldAsset,
+
+    const updated = await api.assets.update(id, {
       aiValuation: valuation,
       updatedAt: new Date().toISOString(),
-    }
-    await updateAssetInDB(newAsset)
-    const assets = get().assets.map((a) => (a.id === id ? newAsset : a))
-    set({ assets })
+    })
+
+    set({ assets: get().assets.map((a) => (a.id === id ? recalculateAsset(updated) : a)) })
   },
 
   recalculateAll: async () => {
-    const userId = getUserId()
     const assets = get().assets.map(recalculateAsset)
-    await safeReplaceAllAssets(assets, userId)
     set({ assets })
   },
 
@@ -246,15 +205,14 @@ export const useAssetStore = create<AssetStore>((set, get) => ({
   },
 
   importData: async (file) => {
-    const userId = getUserId()
     const imported = await importAssetsFromFile<Partial<Asset>>(file)
     const now = new Date().toISOString()
     const completeAssets: Asset[] = imported
       .filter((a) => a.name)
       .map((partial) => {
         const asset: Asset = {
-          id: partial.id || generateId(),
-          userId,
+          id: partial.id || "",
+          userId: partial.userId || "",
           name: partial.name || "",
           status: partial.status || "active",
           category: partial.category || "",
@@ -275,38 +233,30 @@ export const useAssetStore = create<AssetStore>((set, get) => ({
         }
         return recalculateAsset(asset)
       })
+
     for (const asset of completeAssets) {
-      await addAssetToDB(asset)
+      await api.assets.create(asset)
     }
-    const assets = [...get().assets, ...completeAssets]
-    set({ assets })
+    set({ assets: [...get().assets, ...completeAssets] })
   },
 
   addCategory: async (name) => {
-    const userId = getUserId()
-    const categories = [...get().categories, name]
-    await saveAllCategories(categories, userId)
-    set({ categories })
+    await api.categories.add(name)
+    set({ categories: [...get().categories, name] })
   },
 
   removeCategory: async (name) => {
-    const userId = getUserId()
-    const categories = get().categories.filter((c) => c !== name)
-    await saveAllCategories(categories, userId)
-    set({ categories })
+    await api.categories.remove(name)
+    set({ categories: get().categories.filter((c) => c !== name) })
   },
 
   addLocation: async (name) => {
-    const userId = getUserId()
-    const locations = [...get().locations, name]
-    await saveAllLocations(locations, userId)
-    set({ locations })
+    await api.locations.add(name)
+    set({ locations: [...get().locations, name] })
   },
 
   removeLocation: async (name) => {
-    const userId = getUserId()
-    const locations = get().locations.filter((l) => l !== name)
-    await saveAllLocations(locations, userId)
-    set({ locations })
+    await api.locations.remove(name)
+    set({ locations: get().locations.filter((l) => l !== name) })
   },
 }))
