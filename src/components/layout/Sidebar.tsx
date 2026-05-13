@@ -1,6 +1,6 @@
 import { useRef, useState } from "react"
 import { Link, useLocation } from "react-router-dom"
-import { LayoutDashboard, Package, PlusCircle, Download, Upload, Activity, Trash2, TrendingUp, FileSpreadsheet, FileText, ChevronDown, Sparkles, LogOut } from "lucide-react"
+import { LayoutDashboard, Package, PlusCircle, Download, Upload, Activity, Trash2, TrendingUp, FileSpreadsheet, FileText, ChevronDown, Sparkles, LogOut, DatabaseBackup } from "lucide-react"
 import { useAssetStore } from "@/store/useAssetStore"
 import { useAuthStore } from "@/store/useAuthStore"
 import type { ExportFormat } from "@/utils/storage"
@@ -12,6 +12,7 @@ const navItems = [
   { to: "/trash", label: "回收站", icon: Trash2, badge: true },
   { to: "/review", label: "盈亏复盘", icon: TrendingUp },
   { to: "/settings/ai", label: "AI 估值设置", icon: Sparkles },
+  { to: "/settings/backup", label: "数据备份", icon: DatabaseBackup },
 ]
 
 const exportFormats: { value: ExportFormat; label: string; icon: React.ElementType }[] = [

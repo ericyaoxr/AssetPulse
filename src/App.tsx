@@ -8,6 +8,7 @@ import AssetEdit from "@/pages/AssetEdit"
 import Trash from "@/pages/Trash"
 import Review from "@/pages/Review"
 import AISettings from "@/pages/AISettings"
+import DataBackup from "@/pages/DataBackup"
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
           <Route path="/trash" element={<Trash />} />
           <Route path="/review" element={<Review />} />
           <Route path="/settings/ai" element={<AISettings />} />
+          <Route path="/settings/backup" element={<DataBackup />} />
         </Route>
       </Routes>
     </Router>
