@@ -36,7 +36,7 @@ const AssetDetail = ({ asset }: AssetDetailProps) => {
   const aiResult = asset.aiValuation
 
   const handleAIValuation = async () => {
-    const config = loadAIConfig()
+    const config = await loadAIConfig()
     if (!config || !config.baseUrl || !config.model) {
       setAiError("请先在 AI 估值设置中配置 AI 服务")
       return

@@ -1,7 +1,7 @@
 import { Router } from "express"
 import bcrypt from "bcryptjs"
 import db from "../db.js"
-import { generateToken } from "../middleware/auth.js"
+import { generateToken, authMiddleware } from "../middleware/auth.js"
 
 const router = Router()
 
@@ -51,6 +51,33 @@ router.post("/login", (req, res) => {
     token,
     user: { id: user.id, username: user.username, createdAt: user.created_at },
   })
+})
+
+router.get("/me", authMiddleware, (req, res) => {
+  const user = db.prepare("SELECT id, username, created_at FROM users WHERE id = ?").get(req.userId)
+  if (!user) return res.status(404).json({ error: "用户不存在" })
+  res.json({ id: user.id, username: user.username, createdAt: user.created_at })
+})
+
+router.put("/password", authMiddleware, (req, res) => {
+  const { oldPassword, newPassword } = req.body
+  if (!oldPassword || !newPassword) {
+    return res.status(400).json({ error: "请输入旧密码和新密码" })
+  }
+  if (newPassword.length < 4) {
+    return res.status(400).json({ error: "新密码至少4位" })
+  }
+
+  const user = db.prepare("SELECT * FROM users WHERE id = ?").get(req.userId)
+  if (!user) return res.status(404).json({ error: "用户不存在" })
+
+  if (!bcrypt.compareSync(oldPassword, user.password_hash)) {
+    return res.status(401).json({ error: "旧密码错误" })
+  }
+
+  const newHash = bcrypt.hashSync(newPassword, 10)
+  db.prepare("UPDATE users SET password_hash = ? WHERE id = ?").run(newHash, req.userId)
+  res.json({ ok: true })
 })
 
 export default router

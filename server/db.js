@@ -72,9 +72,18 @@ db.exec(`
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
   );
 
+  CREATE TABLE IF NOT EXISTS settings (
+    user_id TEXT NOT NULL,
+    key TEXT NOT NULL,
+    value TEXT NOT NULL,
+    PRIMARY KEY (user_id, key),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+
   CREATE INDEX IF NOT EXISTS idx_assets_user_id ON assets(user_id);
   CREATE INDEX IF NOT EXISTS idx_assets_status ON assets(user_id, status);
   CREATE INDEX IF NOT EXISTS idx_trash_user_id ON trash(user_id);
+  CREATE INDEX IF NOT EXISTS idx_settings_user_id ON settings(user_id);
 `)
 
 export default db

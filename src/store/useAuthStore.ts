@@ -10,9 +10,10 @@ interface AuthStore {
   register: (username: string, password: string) => Promise<UserProfile>
   login: (username: string, password: string) => Promise<UserProfile>
   logout: () => void
+  changePassword: (oldPassword: string, newPassword: string) => Promise<void>
 }
 
-export const useAuthStore = create<AuthStore>((set) => ({
+export const useAuthStore = create<AuthStore>((set, get) => ({
   currentUser: null,
   loading: true,
   initialized: false,
@@ -24,19 +25,12 @@ export const useAuthStore = create<AuthStore>((set) => ({
       return
     }
     try {
-      const assets = await api.assets.list()
-      const userId = assets.length > 0 ? assets[0].userId : ""
-      const username = localStorage.getItem("assetpulse_username") || ""
-      if (userId && username) {
-        set({
-          currentUser: { id: userId, username, createdAt: "" },
-          loading: false,
-          initialized: true,
-        })
-      } else {
-        clearToken()
-        set({ currentUser: null, loading: false, initialized: true })
-      }
+      const user = await api.auth.me()
+      set({
+        currentUser: { id: user.id, username: user.username, createdAt: user.createdAt },
+        loading: false,
+        initialized: true,
+      })
     } catch {
       clearToken()
       set({ currentUser: null, loading: false, initialized: true })
@@ -46,7 +40,6 @@ export const useAuthStore = create<AuthStore>((set) => ({
   register: async (username, password) => {
     const res = await api.auth.register(username, password)
     setToken(res.token)
-    localStorage.setItem("assetpulse_username", res.user.username)
     const profile: UserProfile = { id: res.user.id, username: res.user.username, createdAt: res.user.createdAt }
     set({ currentUser: profile })
     return profile
@@ -55,7 +48,6 @@ export const useAuthStore = create<AuthStore>((set) => ({
   login: async (username, password) => {
     const res = await api.auth.login(username, password)
     setToken(res.token)
-    localStorage.setItem("assetpulse_username", res.user.username)
     const profile: UserProfile = { id: res.user.id, username: res.user.username, createdAt: res.user.createdAt }
     set({ currentUser: profile })
     return profile
@@ -63,7 +55,10 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   logout: () => {
     clearToken()
-    localStorage.removeItem("assetpulse_username")
     set({ currentUser: null })
+  },
+
+  changePassword: async (oldPassword, newPassword) => {
+    await api.auth.changePassword(oldPassword, newPassword)
   },
 }))

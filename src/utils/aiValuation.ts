@@ -1,12 +1,7 @@
 import type { AIProviderConfig, AIValuationResult, Asset } from "@/types"
-import { useAuthStore } from "@/store/useAuthStore"
+import { api } from "@/utils/api"
 
-const AI_CONFIG_PREFIX = "assetpulse_ai_config_"
-
-function getConfigKey(): string {
-  const userId = useAuthStore.getState().currentUser?.id
-  return userId ? `${AI_CONFIG_PREFIX}${userId}` : AI_CONFIG_PREFIX + "default"
-}
+const AI_SETTINGS_KEY = "ai_config"
 
 export function buildValuationPrompt(asset: Asset): string {
   const purchaseDate = new Date(asset.purchaseDate)
@@ -105,15 +100,15 @@ export async function estimateAssetValue(config: AIProviderConfig, asset: Asset)
   return result
 }
 
-export function saveAIConfig(config: AIProviderConfig): void {
-  localStorage.setItem(getConfigKey(), JSON.stringify(config))
+export async function saveAIConfig(config: AIProviderConfig): Promise<void> {
+  await api.settings.set(AI_SETTINGS_KEY, JSON.stringify(config))
 }
 
-export function loadAIConfig(): AIProviderConfig | null {
-  const raw = localStorage.getItem(getConfigKey())
-  if (!raw) return null
+export async function loadAIConfig(): Promise<AIProviderConfig | null> {
   try {
-    return JSON.parse(raw) as AIProviderConfig
+    const res = await api.settings.get(AI_SETTINGS_KEY)
+    if (!res || !res.value) return null
+    return JSON.parse(res.value) as AIProviderConfig
   } catch {
     return null
   }

@@ -1,6 +1,10 @@
 import { useRef, useState } from "react"
 import { Link, useLocation } from "react-router-dom"
-import { LayoutDashboard, Package, PlusCircle, Download, Upload, Activity, Trash2, TrendingUp, FileSpreadsheet, FileText, ChevronDown, Sparkles, LogOut, DatabaseBackup } from "lucide-react"
+import {
+  LayoutDashboard, Package, PlusCircle, Download, Upload, Activity,
+  Trash2, TrendingUp, FileSpreadsheet, FileText, ChevronDown, LogOut,
+  Settings, Sparkles, DatabaseBackup, User,
+} from "lucide-react"
 import { useAssetStore } from "@/store/useAssetStore"
 import { useAuthStore } from "@/store/useAuthStore"
 import type { ExportFormat } from "@/utils/storage"
@@ -11,7 +15,11 @@ const navItems = [
   { to: "/assets/new", label: "添加资产", icon: PlusCircle },
   { to: "/trash", label: "回收站", icon: Trash2, badge: true },
   { to: "/review", label: "盈亏复盘", icon: TrendingUp },
-  { to: "/settings/ai", label: "AI 估值设置", icon: Sparkles },
+]
+
+const settingsItems = [
+  { to: "/settings/account", label: "账户管理", icon: User },
+  { to: "/settings/ai", label: "AI 估值", icon: Sparkles },
   { to: "/settings/backup", label: "数据备份", icon: DatabaseBackup },
 ]
 
@@ -30,7 +38,10 @@ export default function Sidebar() {
   const currentUser = useAuthStore((s) => s.currentUser)
   const logout = useAuthStore((s) => s.logout)
   const [showExportMenu, setShowExportMenu] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const [importError, setImportError] = useState<string | null>(null)
+
+  const isSettingsActive = location.pathname.startsWith("/settings")
 
   function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -60,7 +71,7 @@ export default function Sidebar() {
         </span>
       </div>
 
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = location.pathname === item.to
           const Icon = item.icon
@@ -84,6 +95,43 @@ export default function Sidebar() {
             </Link>
           )
         })}
+
+        <div>
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+              isSettingsActive
+                ? "bg-emerald/10 text-emerald"
+                : "text-gray-400 hover:bg-white/5 hover:text-white"
+            }`}
+          >
+            <Settings className="h-5 w-5" />
+            系统设置
+            <ChevronDown className={`ml-auto h-4 w-4 transition-transform ${showSettings ? "rotate-180" : ""}`} />
+          </button>
+          {showSettings && (
+            <div className="mt-1 ml-4 space-y-1 border-l border-white/10 pl-3">
+              {settingsItems.map((item) => {
+                const isActive = location.pathname === item.to
+                const Icon = item.icon
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
+                      isActive
+                        ? "bg-emerald/10 text-emerald"
+                        : "text-white/50 hover:bg-white/5 hover:text-white"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {item.label}
+                  </Link>
+                )
+              })}
+            </div>
+          )}
+        </div>
       </nav>
 
       <div className="border-t border-white/5 px-3 py-4">

@@ -13,15 +13,18 @@ export default function AISettings() {
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null)
   const [saveMsg, setSaveMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const cfg = loadAIConfig()
-    if (cfg) {
-      setProvider(cfg.provider)
-      setApiKey(cfg.apiKey)
-      setBaseUrl(cfg.baseUrl)
-      setModel(cfg.model)
-    }
+    loadAIConfig().then((cfg) => {
+      if (cfg) {
+        setProvider(cfg.provider)
+        setApiKey(cfg.apiKey)
+        setBaseUrl(cfg.baseUrl)
+        setModel(cfg.model)
+      }
+      setLoading(false)
+    })
   }, [])
 
   const handleProviderChange = (label: string) => {
@@ -68,7 +71,7 @@ export default function AISettings() {
     }
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!apiKey.trim()) {
       setSaveMsg({ ok: false, text: "请填写 API Key" })
       return
@@ -78,13 +81,25 @@ export default function AISettings() {
       return
     }
     setSaveMsg(null)
-    const cfg: AIProviderConfig = { provider, apiKey: apiKey.trim(), baseUrl, model }
-    saveAIConfig(cfg)
-    setSaveMsg({ ok: true, text: "保存成功" })
-    setTimeout(() => setSaveMsg(null), 3000)
+    try {
+      const cfg: AIProviderConfig = { provider, apiKey: apiKey.trim(), baseUrl, model }
+      await saveAIConfig(cfg)
+      setSaveMsg({ ok: true, text: "保存成功" })
+      setTimeout(() => setSaveMsg(null), 3000)
+    } catch (e) {
+      setSaveMsg({ ok: false, text: e instanceof Error ? e.message : "保存失败" })
+    }
   }
 
   const selectedLabel = PRESET_PROVIDERS.find((p) => p.provider === provider)?.label ?? ""
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-6 w-6 animate-spin text-emerald-400" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -202,7 +217,7 @@ export default function AISettings() {
       </div>
 
       <p className="text-xs text-white/30">
-        API Key 仅存储在本地浏览器中，不会上传到任何服务器
+        API Key 加密存储在服务器数据库中
       </p>
     </div>
   )

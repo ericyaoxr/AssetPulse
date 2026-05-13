@@ -52,6 +52,13 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ username, password }),
       }),
+    me: () =>
+      request<{ id: string; username: string; createdAt: string }>("/auth/me"),
+    changePassword: (oldPassword: string, newPassword: string) =>
+      request<{ ok: boolean }>("/auth/password", {
+        method: "PUT",
+        body: JSON.stringify({ oldPassword, newPassword }),
+      }),
   },
   assets: {
     list: () =>
@@ -119,5 +126,18 @@ export const api = {
         method: "POST",
         body: JSON.stringify(data),
       }),
+  },
+  settings: {
+    list: () =>
+      request<Record<string, string>>("/settings"),
+    get: (key: string) =>
+      request<{ key: string; value: string } | null>(`/settings/${encodeURIComponent(key)}`),
+    set: (key: string, value: string) =>
+      request<{ ok: boolean }>(`/settings/${encodeURIComponent(key)}`, {
+        method: "PUT",
+        body: JSON.stringify({ value }),
+      }),
+    remove: (key: string) =>
+      request<{ ok: boolean }>(`/settings/${encodeURIComponent(key)}`, { method: "DELETE" }),
   },
 }
