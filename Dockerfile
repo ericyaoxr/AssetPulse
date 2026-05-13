@@ -5,8 +5,26 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-FROM nginx:alpine
-COPY --from=build /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+FROM node:22-alpine AS server
+RUN apk add --no-cache python3 make g++
+WORKDIR /app
+COPY server/package.json server/package-lock.json* ./
+RUN npm install
+COPY server/ ./
+
+FROM node:22-alpine
+WORKDIR /app
+COPY --from=server /app/node_modules ./node_modules
+COPY --from=server /app/*.js ./
+RUN mkdir -p /app/routes /app/middleware
+COPY --from=server /app/routes ./routes
+COPY --from=server /app/middleware ./middleware
+COPY --from=build /app/dist ./dist
+
+RUN mkdir -p /app/data
+
+ENV PORT=3000
+ENV DATA_DIR=/app/data
+EXPOSE 3000
+
+CMD ["node", "index.js"]
