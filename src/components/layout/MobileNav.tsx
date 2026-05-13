@@ -1,12 +1,12 @@
 import { Link, useLocation } from "react-router-dom"
-import { LayoutDashboard, Package, PlusCircle, TrendingUp, Sparkles } from "lucide-react"
+import { LayoutDashboard, Package, PlusCircle, TrendingUp, Settings } from "lucide-react"
 
 const tabs = [
   { to: "/", label: "总览", icon: LayoutDashboard },
   { to: "/assets", label: "资产", icon: Package },
   { to: "/assets/new", label: "添加", icon: PlusCircle },
   { to: "/review", label: "复盘", icon: TrendingUp },
-  { to: "/settings/ai", label: "AI", icon: Sparkles },
+  { to: "/settings/backup", label: "设置", icon: Settings },
 ]
 
 export default function MobileNav() {
