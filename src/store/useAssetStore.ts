@@ -5,7 +5,6 @@ import { calculateEffectiveDays, calculateDailyCost, recalculateAsset } from "@/
 import { exportAssets, importAssetsFromFile } from "@/utils/storage"
 import type { ExportFormat } from "@/utils/storage"
 import { api } from "@/utils/api"
-import { useAuthStore } from "@/store/useAuthStore"
 
 interface AssetStore {
   assets: Asset[]
@@ -53,6 +52,7 @@ export const useAssetStore = create<AssetStore>((set, get) => ({
   },
 
   initialize: async (_userId: string) => {
+    void _userId
     if (get().initialized) return
     if (initPromise) return initPromise
 

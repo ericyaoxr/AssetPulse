@@ -8,13 +8,11 @@ import {
   Check,
   Loader2,
   HardDrive,
-  Clock,
   Info,
 } from "lucide-react"
 import { api } from "@/utils/api"
-import { useAssetStore } from "@/store/useAssetStore"
+import { useAssetStore, resetInitPromise } from "@/store/useAssetStore"
 import { useAuthStore } from "@/store/useAuthStore"
-import { resetInitPromise } from "@/store/useAssetStore"
 
 export default function DataBackup() {
   const [exporting, setExporting] = useState(false)

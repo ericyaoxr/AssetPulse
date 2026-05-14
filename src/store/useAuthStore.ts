@@ -13,7 +13,7 @@ interface AuthStore {
   changePassword: (oldPassword: string, newPassword: string) => Promise<void>
 }
 
-export const useAuthStore = create<AuthStore>((set, get) => ({
+export const useAuthStore = create<AuthStore>((set) => ({
   currentUser: null,
   loading: true,
   initialized: false,
