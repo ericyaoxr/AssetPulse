@@ -40,6 +40,14 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return res.json()
 }
 
+export interface ImageRecognitionResult {
+  name: string
+  category: string
+  estimatedPrice: number
+  brand: string
+  description: string
+}
+
 export const api = {
   auth: {
     register: (username: string, password: string) =>
@@ -139,5 +147,12 @@ export const api = {
       }),
     remove: (key: string) =>
       request<{ ok: boolean }>(`/settings/${encodeURIComponent(key)}`, { method: "DELETE" }),
+  },
+  ai: {
+    recognize: (image: string) =>
+      request<ImageRecognitionResult>("/ai/recognize", {
+        method: "POST",
+        body: JSON.stringify({ image }),
+      }),
   },
 }
