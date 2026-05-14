@@ -11,7 +11,7 @@ import backupRoutes from "./routes/backup.js"
 import settingsRoutes from "./routes/settings.js"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 8642
 
 const app = express()
 

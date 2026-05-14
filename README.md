@@ -139,7 +139,7 @@ AssetPulse/
 
 | 变量 | 默认值 | 说明 |
 |------|--------|------|
-| `PORT` | `3000` | 服务端口 |
+| `PORT` | `8642` | 服务端口 |
 | `JWT_SECRET` | `assetpulse_secret_key_2024` | JWT 签名密钥 |
 | `DATA_DIR` | `./data` | SQLite 数据库目录 |
 
