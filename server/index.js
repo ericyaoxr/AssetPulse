@@ -9,6 +9,7 @@ import categoryRoutes from "./routes/categories.js"
 import locationRoutes from "./routes/locations.js"
 import backupRoutes from "./routes/backup.js"
 import settingsRoutes from "./routes/settings.js"
+import aiRoutes from "./routes/ai.js"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PORT = process.env.PORT || 8642
@@ -25,6 +26,7 @@ app.use("/api/categories", categoryRoutes)
 app.use("/api/locations", locationRoutes)
 app.use("/api/backup", backupRoutes)
 app.use("/api/settings", settingsRoutes)
+app.use("/api/ai", aiRoutes)
 
 const distPath = process.env.DIST_DIR || path.join(__dirname, "dist")
 app.use(express.static(distPath))

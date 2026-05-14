@@ -1,10 +1,11 @@
 import { useState, useMemo, useRef } from "react"
-import { Calculator, Star, Camera, X } from "lucide-react"
+import { Calculator, Star, Camera, X, Sparkles, Loader2 } from "lucide-react"
 import type { Asset, AssetFormData, AssetStatus } from "@/types"
 import { formatCurrency, formatDays } from "@/utils/format"
 import { computeAssetFromForm } from "@/utils/calculations"
 import { imageFileToBase64 } from "@/utils/storage"
 import { useAssetStore } from "@/store/useAssetStore"
+import { api } from "@/utils/api"
 
 interface AssetFormProps {
   initialData?: Asset
@@ -30,6 +31,8 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
   const [newLocation, setNewLocation] = useState("")
   const [showNewCategory, setShowNewCategory] = useState(false)
   const [showNewLocation, setShowNewLocation] = useState(false)
+  const [recognizing, setRecognizing] = useState(false)
+  const [recognizeError, setRecognizeError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { categories, locations, addCategory, addLocation } = useAssetStore()
@@ -51,6 +54,45 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
     if (!file) return
     const base64 = await imageFileToBase64(file)
     setImageUrl(base64)
+  }
+
+  const handleRecognize = async () => {
+    if (!imageUrl) {
+      setRecognizeError("请先上传或拍摄物品图片")
+      return
+    }
+
+    setRecognizing(true)
+    setRecognizeError(null)
+
+    try {
+      const result = await api.ai.recognize(imageUrl)
+
+      if (!result.name) {
+        setRecognizeError("无法识别图片中的物品，请手动填写")
+        return
+      }
+
+      if (result.name && !name) {
+        setName(result.brand ? `${result.brand} ${result.name}` : result.name)
+      }
+      if (result.category && !category) {
+        const validCategories = ["数码电子", "硬通货", "非标品", "生活家居", "服饰鞋包", "运动健身", "游戏娱乐", "学习教育", "其他"]
+        if (validCategories.includes(result.category)) {
+          setCategory(result.category)
+        }
+      }
+      if (result.estimatedPrice > 0 && !purchasePrice) {
+        setPurchasePrice(result.estimatedPrice.toString())
+      }
+      if (result.description && !note) {
+        setNote(result.description)
+      }
+    } catch (e) {
+      setRecognizeError(e instanceof Error ? e.message : "识别失败，请稍后重试")
+    } finally {
+      setRecognizing(false)
+    }
   }
 
   const handleCategoryAdd = () => {
@@ -153,19 +195,53 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
       <div>
         <label className="block text-sm text-white/70 mb-1">图片</label>
         <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-        {imageUrl ? (
-          <div className="relative inline-block">
-            <img src={imageUrl} alt="" className="h-20 w-20 rounded-lg object-cover border border-white/10" />
-            <button type="button" onClick={() => setImageUrl(null)}
-              className="absolute -top-2 -right-2 rounded-full bg-red-500 p-0.5 text-white hover:bg-red-400">
-              <X className="h-3 w-3" />
+        <div className="flex items-start gap-3">
+          {imageUrl ? (
+            <div className="relative inline-block">
+              <img src={imageUrl} alt="" className="h-20 w-20 rounded-lg object-cover border border-white/10" />
+              <button type="button" onClick={() => setImageUrl(null)}
+                className="absolute -top-2 -right-2 rounded-full bg-red-500 p-0.5 text-white hover:bg-red-400">
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ) : (
+            <button type="button" onClick={() => fileInputRef.current?.click()}
+              className="flex h-20 w-20 items-center justify-center rounded-lg border border-dashed border-white/20 hover:border-emerald-500/50 hover:bg-white/5">
+              <Camera className="h-6 w-6 text-white/40" />
             </button>
+          )}
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={imageUrl ? handleRecognize : () => fileInputRef.current?.click()}
+              disabled={recognizing}
+              className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-3 py-2 text-xs font-medium text-white transition-all hover:from-violet-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {recognizing ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  识别中...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-3.5 w-3.5" />
+                  {imageUrl ? "AI 智能识别" : "拍照识别"}
+                </>
+              )}
+            </button>
+            {imageUrl && (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="text-xs text-white/40 hover:text-white/60 transition-colors"
+              >
+                更换图片
+              </button>
+            )}
           </div>
-        ) : (
-          <button type="button" onClick={() => fileInputRef.current?.click()}
-            className="flex h-20 w-20 items-center justify-center rounded-lg border border-dashed border-white/20 hover:border-emerald-500/50 hover:bg-white/5">
-            <Camera className="h-6 w-6 text-white/40" />
-          </button>
+        </div>
+        {recognizeError && (
+          <p className="mt-1.5 text-xs text-red-400">{recognizeError}</p>
         )}
       </div>
 
