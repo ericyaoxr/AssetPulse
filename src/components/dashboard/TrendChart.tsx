@@ -113,7 +113,6 @@ export default function TrendChart({ assets }: TrendChartProps) {
 
   const chartTextColor = getCSSVar("--chart-text") || "rgba(255,255,255,0.4)"
   const chartTextLabelColor = getCSSVar("--chart-text-label") || "rgba(255,255,255,0.6)"
-  const chartGridColor = getCSSVar("--chart-grid") || "rgba(255,255,255,0.06)"
   const purchaseColor = getCSSVar("--chart-purchase") || "#F59E0B"
   const dailyCostColor = getCSSVar("--chart-daily-cost") || "#10B981"
 
