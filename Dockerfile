@@ -1,7 +1,7 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm install
+RUN npm install --registry=https://registry.npmmirror.com
 COPY . .
 RUN npm run build
 
@@ -9,7 +9,7 @@ FROM node:22-alpine AS server
 RUN apk add --no-cache python3 make g++
 WORKDIR /app
 COPY server/package.json server/package-lock.json* ./
-RUN npm install
+RUN npm install --registry=https://registry.npmmirror.com
 COPY server/ ./
 
 FROM node:22-alpine
