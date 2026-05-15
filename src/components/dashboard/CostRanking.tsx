@@ -15,12 +15,19 @@ interface CostRankingProps {
   assets: Asset[]
 }
 
+function getCSSVar(name: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+}
+
 function getBarColor(dailyCost: number, maxCost: number): string {
-  if (maxCost === 0) return "#3B82F6"
+  const barHigh = getCSSVar("--chart-bar-high") || "#F59E0B"
+  const barMid = getCSSVar("--chart-bar-mid") || "#10B981"
+  const barLow = getCSSVar("--chart-bar-low") || "#3B82F6"
+  if (maxCost === 0) return barLow
   const ratio = dailyCost / maxCost
-  if (ratio > 0.7) return "#F59E0B"
-  if (ratio > 0.3) return "#10B981"
-  return "#3B82F6"
+  if (ratio > 0.7) return barHigh
+  if (ratio > 0.3) return barMid
+  return barLow
 }
 
 interface ChartData {
@@ -39,7 +46,15 @@ function CustomTooltip({
   if (!active || !payload?.length) return null
   const data = payload[0].payload
   return (
-    <div className="rounded-lg border border-edge bg-ink/95 px-3 py-2 shadow-xl backdrop-blur-md">
+    <div
+      className="rounded-xl px-3.5 py-2.5 shadow-xl"
+      style={{
+        backgroundColor: getCSSVar("--chart-tooltip-bg"),
+        border: `1px solid ${getCSSVar("--chart-tooltip-border")}`,
+        backdropFilter: "blur(20px) saturate(180%)",
+        WebkitBackdropFilter: "blur(20px) saturate(180%)",
+      }}
+    >
       <p className="text-sm text-content-secondary">{data.name}</p>
       <p className="text-sm font-semibold text-content-primary">
         {formatCurrency(data.dailyCost)}/天
@@ -61,6 +76,9 @@ export default function CostRanking({ assets }: CostRankingProps) {
     }))
   }, [assets])
 
+  const chartTextColor = getCSSVar("--chart-text") || "rgba(255,255,255,0.4)"
+  const chartTextLabelColor = getCSSVar("--chart-text-label") || "rgba(255,255,255,0.6)"
+
   return (
     <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-5">
       <h3 className="mb-4 text-base font-semibold text-content-primary">日均成本排行</h3>
@@ -77,7 +95,7 @@ export default function CostRanking({ assets }: CostRankingProps) {
           >
             <XAxis
               type="number"
-              tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 12 }}
+              tick={{ fill: chartTextColor, fontSize: 12 }}
               axisLine={false}
               tickLine={false}
               tickFormatter={(v: number) => `¥${v}`}
@@ -86,7 +104,7 @@ export default function CostRanking({ assets }: CostRankingProps) {
               type="category"
               dataKey="name"
               width={80}
-              tick={{ fill: "rgba(255,255,255,0.6)", fontSize: 12 }}
+              tick={{ fill: chartTextLabelColor, fontSize: 12 }}
               axisLine={false}
               tickLine={false}
             />

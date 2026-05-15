@@ -25,6 +25,10 @@ interface ChartData {
   dailyCostSum: number
 }
 
+function getCSSVar(name: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+}
+
 function CustomTooltip({
   active,
   payload,
@@ -36,7 +40,15 @@ function CustomTooltip({
 }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="rounded-lg border border-edge bg-ink/95 px-3 py-2 shadow-xl backdrop-blur-md">
+    <div
+      className="rounded-xl px-3.5 py-2.5 shadow-xl"
+      style={{
+        backgroundColor: getCSSVar("--chart-tooltip-bg"),
+        border: `1px solid ${getCSSVar("--chart-tooltip-border")}`,
+        backdropFilter: "blur(20px) saturate(180%)",
+        WebkitBackdropFilter: "blur(20px) saturate(180%)",
+      }}
+    >
       <p className="text-sm text-content-secondary mb-1">{label}</p>
       {payload.map((entry) => (
         <p key={entry.dataKey} className="text-sm font-semibold" style={{ color: entry.color }}>
@@ -99,6 +111,12 @@ export default function TrendChart({ assets }: TrendChartProps) {
     return result
   }, [assets])
 
+  const chartTextColor = getCSSVar("--chart-text") || "rgba(255,255,255,0.4)"
+  const chartTextLabelColor = getCSSVar("--chart-text-label") || "rgba(255,255,255,0.6)"
+  const chartGridColor = getCSSVar("--chart-grid") || "rgba(255,255,255,0.06)"
+  const purchaseColor = getCSSVar("--chart-purchase") || "#F59E0B"
+  const dailyCostColor = getCSSVar("--chart-daily-cost") || "#10B981"
+
   return (
     <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-5">
       <h3 className="mb-4 text-base font-semibold text-content-primary">消费趋势</h3>
@@ -111,20 +129,20 @@ export default function TrendChart({ assets }: TrendChartProps) {
           <ComposedChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
             <defs>
               <linearGradient id="purchaseGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#F59E0B" stopOpacity={0.3} />
-                <stop offset="100%" stopColor="#F59E0B" stopOpacity={0} />
+                <stop offset="0%" stopColor={purchaseColor} stopOpacity={0.3} />
+                <stop offset="100%" stopColor={purchaseColor} stopOpacity={0} />
               </linearGradient>
             </defs>
             <XAxis
               dataKey="label"
-              tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }}
+              tick={{ fill: chartTextColor, fontSize: 11 }}
               axisLine={false}
               tickLine={false}
               interval="preserveStartEnd"
             />
             <YAxis
               yAxisId="left"
-              tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }}
+              tick={{ fill: chartTextColor, fontSize: 11 }}
               axisLine={false}
               tickLine={false}
               tickFormatter={(v: number) => `¥${v}`}
@@ -132,16 +150,16 @@ export default function TrendChart({ assets }: TrendChartProps) {
             <YAxis
               yAxisId="right"
               orientation="right"
-              tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }}
+              tick={{ fill: chartTextColor, fontSize: 11 }}
               axisLine={false}
               tickLine={false}
               tickFormatter={(v: number) => `¥${v}`}
             />
             <Tooltip content={<CustomTooltip />} />
             <Legend
-              wrapperStyle={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}
+              wrapperStyle={{ fontSize: 12 }}
               formatter={(value: string) => (
-                <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 12 }}>
+                <span style={{ color: chartTextLabelColor, fontSize: 12 }}>
                   {value === "purchaseAmount" ? "月度购入" : "月度日均成本"}
                 </span>
               )}
@@ -150,7 +168,7 @@ export default function TrendChart({ assets }: TrendChartProps) {
               yAxisId="left"
               type="monotone"
               dataKey="purchaseAmount"
-              stroke="#F59E0B"
+              stroke={purchaseColor}
               strokeWidth={2}
               fill="url(#purchaseGradient)"
               name="purchaseAmount"
@@ -159,9 +177,9 @@ export default function TrendChart({ assets }: TrendChartProps) {
               yAxisId="right"
               type="monotone"
               dataKey="dailyCostSum"
-              stroke="#10B981"
+              stroke={dailyCostColor}
               strokeWidth={2}
-              dot={{ r: 3, fill: "#10B981" }}
+              dot={{ r: 3, fill: dailyCostColor }}
               activeDot={{ r: 5 }}
               name="dailyCostSum"
             />

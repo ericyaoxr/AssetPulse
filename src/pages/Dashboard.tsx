@@ -7,6 +7,10 @@ import TrendChart from "@/components/dashboard/TrendChart"
 import StatusDistribution from "@/components/dashboard/StatusDistribution"
 import { formatCurrency, formatDays } from "@/utils/format"
 
+function getCSSVar(name: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+}
+
 export default function Dashboard() {
   const { assets, recalculateAll } = useAssetStore()
 
@@ -38,6 +42,10 @@ export default function Dashboard() {
     () => Math.max(...categoryData.map((c) => c.count), 1),
     [categoryData]
   )
+
+  const categoryBarFrom = getCSSVar("--chart-bar-low") || "#3B82F6"
+  const categoryBarTo = getCSSVar("--chart-status-recycled") || "#60A5FA"
+  const tagIconColor = getCSSVar("--chart-bar-low") || "#3B82F6"
 
   return (
     <div className="space-y-6">
@@ -71,7 +79,7 @@ export default function Dashboard() {
                 return (
                   <div
                     key={a.id}
-                    className="rounded-lg border border-edge-subtle bg-white/[0.03] p-3"
+                    className="rounded-lg border border-edge-subtle bg-surface-secondary p-3"
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-content-primary truncate mr-2">{a.name}</span>
@@ -95,7 +103,7 @@ export default function Dashboard() {
 
         <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-5">
           <div className="mb-4 flex items-center gap-2">
-            <Tag className="h-5 w-5 text-blue-400" />
+            <Tag className="h-5 w-5" style={{ color: tagIconColor }} />
             <h3 className="text-base font-semibold text-content-primary">分类概览</h3>
           </div>
           {categoryData.length === 0 ? (
@@ -110,10 +118,13 @@ export default function Dashboard() {
                       {cat.count} 件 · {formatCurrency(cat.totalInvestment)}
                     </span>
                   </div>
-                  <div className="h-2 rounded-full bg-white/10">
+                  <div className="h-2 rounded-full bg-surface-hover">
                     <div
-                      className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-400"
-                      style={{ width: `${(cat.count / maxCategoryCount) * 100}%` }}
+                      className="h-2 rounded-full"
+                      style={{
+                        width: `${(cat.count / maxCategoryCount) * 100}%`,
+                        background: `linear-gradient(to right, ${categoryBarFrom}, ${categoryBarTo})`,
+                      }}
                     />
                   </div>
                 </div>

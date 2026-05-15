@@ -1,8 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Space+Grotesk:wght@300..700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Space+Grotesk:wght@300..700&display=swap');
 
 :root {
   font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -40,38 +40,87 @@
   --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.05);
   --radius-card: 0.75rem;
   --backdrop-blur: blur(12px);
+
+  --chart-text: rgba(255, 255, 255, 0.4);
+  --chart-text-label: rgba(255, 255, 255, 0.6);
+  --chart-grid: rgba(255, 255, 255, 0.06);
+  --chart-purchase: #F59E0B;
+  --chart-daily-cost: #10B981;
+  --chart-bar-high: #F59E0B;
+  --chart-bar-mid: #10B981;
+  --chart-bar-low: #3B82F6;
+  --chart-status-active: #10B981;
+  --chart-status-recycled: #3B82F6;
+  --chart-status-scrapped: #F59E0B;
+  --chart-tooltip-bg: rgba(13, 27, 30, 0.95);
+  --chart-tooltip-border: rgba(255, 255, 255, 0.1);
+  --stat-gradient-emerald-from: #10B981;
+  --stat-gradient-emerald-to: #34D399;
+  --stat-gradient-blue-from: #3B82F6;
+  --stat-gradient-blue-to: #60A5FA;
+  --stat-gradient-amber-from: #F59E0B;
+  --stat-gradient-amber-to: #FBBF24;
+  --stat-gradient-purple-from: #8B5CF6;
+  --stat-gradient-purple-to: #A78BFA;
+  --stat-gradient-teal-from: #14B8A6;
+  --stat-gradient-teal-to: #22D3EE;
 }
 
 [data-theme="apple"] {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", "DM Sans", sans-serif;
+  letter-spacing: -0.01em;
 
-  --bg-primary: #f5f5f7;
-  --bg-secondary: rgba(255, 255, 255, 0.8);
-  --bg-tertiary: rgba(255, 255, 255, 0.6);
+  --bg-primary: #f2f2f7;
+  --bg-secondary: rgba(255, 255, 255, 0.72);
+  --bg-tertiary: rgba(255, 255, 255, 0.54);
   --bg-hover: rgba(0, 0, 0, 0.04);
   --bg-overlay: rgba(0, 0, 0, 0.3);
-  --bg-card: rgba(255, 255, 255, 0.7);
+  --bg-card: rgba(255, 255, 255, 0.65);
 
   --text-primary: #1d1d1f;
-  --text-secondary: rgba(0, 0, 0, 0.6);
-  --text-tertiary: rgba(0, 0, 0, 0.45);
-  --text-muted: rgba(0, 0, 0, 0.3);
-  --text-faint: rgba(0, 0, 0, 0.15);
+  --text-secondary: #86868b;
+  --text-tertiary: rgba(60, 60, 67, 0.6);
+  --text-muted: rgba(60, 60, 67, 0.4);
+  --text-faint: rgba(60, 60, 67, 0.25);
 
-  --border-primary: rgba(0, 0, 0, 0.08);
-  --border-secondary: rgba(0, 0, 0, 0.04);
+  --border-primary: rgba(60, 60, 67, 0.1);
+  --border-secondary: rgba(60, 60, 67, 0.05);
 
   --accent: #007AFF;
-  --accent-light: rgba(0, 122, 255, 0.08);
+  --accent-light: rgba(0, 122, 255, 0.1);
   --accent-hover: #0056CC;
 
-  --scrollbar-thumb: rgba(0, 0, 0, 0.15);
-  --select-arrow: rgba(0, 0, 0, 0.4);
+  --scrollbar-thumb: rgba(60, 60, 67, 0.18);
+  --select-arrow: rgba(60, 60, 67, 0.4);
   --date-filter: none;
 
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 0 0 1px rgba(0, 0, 0, 0.03), 0 2px 8px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
   --radius-card: 1rem;
-  --backdrop-blur: blur(20px) saturate(180%);
+  --backdrop-blur: blur(40px) saturate(180%);
+
+  --chart-text: rgba(60, 60, 67, 0.45);
+  --chart-text-label: rgba(60, 60, 67, 0.65);
+  --chart-grid: rgba(60, 60, 67, 0.08);
+  --chart-purchase: #FF9500;
+  --chart-daily-cost: #34C759;
+  --chart-bar-high: #FF9500;
+  --chart-bar-mid: #34C759;
+  --chart-bar-low: #007AFF;
+  --chart-status-active: #34C759;
+  --chart-status-recycled: #007AFF;
+  --chart-status-scrapped: #FF9500;
+  --chart-tooltip-bg: rgba(255, 255, 255, 0.88);
+  --chart-tooltip-border: rgba(0, 0, 0, 0.06);
+  --stat-gradient-emerald-from: #30D158;
+  --stat-gradient-emerald-to: #34C759;
+  --stat-gradient-blue-from: #0A84FF;
+  --stat-gradient-blue-to: #5AC8FA;
+  --stat-gradient-amber-from: #FF9F0A;
+  --stat-gradient-amber-to: #FFD60A;
+  --stat-gradient-purple-from: #BF5AF2;
+  --stat-gradient-purple-to: #DA8FFF;
+  --stat-gradient-teal-from: #32D74B;
+  --stat-gradient-teal-to: #64D2FF;
 }
 
 body {
@@ -135,4 +184,231 @@ select {
 [data-theme="apple"] option {
   background-color: #fff;
   color: #1d1d1f;
+}
+
+[data-theme="apple"] .rounded-xl {
+  box-shadow: var(--shadow-card);
+}
+
+[data-theme="apple"] .bg-surface {
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+}
+
+[data-theme="apple"] .bg-ink\/95 {
+  background-color: rgba(242, 242, 247, 0.95) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+[data-theme="apple"] .bg-ink {
+  background-color: #f2f2f7 !important;
+}
+
+[data-theme="apple"] .border-edge-subtle {
+  border-color: rgba(60, 60, 67, 0.08);
+}
+
+[data-theme="apple"] .bg-white\/\[0\.03\] {
+  background-color: rgba(255, 255, 255, 0.6);
+}
+
+[data-theme="apple"] .bg-white\/10 {
+  background-color: rgba(60, 60, 67, 0.08);
+}
+
+[data-theme="apple"] .hover\:bg-white\/10:hover {
+  background-color: rgba(60, 60, 67, 0.06);
+}
+
+[data-theme="apple"] .hover\:border-white\/20:hover {
+  border-color: rgba(60, 60, 67, 0.12);
+}
+
+[data-theme="apple"] .text-white {
+  color: #ffffff;
+}
+
+[data-theme="apple"] .bg-amber-500\/20 {
+  background-color: rgba(255, 149, 0, 0.12);
+}
+
+[data-theme="apple"] .text-amber-400 {
+  color: #FF9F0A;
+}
+
+[data-theme="apple"] .bg-red-500\/20 {
+  background-color: rgba(255, 59, 48, 0.12);
+}
+
+[data-theme="apple"] .text-red-400 {
+  color: #FF3B30;
+}
+
+[data-theme="apple"] .hover\:text-red-400:hover {
+  color: #FF3B30;
+}
+
+[data-theme="apple"] .text-blue-400 {
+  color: #5AC8FA;
+}
+
+[data-theme="apple"] .bg-gradient-to-r.from-blue-500.to-cyan-400 {
+  background: linear-gradient(to right, #007AFF, #5AC8FA);
+}
+
+[data-theme="apple"] .from-emerald-500 {
+  --tw-gradient-from: #34C759;
+}
+
+[data-theme="apple"] .to-emerald-600 {
+  --tw-gradient-to: #30D158;
+}
+
+[data-theme="apple"] .from-blue-500 {
+  --tw-gradient-from: #007AFF;
+}
+
+[data-theme="apple"] .to-blue-600 {
+  --tw-gradient-to: #0A84FF;
+}
+
+[data-theme="apple"] .from-amber-500 {
+  --tw-gradient-from: #FF9500;
+}
+
+[data-theme="apple"] .to-amber-600 {
+  --tw-gradient-to: #FF9F0A;
+}
+
+[data-theme="apple"] .from-purple-500 {
+  --tw-gradient-from: #AF52DE;
+}
+
+[data-theme="apple"] .to-purple-600 {
+  --tw-gradient-to: #BF5AF2;
+}
+
+[data-theme="apple"] .from-teal-500 {
+  --tw-gradient-from: #30D158;
+}
+
+[data-theme="apple"] .to-cyan-500 {
+  --tw-gradient-to: #5AC8FA;
+}
+
+[data-theme="apple"] .bg-emerald-500 {
+  background-color: #34C759;
+}
+
+[data-theme="apple"] .bg-blue-500 {
+  background-color: #007AFF;
+}
+
+[data-theme="apple"] .bg-amber-500 {
+  background-color: #FF9500;
+}
+
+[data-theme="apple"] .bg-white\/10 {
+  background-color: rgba(60, 60, 67, 0.08);
+}
+
+[data-theme="apple"] .hover\:bg-white\/10:hover {
+  background-color: rgba(60, 60, 67, 0.06);
+}
+
+[data-theme="apple"] .from-violet-600 {
+  --tw-gradient-from: #AF52DE;
+}
+
+[data-theme="apple"] .to-indigo-600 {
+  --tw-gradient-to: #5856D6;
+}
+
+[data-theme="apple"] .hover\:from-violet-500:hover {
+  --tw-gradient-from: #BF5AF2;
+}
+
+[data-theme="apple"] .hover\:to-indigo-500:hover {
+  --tw-gradient-to: #5E5CE6;
+}
+
+[data-theme="apple"] .bg-red-500 {
+  background-color: #FF3B30;
+}
+
+[data-theme="apple"] .hover\:bg-red-400:hover {
+  background-color: #FF453A;
+}
+
+[data-theme="apple"] .bg-red-600 {
+  background-color: #FF3B30;
+}
+
+[data-theme="apple"] .hover\:bg-red-500:hover {
+  background-color: #FF453A;
+}
+
+[data-theme="apple"] .bg-accent\/80 {
+  background-color: rgba(0, 122, 255, 0.8);
+}
+
+[data-theme="apple"] .border-white\/20 {
+  border-color: rgba(60, 60, 67, 0.12);
+}
+
+[data-theme="apple"] .hover\:border-white\/20:hover {
+  border-color: rgba(60, 60, 67, 0.15);
+}
+
+[data-theme="apple"] .bg-black\/60 {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="apple"] .bg-black\/50 {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="apple"] .text-blue-400\/70 {
+  color: rgba(0, 122, 255, 0.7);
+}
+
+[data-theme="apple"] .text-purple-400\/70 {
+  color: rgba(175, 82, 222, 0.7);
+}
+
+[data-theme="apple"] .text-amber-400 {
+  color: #FF9F0A;
+}
+
+[data-theme="apple"] .fill-amber-400 {
+  fill: #FF9F0A;
+}
+
+[data-theme="apple"] .border-l-emerald-500 {
+  border-left-color: #34C759;
+}
+
+[data-theme="apple"] .border-l-blue-500 {
+  border-left-color: #007AFF;
+}
+
+[data-theme="apple"] .border-l-amber-500 {
+  border-left-color: #FF9500;
+}
+
+[data-theme="apple"] .bg-emerald-500\/20 {
+  background-color: rgba(52, 199, 94, 0.12);
+}
+
+[data-theme="apple"] .text-emerald-400 {
+  color: #30D158;
+}
+
+[data-theme="apple"] .bg-blue-500\/20 {
+  background-color: rgba(0, 122, 255, 0.12);
+}
+
+[data-theme="apple"] .text-blue-400 {
+  color: #0A84FF;
 }

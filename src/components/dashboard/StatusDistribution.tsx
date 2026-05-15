@@ -7,10 +7,8 @@ interface StatusDistributionProps {
   assets: Asset[]
 }
 
-const STATUS_COLORS: Record<AssetStatus, string> = {
-  active: "#10B981",
-  recycled: "#3B82F6",
-  scrapped: "#F59E0B",
+function getCSSVar(name: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
 }
 
 const STATUS_BG: Record<AssetStatus, string> = {
@@ -27,6 +25,16 @@ interface ChartData {
 
 export default function StatusDistribution({ assets }: StatusDistributionProps) {
   const { data, total } = useMemo(() => {
+    const activeColor = getCSSVar("--chart-status-active") || "#10B981"
+    const recycledColor = getCSSVar("--chart-status-recycled") || "#3B82F6"
+    const scrappedColor = getCSSVar("--chart-status-scrapped") || "#F59E0B"
+
+    const STATUS_COLORS: Record<AssetStatus, string> = {
+      active: activeColor,
+      recycled: recycledColor,
+      scrapped: scrappedColor,
+    }
+
     const countMap = new Map<AssetStatus, number>()
     assets.forEach((a) => {
       countMap.set(a.status, (countMap.get(a.status) || 0) + 1)

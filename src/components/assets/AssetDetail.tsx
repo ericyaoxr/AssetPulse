@@ -8,6 +8,10 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts"
 import { differenceInDays, format, eachMonthOfInterval } from "date-fns"
+
+function getCSSVar(name: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+}
 import type { Asset, AssetStatus } from "@/types"
 import { formatCurrency, formatDays, formatDate } from "@/utils/format"
 import { useAssetStore } from "@/store/useAssetStore"
@@ -252,11 +256,11 @@ const AssetDetail = ({ asset }: AssetDetailProps) => {
           <h3 className="mb-4 text-sm font-medium text-content-secondary">日均成本趋势</h3>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-              <XAxis dataKey="date" tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} />
-              <YAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} />
-              <Tooltip contentStyle={{ backgroundColor: "#0D1B1E", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#fff", fontSize: 12 }} />
-              <Line type="monotone" dataKey="cost" stroke="#10B981" strokeWidth={2} dot={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={getCSSVar("--chart-grid") || "rgba(255,255,255,0.06)"} />
+              <XAxis dataKey="date" tick={{ fill: getCSSVar("--chart-text") || "rgba(255,255,255,0.4)", fontSize: 11 }} />
+              <YAxis tick={{ fill: getCSSVar("--chart-text") || "rgba(255,255,255,0.4)", fontSize: 11 }} />
+              <Tooltip contentStyle={{ backgroundColor: getCSSVar("--chart-tooltip-bg") || "#0D1B1E", border: `1px solid ${getCSSVar("--chart-tooltip-border") || "rgba(255,255,255,0.1)"}`, borderRadius: "8px", color: getCSSVar("--text-primary") || "#fff", fontSize: 12 }} />
+              <Line type="monotone" dataKey="cost" stroke={getCSSVar("--chart-daily-cost") || "#10B981"} strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>
