@@ -1,12 +1,13 @@
 import { useState, useMemo, useRef, useCallback } from "react"
 import { Calculator, Star, Camera, X, Sparkles, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
-import type { Asset, AssetFormData, AssetStatus } from "@/types"
+import type { Asset, AssetFormData, AssetStatus, AIValuationResult } from "@/types"
 import { DEFAULT_CATEGORIES } from "@/types"
 import { formatCurrency, formatDays } from "@/utils/format"
 import { computeAssetFromForm } from "@/utils/calculations"
 import { imageFileToBase64 } from "@/utils/storage"
 import { useAssetStore } from "@/store/useAssetStore"
 import { api } from "@/utils/api"
+import { estimateAssetValue, loadAIConfig } from "@/utils/aiValuation"
 
 interface AssetFormProps {
   initialData?: Asset
@@ -209,6 +210,8 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
   const [showNewLocation, setShowNewLocation] = useState(false)
   const [recognizing, setRecognizing] = useState(false)
   const [recognizeError, setRecognizeError] = useState<string | null>(null)
+  const [valuing, setValuing] = useState(false)
+  const [aiValuation, setAiValuation] = useState<AIValuationResult | null>(initialData?.aiValuation ?? null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { categories, locations, addCategory, addLocation } = useAssetStore()
@@ -221,9 +224,9 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
       purchaseDate, purchasePrice: price, endDate,
       recycleAmount: parseFloat(recycleAmount) || 0,
       targetDailyCost: parseFloat(targetDailyCost) || 0,
-      rating, note,
+      rating, note, aiValuation,
     })
-  }, [name, status, category, location, imageUrl, purchaseDate, purchasePrice, endDate, recycleAmount, targetDailyCost, rating, note])
+  }, [name, status, category, location, imageUrl, purchaseDate, purchasePrice, endDate, recycleAmount, targetDailyCost, rating, note, aiValuation])
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -258,7 +261,13 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
           setCategory(matched)
         }
       }
-      if (!purchaseDate) {
+      if (result.purchaseDate) {
+        const dateStr = result.purchaseDate.trim()
+        if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(dateStr)) {
+          const parts = dateStr.split("-")
+          setPurchaseDate(`${parts[0]}-${parts[1].padStart(2, "0")}-${parts[2].padStart(2, "0")}`)
+        }
+      } else if (!purchaseDate) {
         setPurchaseDate(todayStr())
       }
       if (result.estimatedPrice > 0) {
@@ -266,6 +275,44 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
       }
       if (result.description) {
         setNote(result.description)
+      }
+
+      setRecognizing(false)
+
+      setValuing(true)
+      try {
+        const config = await loadAIConfig()
+        if (config && config.apiKey && config.baseUrl && config.model) {
+          const price = result.estimatedPrice > 0 ? result.estimatedPrice : parseFloat(purchasePrice) || 0
+          const pDate = result.purchaseDate || purchaseDate || todayStr()
+          const tempAsset = {
+            id: "",
+            userId: "",
+            name: result.brand ? `${result.brand} ${result.name}` : result.name,
+            status: "active" as AssetStatus,
+            category: matchCategory(result.category) || category,
+            location,
+            imageUrl,
+            purchaseDate: pDate,
+            purchasePrice: price,
+            endDate: null,
+            recycleAmount: null,
+            targetDailyCost: null,
+            effectiveDays: 0,
+            dailyCost: 0,
+            rating: null,
+            note: result.description || note,
+            aiValuation: null,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }
+          const valuation = await estimateAssetValue(config, tempAsset)
+          setAiValuation(valuation)
+        }
+      } catch {
+        // valuation failure is non-critical, silently ignore
+      } finally {
+        setValuing(false)
       }
     } catch (e) {
       setRecognizeError(e instanceof Error ? e.message : "识别失败，请稍后重试")
@@ -297,7 +344,7 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
       purchaseDate, purchasePrice: parseFloat(purchasePrice),
       endDate, recycleAmount: parseFloat(recycleAmount) || 0,
       targetDailyCost: parseFloat(targetDailyCost) || 0,
-      rating, note,
+      rating, note, aiValuation,
     })
   }
 
@@ -393,13 +440,18 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
             <button
               type="button"
               onClick={imageUrl ? handleRecognize : () => fileInputRef.current?.click()}
-              disabled={recognizing}
+              disabled={recognizing || valuing}
               className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-3 py-2 text-xs font-medium text-white transition-all hover:from-violet-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {recognizing ? (
                 <>
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   识别中...
+                </>
+              ) : valuing ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  估算残值...
                 </>
               ) : (
                 <>
@@ -487,6 +539,18 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
               <p className="text-lg font-semibold text-emerald-400">{formatCurrency(preview.dailyCost)}</p>
             </div>
           </div>
+          {aiValuation && (
+            <div className="mt-3 pt-3 border-t border-white/10 grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs text-white/40">AI 估算残值</p>
+                <p className="text-lg font-semibold text-cyan-400">{formatCurrency(aiValuation.estimatedValue)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-white/40">折旧率</p>
+                <p className="text-lg font-semibold text-amber-400">{(aiValuation.depreciationRate * 100).toFixed(0)}%</p>
+              </div>
+            </div>
+          )}
           {targetVal > 0 && preview.dailyCost > 0 && (
             <div className="mt-3 pt-3 border-t border-white/10">
               <div className="flex items-center justify-between text-xs text-white/40 mb-1">

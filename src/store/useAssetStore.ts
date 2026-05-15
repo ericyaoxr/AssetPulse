@@ -106,7 +106,7 @@ export const useAssetStore = create<AssetStore>((set, get) => ({
       dailyCost,
       rating: form.rating || null,
       note: form.note,
-      aiValuation: null,
+      aiValuation: form.aiValuation || null,
       createdAt: now,
       updatedAt: now,
     })
@@ -136,6 +136,7 @@ export const useAssetStore = create<AssetStore>((set, get) => ({
       dailyCost,
       rating: form.rating || null,
       note: form.note,
+      aiValuation: form.aiValuation !== undefined ? form.aiValuation : oldAsset.aiValuation,
       updatedAt: new Date().toISOString(),
     })
 

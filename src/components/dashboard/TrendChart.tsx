@@ -1,6 +1,5 @@
 import { useMemo } from "react"
 import {
-  AreaChart,
   Area,
   Line,
   ComposedChart,

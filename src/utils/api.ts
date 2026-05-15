@@ -46,6 +46,7 @@ export interface ImageRecognitionResult {
   estimatedPrice: number
   brand: string
   description: string
+  purchaseDate: string
 }
 
 export const api = {

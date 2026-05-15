@@ -28,17 +28,18 @@ router.post("/recognize", authMiddleware, async (req, res) => {
 
   const url = `${config.baseUrl}/chat/completions`
 
-  const prompt = `你是一个专业的物品识别助手。用户会上传一张物品的照片，请识别该物品并提取以下信息。
+  const prompt = `你是一个专业的物品识别助手。用户会上传一张物品的照片（通常是购物订单截图或物品实物图），请识别该物品并提取以下信息。
 
 请以JSON格式回复，包含以下字段：
 - name：物品名称（简洁准确，如"iPhone 15 Pro"、"戴森V12吸尘器"、"宜家马尔姆抽屉柜"）
 - category：物品分类（从以下选项中选择最匹配的：数码电子、硬通货、非标品、生活家居、服饰鞋包、运动健身、游戏娱乐、学习教育、其他）
-- estimatedPrice：估算的购买价格（数值，单位：元，根据物品型号和市场价格估算）
+- estimatedPrice：估算的购买价格（数值，单位：元，如果是订单截图则读取订单金额，否则根据物品型号和市场价格估算）
 - brand：品牌（如无法确定则为空字符串）
 - description：物品简要描述（包括外观特征、型号等，50字以内）
+- purchaseDate：购入日期（格式：YYYY-MM-DD，从订单截图中识别下单日期/支付日期；如无法确定则为空字符串）
 
 如果图片中无法识别出明确的物品，请返回：
-{"name":"","category":"其他","estimatedPrice":0,"brand":"","description":"无法识别图片中的物品"}
+{"name":"","category":"其他","estimatedPrice":0,"brand":"","description":"无法识别图片中的物品","purchaseDate":""}
 
 请仅回复JSON，不要包含其他内容。`
 
@@ -112,6 +113,7 @@ router.post("/recognize", authMiddleware, async (req, res) => {
       estimatedPrice: Number(parsed.estimatedPrice) || 0,
       brand: String(parsed.brand || ""),
       description: String(parsed.description || ""),
+      purchaseDate: String(parsed.purchaseDate || ""),
     })
   } catch (e) {
     console.error("Image recognition error:", e)
