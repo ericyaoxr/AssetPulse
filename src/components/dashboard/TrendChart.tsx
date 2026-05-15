@@ -36,8 +36,8 @@ function CustomTooltip({
 }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="rounded-lg border border-white/10 bg-[#0D1B1E]/95 px-3 py-2 shadow-xl backdrop-blur-md">
-      <p className="text-sm text-white/70 mb-1">{label}</p>
+    <div className="rounded-lg border border-edge bg-ink/95 px-3 py-2 shadow-xl backdrop-blur-md">
+      <p className="text-sm text-content-secondary mb-1">{label}</p>
       {payload.map((entry) => (
         <p key={entry.dataKey} className="text-sm font-semibold" style={{ color: entry.color }}>
           {entry.dataKey === "purchaseAmount" ? "购入" : "日均成本"}：{formatCurrency(entry.value)}
@@ -87,12 +87,9 @@ export default function TrendChart({ assets }: TrendChartProps) {
     let current = firstMonth
     while (current <= lastMonth) {
       const key = format(current, "yyyy-MM")
-      const year = current.getFullYear()
-      const now = new Date()
-      const showYear = year !== now.getFullYear()
       result.push({
         month: key,
-        label: format(current, showYear ? "yyyy年M月" : "M月", { locale: zhCN }),
+        label: format(current, "yy/M", { locale: zhCN }),
         purchaseAmount: Number((monthPurchaseMap.get(key) || 0).toFixed(2)),
         dailyCostSum: Number((monthDailyCostMap.get(key) || 0).toFixed(2)),
       })
@@ -103,10 +100,10 @@ export default function TrendChart({ assets }: TrendChartProps) {
   }, [assets])
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-5">
-      <h3 className="mb-4 text-base font-semibold text-white">消费趋势</h3>
+    <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-5">
+      <h3 className="mb-4 text-base font-semibold text-content-primary">消费趋势</h3>
       {data.length === 0 ? (
-        <div className="flex h-48 items-center justify-center text-sm text-white/30">
+        <div className="flex h-48 items-center justify-center text-sm text-content-faint">
           暂无数据
         </div>
       ) : (

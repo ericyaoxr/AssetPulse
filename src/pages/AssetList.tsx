@@ -20,7 +20,7 @@ const sortOptions: { value: SortField; label: string }[] = [
 ]
 
 const selectClass =
-  "rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500/50 shrink-0"
+  "rounded-lg border border-edge bg-surface px-3 py-2 text-sm text-content-primary outline-none focus:border-accent/30 shrink-0"
 
 export default function AssetList() {
   const navigate = useNavigate()
@@ -67,12 +67,12 @@ export default function AssetList() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">资产列表</h1>
-          <p className="mt-1 text-sm text-white/50">共 {assets.length} 件资产</p>
+          <h1 className="text-2xl font-bold text-content-primary">资产列表</h1>
+          <p className="mt-1 text-sm text-content-tertiary">共 {assets.length} 件资产</p>
         </div>
         <button
           onClick={() => navigate("/assets/new")}
-          className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-500"
+          className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
         >
           <Plus className="h-4 w-4" />
           添加资产
@@ -81,18 +81,18 @@ export default function AssetList() {
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1 min-w-0">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-content-faint" />
           <input
             type="text"
             placeholder="搜索资产名称..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-lg border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white outline-none placeholder:text-white/30 focus:border-emerald-500/50"
+            className="w-full rounded-lg border border-edge bg-surface py-2.5 pl-10 pr-4 text-sm text-content-primary outline-none placeholder:text-content-faint focus:border-accent/30"
           />
         </div>
 
         <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-          <SlidersHorizontal className="h-4 w-4 text-white/30 shrink-0" />
+          <SlidersHorizontal className="h-4 w-4 text-content-faint shrink-0" />
 
           <select
             value={statusFilter}
@@ -100,7 +100,7 @@ export default function AssetList() {
             className={selectClass}
           >
             {statusOptions.map((o) => (
-              <option key={o.value} value={o.value} className="bg-[#0D1B1E]">
+              <option key={o.value} value={o.value} className="bg-ink">
                 {o.label}
               </option>
             ))}
@@ -111,9 +111,9 @@ export default function AssetList() {
             onChange={(e) => setCategoryFilter(e.target.value)}
             className={selectClass}
           >
-            <option value="all" className="bg-[#0D1B1E]">全部分类</option>
+            <option value="all" className="bg-ink">全部分类</option>
             {categories.map((c) => (
-              <option key={c} value={c} className="bg-[#0D1B1E]">{c}</option>
+              <option key={c} value={c} className="bg-ink">{c}</option>
             ))}
           </select>
 
@@ -123,7 +123,7 @@ export default function AssetList() {
             className={selectClass}
           >
             {sortOptions.map((o) => (
-              <option key={o.value} value={o.value} className="bg-[#0D1B1E]">
+              <option key={o.value} value={o.value} className="bg-ink">
                 {o.label}
               </option>
             ))}
@@ -131,7 +131,7 @@ export default function AssetList() {
 
           <button
             onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70 transition-colors hover:bg-white/10 shrink-0"
+            className="rounded-lg border border-edge bg-surface px-3 py-2 text-sm text-content-secondary transition-colors hover:bg-white/10 shrink-0"
           >
             {sortOrder === "asc" ? "↑" : "↓"}
           </button>
@@ -139,7 +139,7 @@ export default function AssetList() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-white/30">
+        <div className="flex flex-col items-center justify-center py-20 text-content-faint">
           <p className="text-lg">暂无资产</p>
           <p className="mt-1 text-sm">点击右上角添加你的第一件资产</p>
         </div>

@@ -39,9 +39,9 @@ function CustomTooltip({
   if (!active || !payload?.length) return null
   const data = payload[0].payload
   return (
-    <div className="rounded-lg border border-white/10 bg-[#0D1B1E]/95 px-3 py-2 shadow-xl backdrop-blur-md">
-      <p className="text-sm text-white/70">{data.name}</p>
-      <p className="text-sm font-semibold text-white">
+    <div className="rounded-lg border border-edge bg-ink/95 px-3 py-2 shadow-xl backdrop-blur-md">
+      <p className="text-sm text-content-secondary">{data.name}</p>
+      <p className="text-sm font-semibold text-content-primary">
         {formatCurrency(data.dailyCost)}/天
       </p>
     </div>
@@ -62,10 +62,10 @@ export default function CostRanking({ assets }: CostRankingProps) {
   }, [assets])
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-5">
-      <h3 className="mb-4 text-base font-semibold text-white">日均成本排行</h3>
+    <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-5">
+      <h3 className="mb-4 text-base font-semibold text-content-primary">日均成本排行</h3>
       {data.length === 0 ? (
-        <div className="flex h-48 items-center justify-center text-sm text-white/30">
+        <div className="flex h-48 items-center justify-center text-sm text-content-faint">
           暂无数据
         </div>
       ) : (

@@ -116,40 +116,40 @@ function DatePicker({ value, onChange, label }: { value: string; onChange: (v: s
 
   return (
     <div className="relative">
-      <label className="block text-sm text-white/70 mb-1">{label}</label>
+      <label className="block text-sm text-content-secondary mb-1">{label}</label>
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm text-left outline-none focus:border-emerald-500/50"
+        className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-content-primary text-sm text-left outline-none focus:border-accent/30"
       >
-        {displayValue || <span className="text-white/30">选择日期</span>}
+        {displayValue || <span className="text-content-faint">选择日期</span>}
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-full min-w-[280px] rounded-xl border border-white/10 bg-[#0D1B1E] p-3 shadow-2xl">
+        <div className="absolute z-50 mt-1 w-full min-w-[280px] rounded-xl border border-edge bg-ink p-3 shadow-2xl">
           <div className="flex items-center justify-between mb-3">
-            <button type="button" onClick={prevMonth} className="p-1 rounded hover:bg-white/10 text-white/70">
+            <button type="button" onClick={prevMonth} className="p-1 rounded hover:bg-white/10 text-content-secondary">
               <ChevronLeft className="h-4 w-4" />
             </button>
             <div className="flex items-center gap-2">
-              <button type="button" onClick={() => setViewYear((y) => y - 1)} className="px-1.5 py-0.5 rounded text-sm text-white/50 hover:bg-white/10 hover:text-white">
+              <button type="button" onClick={() => setViewYear((y) => y - 1)} className="px-1.5 py-0.5 rounded text-sm text-content-tertiary hover:bg-white/10 hover:text-content-primary">
                 ‹
               </button>
-              <span className="text-sm font-medium text-white min-w-[100px] text-center">
+              <span className="text-sm font-medium text-content-primary min-w-[100px] text-center">
                 {viewYear}年{viewMonth + 1}月
               </span>
-              <button type="button" onClick={() => setViewYear((y) => y + 1)} className="px-1.5 py-0.5 rounded text-sm text-white/50 hover:bg-white/10 hover:text-white">
+              <button type="button" onClick={() => setViewYear((y) => y + 1)} className="px-1.5 py-0.5 rounded text-sm text-content-tertiary hover:bg-white/10 hover:text-content-primary">
                 ›
               </button>
             </div>
-            <button type="button" onClick={nextMonth} className="p-1 rounded hover:bg-white/10 text-white/70">
+            <button type="button" onClick={nextMonth} className="p-1 rounded hover:bg-white/10 text-content-secondary">
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
 
           <div className="grid grid-cols-7 gap-0.5 mb-1">
             {WEEKDAYS.map((d) => (
-              <div key={d} className="text-center text-xs text-white/30 py-1">{d}</div>
+              <div key={d} className="text-center text-xs text-content-faint py-1">{d}</div>
             ))}
           </div>
 
@@ -168,7 +168,7 @@ function DatePicker({ value, onChange, label }: { value: string; onChange: (v: s
                   type="button"
                   onClick={() => handleSelect(day)}
                   className={`h-8 rounded text-xs font-medium transition-colors
-                    ${isSelected ? "bg-emerald-600 text-white" : isToday ? "bg-white/10 text-emerald-400" : "text-white/70 hover:bg-white/10"}
+                    ${isSelected ? "bg-accent text-white" : isToday ? "bg-white/10 text-accent" : "text-content-secondary hover:bg-white/10"}
                   `}
                 >
                   {day}
@@ -177,11 +177,11 @@ function DatePicker({ value, onChange, label }: { value: string; onChange: (v: s
             })}
           </div>
 
-          <div className="mt-2 pt-2 border-t border-white/10 flex justify-between">
-            <button type="button" onClick={goToToday} className="text-xs text-emerald-400 hover:text-emerald-300">
+          <div className="mt-2 pt-2 border-t border-edge flex justify-between">
+            <button type="button" onClick={goToToday} className="text-xs text-accent hover:text-emerald-300">
               今天
             </button>
-            <button type="button" onClick={() => setOpen(false)} className="text-xs text-white/50 hover:text-white/70">
+            <button type="button" onClick={() => setOpen(false)} className="text-xs text-content-tertiary hover:text-content-secondary">
               关闭
             </button>
           </div>
@@ -356,75 +356,75 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div>
-        <label className="block text-sm text-white/70 mb-1">资产名称</label>
+        <label className="block text-sm text-content-secondary mb-1">资产名称</label>
         <input type="text" value={name} onChange={(e) => setName(e.target.value)} required
-          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm outline-none focus:border-emerald-500/50" />
+          className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-content-primary text-sm outline-none focus:border-accent/30" />
       </div>
 
       <div>
-        <label className="block text-sm text-white/70 mb-1">状态</label>
+        <label className="block text-sm text-content-secondary mb-1">状态</label>
         <select value={status} onChange={(e) => setStatus(e.target.value as AssetStatus)}
-          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm outline-none focus:border-emerald-500/50">
-          <option value="active" className="bg-[#0D1B1E]">使用中</option>
-          <option value="recycled" className="bg-[#0D1B1E]">已回收</option>
-          <option value="scrapped" className="bg-[#0D1B1E]">已报废</option>
+          className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-content-primary text-sm outline-none focus:border-accent/30">
+          <option value="active" className="bg-ink">使用中</option>
+          <option value="recycled" className="bg-ink">已回收</option>
+          <option value="scrapped" className="bg-ink">已报废</option>
         </select>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm text-white/70 mb-1">分类</label>
+          <label className="block text-sm text-content-secondary mb-1">分类</label>
           {!showNewCategory ? (
             <select value={category} onChange={(e) => {
               if (e.target.value === "__add__") { setShowNewCategory(true); setCategory("") }
               else setCategory(e.target.value)
-            }} className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm outline-none focus:border-emerald-500/50">
-              <option value="" className="bg-[#0D1B1E]">选择分类</option>
-              {categories.map((c) => <option key={c} value={c} className="bg-[#0D1B1E]">{c}</option>)}
-              <option value="__add__" className="bg-[#0D1B1E]">添加分类</option>
+            }} className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-content-primary text-sm outline-none focus:border-accent/30">
+              <option value="" className="bg-ink">选择分类</option>
+              {categories.map((c) => <option key={c} value={c} className="bg-ink">{c}</option>)}
+              <option value="__add__" className="bg-ink">添加分类</option>
             </select>
           ) : (
             <div className="flex gap-2">
               <input type="text" value={newCategory} onChange={(e) => setNewCategory(e.target.value)} placeholder="新分类"
-                className="flex-1 min-w-0 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm outline-none focus:border-emerald-500/50" />
+                className="flex-1 min-w-0 rounded-lg border border-edge bg-surface px-3 py-2 text-content-primary text-sm outline-none focus:border-accent/30" />
               <button type="button" onClick={handleCategoryAdd}
-                className="rounded-lg bg-emerald-600 px-3 py-2 text-xs text-white hover:bg-emerald-500">确定</button>
+                className="rounded-lg bg-accent px-3 py-2 text-xs text-white hover:bg-accent-hover">确定</button>
               <button type="button" onClick={() => { setShowNewCategory(false); setNewCategory("") }}
-                className="rounded-lg border border-white/10 px-3 py-2 text-xs text-white/70 hover:bg-white/5">取消</button>
+                className="rounded-lg border border-edge px-3 py-2 text-xs text-content-secondary hover:bg-surface">取消</button>
             </div>
           )}
         </div>
         <div>
-          <label className="block text-sm text-white/70 mb-1">位置</label>
+          <label className="block text-sm text-content-secondary mb-1">位置</label>
           {!showNewLocation ? (
             <select value={location} onChange={(e) => {
               if (e.target.value === "__add__") { setShowNewLocation(true); setLocation("") }
               else setLocation(e.target.value)
-            }} className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm outline-none focus:border-emerald-500/50">
-              <option value="" className="bg-[#0D1B1E]">选择位置</option>
-              {locations.map((l) => <option key={l} value={l} className="bg-[#0D1B1E]">{l}</option>)}
-              <option value="__add__" className="bg-[#0D1B1E]">添加位置</option>
+            }} className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-content-primary text-sm outline-none focus:border-accent/30">
+              <option value="" className="bg-ink">选择位置</option>
+              {locations.map((l) => <option key={l} value={l} className="bg-ink">{l}</option>)}
+              <option value="__add__" className="bg-ink">添加位置</option>
             </select>
           ) : (
             <div className="flex gap-2">
               <input type="text" value={newLocation} onChange={(e) => setNewLocation(e.target.value)} placeholder="新位置"
-                className="flex-1 min-w-0 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm outline-none focus:border-emerald-500/50" />
+                className="flex-1 min-w-0 rounded-lg border border-edge bg-surface px-3 py-2 text-content-primary text-sm outline-none focus:border-accent/30" />
               <button type="button" onClick={handleLocationAdd}
-                className="rounded-lg bg-emerald-600 px-3 py-2 text-xs text-white hover:bg-emerald-500">确定</button>
+                className="rounded-lg bg-accent px-3 py-2 text-xs text-white hover:bg-accent-hover">确定</button>
               <button type="button" onClick={() => { setShowNewLocation(false); setNewLocation("") }}
-                className="rounded-lg border border-white/10 px-3 py-2 text-xs text-white/70 hover:bg-white/5">取消</button>
+                className="rounded-lg border border-edge px-3 py-2 text-xs text-content-secondary hover:bg-surface">取消</button>
             </div>
           )}
         </div>
       </div>
 
       <div>
-        <label className="block text-sm text-white/70 mb-1">图片</label>
+        <label className="block text-sm text-content-secondary mb-1">图片</label>
         <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
         <div className="flex items-start gap-3">
           {imageUrl ? (
             <div className="relative inline-block">
-              <img src={imageUrl} alt="" className="h-20 w-20 rounded-lg object-cover border border-white/10" />
+              <img src={imageUrl} alt="" className="h-20 w-20 rounded-lg object-cover border border-edge" />
               <button type="button" onClick={() => setImageUrl(null)}
                 className="absolute -top-2 -right-2 rounded-full bg-red-500 p-0.5 text-white hover:bg-red-400">
                 <X className="h-3 w-3" />
@@ -432,8 +432,8 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
             </div>
           ) : (
             <button type="button" onClick={() => fileInputRef.current?.click()}
-              className="flex h-20 w-20 items-center justify-center rounded-lg border border-dashed border-white/20 hover:border-emerald-500/50 hover:bg-white/5">
-              <Camera className="h-6 w-6 text-white/40" />
+              className="flex h-20 w-20 items-center justify-center rounded-lg border border-dashed border-white/20 hover:border-accent/30 hover:bg-surface">
+              <Camera className="h-6 w-6 text-content-muted" />
             </button>
           )}
           <div className="flex flex-col gap-2">
@@ -464,7 +464,7 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="text-xs text-white/40 hover:text-white/60 transition-colors"
+                className="text-xs text-content-muted hover:text-content-secondary transition-colors"
               >
                 更换图片
               </button>
@@ -479,9 +479,9 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
       <div className="grid grid-cols-2 gap-4">
         <DatePicker value={purchaseDate} onChange={setPurchaseDate} label="购入日期" />
         <div>
-          <label className="block text-sm text-white/70 mb-1">购入价格</label>
+          <label className="block text-sm text-content-secondary mb-1">购入价格</label>
           <input type="number" step="0.01" min="0" value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} required
-            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm outline-none focus:border-emerald-500/50" />
+            className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-content-primary text-sm outline-none focus:border-accent/30" />
         </div>
       </div>
 
@@ -490,27 +490,27 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
           <DatePicker value={endDate} onChange={setEndDate} label="结束日期" />
           {status === "recycled" && (
             <div>
-              <label className="block text-sm text-white/70 mb-1">回收金额</label>
+              <label className="block text-sm text-content-secondary mb-1">回收金额</label>
               <input type="number" step="0.01" min="0" value={recycleAmount} onChange={(e) => setRecycleAmount(e.target.value)} required
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm outline-none focus:border-emerald-500/50" />
+                className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-content-primary text-sm outline-none focus:border-accent/30" />
             </div>
           )}
         </div>
       )}
 
       <div>
-        <label className="block text-sm text-white/70 mb-1">目标日均成本</label>
+        <label className="block text-sm text-content-secondary mb-1">目标日均成本</label>
         <input type="number" step="0.01" min="0" value={targetDailyCost} onChange={(e) => setTargetDailyCost(e.target.value)} placeholder="可选"
-          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm outline-none focus:border-emerald-500/50" />
+          className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-content-primary text-sm outline-none focus:border-accent/30" />
       </div>
 
       {(status === "recycled" || status === "scrapped") && (
         <div>
-          <label className="block text-sm text-white/70 mb-1">评分</label>
+          <label className="block text-sm text-content-secondary mb-1">评分</label>
           <div className="flex gap-1">
             {[1, 2, 3, 4, 5].map((star) => (
               <button key={star} type="button" onClick={() => setRating(star)} className="p-0.5">
-                <Star className={`h-5 w-5 ${star <= rating ? "fill-yellow-400 text-yellow-400" : "text-white/30"}`} />
+                <Star className={`h-5 w-5 ${star <= rating ? "fill-yellow-400 text-yellow-400" : "text-content-faint"}`} />
               </button>
             ))}
           </div>
@@ -518,51 +518,51 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
       )}
 
       <div>
-        <label className="block text-sm text-white/70 mb-1">备注</label>
+        <label className="block text-sm text-content-secondary mb-1">备注</label>
         <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} placeholder="可选"
-          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm outline-none focus:border-emerald-500/50 resize-none" />
+          className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-content-primary text-sm outline-none focus:border-accent/30 resize-none" />
       </div>
 
       {preview && (
-        <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-4">
-          <div className="flex items-center gap-2 mb-3 text-sm text-white/70">
+        <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-4">
+          <div className="flex items-center gap-2 mb-3 text-sm text-content-secondary">
             <Calculator className="h-4 w-4" />
             实时计算预览
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-xs text-white/40">有效天数</p>
-              <p className="text-lg font-semibold text-white">{formatDays(preview.effectiveDays)}</p>
+              <p className="text-xs text-content-muted">有效天数</p>
+              <p className="text-lg font-semibold text-content-primary">{formatDays(preview.effectiveDays)}</p>
             </div>
             <div>
-              <p className="text-xs text-white/40">日均成本</p>
-              <p className="text-lg font-semibold text-emerald-400">{formatCurrency(preview.dailyCost)}</p>
+              <p className="text-xs text-content-muted">日均成本</p>
+              <p className="text-lg font-semibold text-accent">{formatCurrency(preview.dailyCost)}</p>
             </div>
           </div>
           {aiValuation && (
-            <div className="mt-3 pt-3 border-t border-white/10 grid grid-cols-2 gap-4">
+            <div className="mt-3 pt-3 border-t border-edge grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-white/40">AI 估算残值</p>
+                <p className="text-xs text-content-muted">AI 估算残值</p>
                 <p className="text-lg font-semibold text-cyan-400">{formatCurrency(aiValuation.estimatedValue)}</p>
               </div>
               <div>
-                <p className="text-xs text-white/40">折旧率</p>
+                <p className="text-xs text-content-muted">折旧率</p>
                 <p className="text-lg font-semibold text-amber-400">{(aiValuation.depreciationRate * 100).toFixed(0)}%</p>
               </div>
             </div>
           )}
           {targetVal > 0 && preview.dailyCost > 0 && (
-            <div className="mt-3 pt-3 border-t border-white/10">
-              <div className="flex items-center justify-between text-xs text-white/40 mb-1">
+            <div className="mt-3 pt-3 border-t border-edge">
+              <div className="flex items-center justify-between text-xs text-content-muted mb-1">
                 <span>目标进度</span>
                 {targetMet ? (
-                  <span className="text-emerald-400 font-medium">已回本</span>
+                  <span className="text-accent font-medium">已回本</span>
                 ) : (
                   <span>{targetProgress.toFixed(1)}%</span>
                 )}
               </div>
               <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${targetProgress}%` }} />
+                <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${targetProgress}%` }} />
               </div>
             </div>
           )}
@@ -571,11 +571,11 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
 
       <div className="flex gap-3 pt-2">
         <button type="submit" disabled={submitting}
-          className="flex-1 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed">
+          className="flex-1 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed">
           {submitting ? "保存中..." : "提交"}
         </button>
         <button type="button" onClick={onCancel} disabled={submitting}
-          className="flex-1 rounded-lg border border-white/10 px-4 py-2.5 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 disabled:opacity-50">
+          className="flex-1 rounded-lg border border-edge px-4 py-2.5 text-sm font-medium text-content-secondary transition-colors hover:bg-surface disabled:opacity-50">
           取消
         </button>
       </div>

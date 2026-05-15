@@ -22,11 +22,11 @@ export default function AssetNew() {
   return (
     <div className="mx-auto max-w-lg space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">添加资产</h1>
-        <p className="mt-1 text-sm text-white/50">记录一件新的物品</p>
+        <h1 className="text-2xl font-bold text-content-primary">添加资产</h1>
+        <p className="mt-1 text-sm text-content-tertiary">记录一件新的物品</p>
       </div>
 
-      <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-6">
+      <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-6">
         <AssetForm
           onSubmit={handleSubmit}
           onCancel={() => navigate("/assets")}

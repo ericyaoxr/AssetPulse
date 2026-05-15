@@ -22,14 +22,14 @@ function StatCard({
   iconBg: string
 }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-3 sm:p-4 transition-all hover:bg-white/[0.08] hover:border-white/20">
+    <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-3 sm:p-4 transition-all hover:bg-surface-hover hover:border-white/20">
       <div className="flex items-center gap-2 mb-1.5">
         <div
           className={`flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-lg ${iconBg}`}
         >
           <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
         </div>
-        <p className="text-[11px] sm:text-xs text-white/50 truncate">{label}</p>
+        <p className="text-[11px] sm:text-xs text-content-tertiary truncate">{label}</p>
       </div>
       <p
         className="font-['Space_Grotesk'] text-base sm:text-lg font-bold text-white leading-tight"

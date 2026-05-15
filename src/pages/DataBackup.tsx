@@ -94,43 +94,43 @@ export default function DataBackup() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
-          <DatabaseBackup className="h-6 w-6 text-emerald-400" />
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-content-primary">
+          <DatabaseBackup className="h-6 w-6 text-accent" />
           数据备份与恢复
         </h1>
-        <p className="mt-1 text-sm text-white/50">数据存储在服务器 SQLite 数据库中，定期备份可防止数据丢失</p>
+        <p className="mt-1 text-sm text-content-tertiary">数据存储在服务器 SQLite 数据库中，定期备份可防止数据丢失</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-5">
+        <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-5">
           <div className="flex items-center gap-2 mb-3">
-            <HardDrive className="h-5 w-5 text-white/40" />
-            <span className="text-sm text-white/50">资产数量</span>
+            <HardDrive className="h-5 w-5 text-content-muted" />
+            <span className="text-sm text-content-tertiary">资产数量</span>
           </div>
-          <p className="text-3xl font-bold text-white">{assets.length}</p>
-          <p className="mt-1 text-xs text-white/30">
+          <p className="text-3xl font-bold text-content-primary">{assets.length}</p>
+          <p className="mt-1 text-xs text-content-faint">
             回收站 {trash.length} 项 · 分类 {categories.length} · 位置 {locations.length}
           </p>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-5">
+        <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-5">
           <div className="flex items-center gap-2 mb-3">
-            <Shield className="h-5 w-5 text-emerald-400" />
-            <span className="text-sm text-white/50">存储方式</span>
+            <Shield className="h-5 w-5 text-accent" />
+            <span className="text-sm text-content-tertiary">存储方式</span>
           </div>
-          <p className="text-lg font-semibold text-white">服务端 SQLite</p>
-          <p className="mt-1 text-xs text-white/30">数据安全存储在服务器</p>
+          <p className="text-lg font-semibold text-content-primary">服务端 SQLite</p>
+          <p className="mt-1 text-xs text-content-faint">数据安全存储在服务器</p>
         </div>
       </div>
 
-      <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-6 space-y-5">
-        <h2 className="text-lg font-semibold text-white">数据操作</h2>
+      <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-6 space-y-5">
+        <h2 className="text-lg font-semibold text-content-primary">数据操作</h2>
 
         <div className="space-y-3">
           <button
             onClick={handleExport}
             disabled={exporting}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
           >
             {exporting ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -143,7 +143,7 @@ export default function DataBackup() {
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={importing}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-white/10 px-4 py-3 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-edge px-4 py-3 text-sm font-medium text-content-secondary transition-colors hover:bg-surface hover:text-content-primary disabled:opacity-50"
           >
             {importing ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -166,7 +166,7 @@ export default function DataBackup() {
           <div
             className={`flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm ${
               message.ok
-                ? "bg-emerald-500/10 text-emerald-400"
+                ? "bg-accent-light text-accent"
                 : "bg-red-500/10 text-red-400"
             }`}
           >
@@ -176,12 +176,12 @@ export default function DataBackup() {
         )}
       </div>
 
-      <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-6 space-y-4">
-        <h2 className="text-lg font-semibold text-white">存储说明</h2>
+      <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-6 space-y-4">
+        <h2 className="text-lg font-semibold text-content-primary">存储说明</h2>
 
-        <div className="flex items-start gap-3 rounded-lg bg-white/5 p-4">
+        <div className="flex items-start gap-3 rounded-lg bg-surface p-4">
           <Info className="h-5 w-5 shrink-0 text-blue-400 mt-0.5" />
-          <div className="text-sm text-white/60">
+          <div className="text-sm text-content-secondary">
             <p>数据存储在服务器的 SQLite 数据库中，通过登录账号访问。</p>
             <p className="mt-1">建议定期导出备份文件，保存到安全的位置（如网盘、U盘等）。</p>
           </div>
@@ -190,12 +190,12 @@ export default function DataBackup() {
 
       {confirmRestore && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="mx-4 w-full max-w-md rounded-2xl border border-white/10 bg-[#0D1B1E] p-6 shadow-2xl">
-            <h3 className="text-lg font-bold text-white">确认恢复数据</h3>
-            <p className="mt-2 text-sm text-white/60">
+          <div className="mx-4 w-full max-w-md rounded-2xl border border-edge bg-ink p-6 shadow-2xl">
+            <h3 className="text-lg font-bold text-content-primary">确认恢复数据</h3>
+            <p className="mt-2 text-sm text-content-secondary">
               恢复备份将<strong className="text-amber-400">覆盖当前所有数据</strong>，此操作不可撤销。
             </p>
-            <div className="mt-4 rounded-lg bg-white/5 p-3 text-sm text-white/70 space-y-1">
+            <div className="mt-4 rounded-lg bg-surface p-3 text-sm text-content-secondary space-y-1">
               <p>备份时间：{String(confirmRestore.exportedAt || "未知")}</p>
               <p>资产数量：{Array.isArray(confirmRestore.assets) ? confirmRestore.assets.length : 0}</p>
               <p>回收站：{Array.isArray(confirmRestore.trash) ? confirmRestore.trash.length : 0} 项</p>
@@ -203,7 +203,7 @@ export default function DataBackup() {
             <div className="mt-5 flex gap-3">
               <button
                 onClick={() => setConfirmRestore(null)}
-                className="flex-1 rounded-lg border border-white/10 px-4 py-2.5 text-sm font-medium text-white/70 transition-colors hover:bg-white/5"
+                className="flex-1 rounded-lg border border-edge px-4 py-2.5 text-sm font-medium text-content-secondary transition-colors hover:bg-surface"
               >
                 取消
               </button>

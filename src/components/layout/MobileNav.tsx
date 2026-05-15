@@ -13,7 +13,7 @@ export default function MobileNav() {
   const location = useLocation()
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-white/5 bg-[#0D1B1E]/95 backdrop-blur-sm md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-edge-subtle bg-ink/95 backdrop-blur-sm md:hidden">
       <div className="flex items-center justify-around pb-[env(safe-area-inset-bottom)] pt-2">
         {tabs.map((tab) => {
           const isActive = location.pathname === tab.to ||
@@ -24,7 +24,7 @@ export default function MobileNav() {
               key={tab.to}
               to={tab.to}
               className={`flex flex-col items-center gap-0.5 px-3 py-1.5 text-xs font-medium transition-colors ${
-                isActive ? "text-emerald" : "text-gray-500"
+                isActive ? "text-accent" : "text-content-muted"
               }`}
             >
               <Icon className="h-5 w-5" />

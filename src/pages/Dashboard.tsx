@@ -42,8 +42,8 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">仪表盘</h1>
-        <p className="mt-1 text-sm text-white/50">追踪你的资产日均成本</p>
+        <h1 className="text-2xl font-bold text-content-primary">仪表盘</h1>
+        <p className="mt-1 text-sm text-content-tertiary">追踪你的资产日均成本</p>
       </div>
 
       <StatsCards assets={assets} />
@@ -56,13 +56,13 @@ export default function Dashboard() {
       <TrendChart assets={assets} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-5">
+        <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-5">
           <div className="mb-4 flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-emerald-400" />
-            <h3 className="text-base font-semibold text-white">盈亏复盘</h3>
+            <TrendingUp className="h-5 w-5 text-accent" />
+            <h3 className="text-base font-semibold text-content-primary">盈亏复盘</h3>
           </div>
           {recycledAssets.length === 0 ? (
-            <p className="py-8 text-center text-sm text-white/30">暂无已回收资产</p>
+            <p className="py-8 text-center text-sm text-content-faint">暂无已回收资产</p>
           ) : (
             <div className="space-y-3">
               {recycledAssets.map((a) => {
@@ -71,21 +71,21 @@ export default function Dashboard() {
                 return (
                   <div
                     key={a.id}
-                    className="rounded-lg border border-white/5 bg-white/[0.03] p-3"
+                    className="rounded-lg border border-edge-subtle bg-white/[0.03] p-3"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-white truncate mr-2">{a.name}</span>
-                      <span className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${isProfit ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}`}>
+                      <span className="text-sm font-medium text-content-primary truncate mr-2">{a.name}</span>
+                      <span className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${isProfit ? "bg-accent-light text-accent" : "bg-red-500/20 text-red-400"}`}>
                         {isProfit ? "盈利" : "亏损"}
                       </span>
                     </div>
-                    <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-white/50">
+                    <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-content-tertiary">
                       <span>购入：{formatCurrency(a.purchasePrice)}</span>
                       <span>卖出：{formatCurrency(a.recycleAmount!)}</span>
-                      <span>实际花费：<span className="text-white/70">{formatCurrency(actualCost)}</span></span>
-                      <span>日均：<span className="text-white/70">{formatCurrency(a.dailyCost)}</span></span>
+                      <span>实际花费：<span className="text-content-secondary">{formatCurrency(actualCost)}</span></span>
+                      <span>日均：<span className="text-content-secondary">{formatCurrency(a.dailyCost)}</span></span>
                     </div>
-                    <div className="mt-1 text-xs text-white/30">{formatDays(a.effectiveDays)}</div>
+                    <div className="mt-1 text-xs text-content-faint">{formatDays(a.effectiveDays)}</div>
                   </div>
                 )
               })}
@@ -93,20 +93,20 @@ export default function Dashboard() {
           )}
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-5">
+        <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-5">
           <div className="mb-4 flex items-center gap-2">
             <Tag className="h-5 w-5 text-blue-400" />
-            <h3 className="text-base font-semibold text-white">分类概览</h3>
+            <h3 className="text-base font-semibold text-content-primary">分类概览</h3>
           </div>
           {categoryData.length === 0 ? (
-            <p className="py-8 text-center text-sm text-white/30">暂无数据</p>
+            <p className="py-8 text-center text-sm text-content-faint">暂无数据</p>
           ) : (
             <div className="space-y-3">
               {categoryData.map((cat) => (
                 <div key={cat.name}>
                   <div className="mb-1 flex items-center justify-between text-sm">
-                    <span className="text-white/70">{cat.name}</span>
-                    <span className="text-white/40">
+                    <span className="text-content-secondary">{cat.name}</span>
+                    <span className="text-content-muted">
                       {cat.count} 件 · {formatCurrency(cat.totalInvestment)}
                     </span>
                   </div>
