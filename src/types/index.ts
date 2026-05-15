@@ -68,6 +68,7 @@ export interface AssetFormData {
   targetDailyCost: number
   rating: number
   note: string
+  aiValuation: AIValuationResult | null
 }
 
 export type SortField = "dailyCost" | "purchaseDate" | "purchasePrice" | "name"
