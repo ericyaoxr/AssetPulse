@@ -22,16 +22,16 @@ function StatCard({
   iconBg: string
 }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-5 transition-all hover:bg-white/[0.08] hover:border-white/20">
-      <div className="flex items-center gap-4">
+    <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-4 transition-all hover:bg-white/[0.08] hover:border-white/20">
+      <div className="flex items-center gap-3">
         <div
-          className={`flex h-12 w-12 items-center justify-center rounded-xl ${iconBg}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${iconBg}`}
         >
-          <Icon className="h-6 w-6 text-white" />
+          <Icon className="h-5 w-5 text-white" />
         </div>
         <div className="min-w-0 flex-1">
           <p
-            className="font-['Space_Grotesk'] text-2xl font-bold text-white truncate"
+            className="font-['Space_Grotesk'] text-lg font-bold text-white break-all leading-tight"
             style={{
               backgroundImage: `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})`,
               WebkitBackgroundClip: "text",
@@ -40,7 +40,7 @@ function StatCard({
           >
             {value}
           </p>
-          <p className="mt-0.5 text-sm text-white/50">{label}</p>
+          <p className="mt-0.5 text-xs text-white/50">{label}</p>
         </div>
       </div>
     </div>
@@ -105,7 +105,7 @@ export default function StatsCards({ assets }: StatsCardsProps) {
   ]
 
   return (
-    <div className="grid grid-cols-2 gap-4 xl:grid-cols-5">
+    <div className="grid grid-cols-2 gap-3 xl:grid-cols-5">
       {cards.map((card) => (
         <StatCard key={card.label} {...card} />
       ))}
