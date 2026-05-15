@@ -22,27 +22,25 @@ function StatCard({
   iconBg: string
 }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-4 transition-all hover:bg-white/[0.08] hover:border-white/20">
-      <div className="flex items-center gap-3">
+    <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-3 sm:p-4 transition-all hover:bg-white/[0.08] hover:border-white/20">
+      <div className="flex items-center gap-2 mb-1.5">
         <div
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${iconBg}`}
+          className={`flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-lg ${iconBg}`}
         >
-          <Icon className="h-5 w-5 text-white" />
+          <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
         </div>
-        <div className="min-w-0 flex-1">
-          <p
-            className="font-['Space_Grotesk'] text-lg font-bold text-white break-all leading-tight"
-            style={{
-              backgroundImage: `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})`,
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            {value}
-          </p>
-          <p className="mt-0.5 text-xs text-white/50">{label}</p>
-        </div>
+        <p className="text-[11px] sm:text-xs text-white/50 truncate">{label}</p>
       </div>
+      <p
+        className="font-['Space_Grotesk'] text-base sm:text-lg font-bold text-white leading-tight"
+        style={{
+          backgroundImage: `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})`,
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+        }}
+      >
+        {value}
+      </p>
     </div>
   )
 }

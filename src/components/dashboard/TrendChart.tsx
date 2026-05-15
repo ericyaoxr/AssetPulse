@@ -2,12 +2,15 @@ import { useMemo } from "react"
 import {
   AreaChart,
   Area,
+  Line,
+  ComposedChart,
   XAxis,
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  Legend,
 } from "recharts"
-import { format } from "date-fns"
+import { format, parseISO, addMonths, startOfMonth } from "date-fns"
 import { zhCN } from "date-fns/locale"
 import type { Asset } from "@/types"
 import { formatCurrency } from "@/utils/format"
@@ -18,7 +21,9 @@ interface TrendChartProps {
 
 interface ChartData {
   month: string
-  amount: number
+  label: string
+  purchaseAmount: number
+  dailyCostSum: number
 }
 
 function CustomTooltip({
@@ -27,34 +32,75 @@ function CustomTooltip({
   label,
 }: {
   active?: boolean
-  payload?: Array<{ value: number }>
+  payload?: Array<{ value: number; dataKey: string; color: string }>
   label?: string
 }) {
   if (!active || !payload?.length) return null
   return (
     <div className="rounded-lg border border-white/10 bg-[#0D1B1E]/95 px-3 py-2 shadow-xl backdrop-blur-md">
-      <p className="text-sm text-white/70">{label}</p>
-      <p className="text-sm font-semibold text-white">
-        {formatCurrency(payload[0].value)}
-      </p>
+      <p className="text-sm text-white/70 mb-1">{label}</p>
+      {payload.map((entry) => (
+        <p key={entry.dataKey} className="text-sm font-semibold" style={{ color: entry.color }}>
+          {entry.dataKey === "purchaseAmount" ? "购入" : "日均成本"}：{formatCurrency(entry.value)}
+        </p>
+      ))}
     </div>
   )
 }
 
 export default function TrendChart({ assets }: TrendChartProps) {
   const data = useMemo(() => {
-    const monthMap = new Map<string, number>()
-    assets.forEach((asset) => {
-      const key = format(new Date(asset.purchaseDate), "yyyy-MM")
-      monthMap.set(key, (monthMap.get(key) || 0) + asset.purchasePrice)
+    if (assets.length === 0) return []
+
+    const allMonths = new Set<string>()
+    assets.forEach((a) => {
+      if (a.purchaseDate) {
+        allMonths.add(a.purchaseDate.slice(0, 7))
+      }
     })
-    const sorted: ChartData[] = Array.from(monthMap.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, amount]) => ({
-        month: format(new Date(key + "-01"), "M月", { locale: zhCN }),
-        amount: Number(amount.toFixed(2)),
-      }))
-    return sorted
+
+    if (allMonths.size === 0) return []
+
+    const sortedMonths = Array.from(allMonths).sort()
+    const firstMonth = startOfMonth(parseISO(sortedMonths[0] + "-01"))
+    const lastMonth = startOfMonth(parseISO(sortedMonths[sortedMonths.length - 1] + "-01"))
+
+    const monthPurchaseMap = new Map<string, number>()
+    assets.forEach((a) => {
+      if (!a.purchaseDate) return
+      const key = a.purchaseDate.slice(0, 7)
+      monthPurchaseMap.set(key, (monthPurchaseMap.get(key) || 0) + a.purchasePrice)
+    })
+
+    const monthDailyCostMap = new Map<string, number>()
+    assets.forEach((a) => {
+      if (a.status !== "active" || !a.purchaseDate) return
+      const purchaseMonth = a.purchaseDate.slice(0, 7)
+      let current = startOfMonth(parseISO(purchaseMonth + "-01"))
+      while (current <= lastMonth) {
+        const key = format(current, "yyyy-MM")
+        monthDailyCostMap.set(key, (monthDailyCostMap.get(key) || 0) + a.dailyCost)
+        current = addMonths(current, 1)
+      }
+    })
+
+    const result: ChartData[] = []
+    let current = firstMonth
+    while (current <= lastMonth) {
+      const key = format(current, "yyyy-MM")
+      const year = current.getFullYear()
+      const now = new Date()
+      const showYear = year !== now.getFullYear()
+      result.push({
+        month: key,
+        label: format(current, showYear ? "yyyy年M月" : "M月", { locale: zhCN }),
+        purchaseAmount: Number((monthPurchaseMap.get(key) || 0).toFixed(2)),
+        dailyCostSum: Number((monthDailyCostMap.get(key) || 0).toFixed(2)),
+      })
+      current = addMonths(current, 1)
+    }
+
+    return result
   }, [assets])
 
   return (
@@ -65,35 +111,65 @@ export default function TrendChart({ assets }: TrendChartProps) {
           暂无数据
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={260}>
-          <AreaChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+        <ResponsiveContainer width="100%" height={280}>
+          <ComposedChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
             <defs>
-              <linearGradient id="emeraldGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#10B981" stopOpacity={0.4} />
-                <stop offset="100%" stopColor="#10B981" stopOpacity={0} />
+              <linearGradient id="purchaseGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#F59E0B" stopOpacity={0.3} />
+                <stop offset="100%" stopColor="#F59E0B" stopOpacity={0} />
               </linearGradient>
             </defs>
             <XAxis
-              dataKey="month"
-              tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 12 }}
+              dataKey="label"
+              tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
+              interval="preserveStartEnd"
             />
             <YAxis
-              tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 12 }}
+              yAxisId="left"
+              tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(v: number) => `¥${v}`}
+            />
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
               tickFormatter={(v: number) => `¥${v}`}
             />
             <Tooltip content={<CustomTooltip />} />
+            <Legend
+              wrapperStyle={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}
+              formatter={(value: string) => (
+                <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 12 }}>
+                  {value === "purchaseAmount" ? "月度购入" : "月度日均成本"}
+                </span>
+              )}
+            />
             <Area
+              yAxisId="left"
               type="monotone"
-              dataKey="amount"
+              dataKey="purchaseAmount"
+              stroke="#F59E0B"
+              strokeWidth={2}
+              fill="url(#purchaseGradient)"
+              name="purchaseAmount"
+            />
+            <Line
+              yAxisId="right"
+              type="monotone"
+              dataKey="dailyCostSum"
               stroke="#10B981"
               strokeWidth={2}
-              fill="url(#emeraldGradient)"
+              dot={{ r: 3, fill: "#10B981" }}
+              activeDot={{ r: 5 }}
+              name="dailyCostSum"
             />
-          </AreaChart>
+          </ComposedChart>
         </ResponsiveContainer>
       )}
     </div>
