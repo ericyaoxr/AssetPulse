@@ -1,6 +1,7 @@
-import { useState, useMemo, useRef } from "react"
-import { Calculator, Star, Camera, X, Sparkles, Loader2 } from "lucide-react"
+import { useState, useMemo, useRef, useCallback } from "react"
+import { Calculator, Star, Camera, X, Sparkles, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
 import type { Asset, AssetFormData, AssetStatus } from "@/types"
+import { DEFAULT_CATEGORIES } from "@/types"
 import { formatCurrency, formatDays } from "@/utils/format"
 import { computeAssetFromForm } from "@/utils/calculations"
 import { imageFileToBase64 } from "@/utils/storage"
@@ -12,6 +13,181 @@ interface AssetFormProps {
   onSubmit: (form: AssetFormData) => void
   onCancel: () => void
   submitting?: boolean
+}
+
+const CATEGORY_ALIASES: Record<string, string> = {
+  "数码": "数码电子",
+  "电子产品": "数码电子",
+  "电子": "数码电子",
+  "数码产品": "数码电子",
+  "黄金": "硬通货",
+  "贵金属": "硬通货",
+  "珠宝": "硬通货",
+  "奢侈品": "硬通货",
+  "收藏品": "硬通货",
+  "家具": "生活家居",
+  "家居": "生活家居",
+  "家电": "生活家居",
+  "家用电器": "生活家居",
+  "生活": "生活家居",
+  "厨房": "生活家居",
+  "服装": "服饰鞋包",
+  "鞋": "服饰鞋包",
+  "包": "服饰鞋包",
+  "箱包": "服饰鞋包",
+  "穿搭": "服饰鞋包",
+  "运动": "运动健身",
+  "健身": "运动健身",
+  "户外": "运动健身",
+  "游戏": "游戏娱乐",
+  "娱乐": "游戏娱乐",
+  "玩具": "游戏娱乐",
+  "乐器": "游戏娱乐",
+  "教育": "学习教育",
+  "学习": "学习教育",
+  "书籍": "学习教育",
+  "图书": "学习教育",
+  "课程": "学习教育",
+}
+
+function matchCategory(aiCategory: string): string {
+  if (!aiCategory) return ""
+  if (DEFAULT_CATEGORIES.includes(aiCategory as typeof DEFAULT_CATEGORIES[number])) {
+    return aiCategory
+  }
+  if (CATEGORY_ALIASES[aiCategory]) {
+    return CATEGORY_ALIASES[aiCategory]
+  }
+  for (const [alias, target] of Object.entries(CATEGORY_ALIASES)) {
+    if (aiCategory.includes(alias) || alias.includes(aiCategory)) {
+      return target
+    }
+  }
+  for (const cat of DEFAULT_CATEGORIES) {
+    if (aiCategory.includes(cat) || cat.includes(aiCategory)) {
+      return cat
+    }
+  }
+  return ""
+}
+
+function todayStr(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+}
+
+const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"]
+
+function DatePicker({ value, onChange, label }: { value: string; onChange: (v: string) => void; label: string }) {
+  const [open, setOpen] = useState(false)
+  const [viewYear, setViewYear] = useState(() => value ? new Date(value + "T00:00:00").getFullYear() : new Date().getFullYear())
+  const [viewMonth, setViewMonth] = useState(() => value ? new Date(value + "T00:00:00").getMonth() : new Date().getMonth())
+
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate()
+  const firstDayOfWeek = new Date(viewYear, viewMonth, 1).getDay()
+  const today = todayStr()
+
+  const handleSelect = useCallback((day: number) => {
+    const dateStr = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+    onChange(dateStr)
+    setOpen(false)
+  }, [viewYear, viewMonth, onChange])
+
+  const prevMonth = useCallback(() => {
+    if (viewMonth === 0) { setViewYear((y) => y - 1); setViewMonth(11) }
+    else setViewMonth((m) => m - 1)
+  }, [viewMonth])
+
+  const nextMonth = useCallback(() => {
+    if (viewMonth === 11) { setViewYear((y) => y + 1); setViewMonth(0) }
+    else setViewMonth((m) => m + 1)
+  }, [viewMonth])
+
+  const goToToday = useCallback(() => {
+    const now = new Date()
+    setViewYear(now.getFullYear())
+    setViewMonth(now.getMonth())
+    onChange(todayStr())
+    setOpen(false)
+  }, [onChange])
+
+  const displayValue = value ? value.replace(/-/g, "/") : ""
+
+  return (
+    <div className="relative">
+      <label className="block text-sm text-white/70 mb-1">{label}</label>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm text-left outline-none focus:border-emerald-500/50"
+      >
+        {displayValue || <span className="text-white/30">选择日期</span>}
+      </button>
+
+      {open && (
+        <div className="absolute z-50 mt-1 w-full min-w-[280px] rounded-xl border border-white/10 bg-[#0D1B1E] p-3 shadow-2xl">
+          <div className="flex items-center justify-between mb-3">
+            <button type="button" onClick={prevMonth} className="p-1 rounded hover:bg-white/10 text-white/70">
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={() => setViewYear((y) => y - 1)} className="px-1.5 py-0.5 rounded text-sm text-white/50 hover:bg-white/10 hover:text-white">
+                ‹
+              </button>
+              <span className="text-sm font-medium text-white min-w-[100px] text-center">
+                {viewYear}年{viewMonth + 1}月
+              </span>
+              <button type="button" onClick={() => setViewYear((y) => y + 1)} className="px-1.5 py-0.5 rounded text-sm text-white/50 hover:bg-white/10 hover:text-white">
+                ›
+              </button>
+            </div>
+            <button type="button" onClick={nextMonth} className="p-1 rounded hover:bg-white/10 text-white/70">
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 gap-0.5 mb-1">
+            {WEEKDAYS.map((d) => (
+              <div key={d} className="text-center text-xs text-white/30 py-1">{d}</div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-0.5">
+            {Array.from({ length: firstDayOfWeek }).map((_, i) => (
+              <div key={`e-${i}`} />
+            ))}
+            {Array.from({ length: daysInMonth }).map((_, i) => {
+              const day = i + 1
+              const dateStr = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+              const isSelected = value === dateStr
+              const isToday = today === dateStr
+              return (
+                <button
+                  key={day}
+                  type="button"
+                  onClick={() => handleSelect(day)}
+                  className={`h-8 rounded text-xs font-medium transition-colors
+                    ${isSelected ? "bg-emerald-600 text-white" : isToday ? "bg-white/10 text-emerald-400" : "text-white/70 hover:bg-white/10"}
+                  `}
+                >
+                  {day}
+                </button>
+              )
+            })}
+          </div>
+
+          <div className="mt-2 pt-2 border-t border-white/10 flex justify-between">
+            <button type="button" onClick={goToToday} className="text-xs text-emerald-400 hover:text-emerald-300">
+              今天
+            </button>
+            <button type="button" onClick={() => setOpen(false)} className="text-xs text-white/50 hover:text-white/70">
+              关闭
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: AssetFormProps) => {
@@ -73,19 +249,22 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
         return
       }
 
-      if (result.name && !name) {
+      if (result.name) {
         setName(result.brand ? `${result.brand} ${result.name}` : result.name)
       }
-      if (result.category && !category) {
-        const validCategories = ["数码电子", "硬通货", "非标品", "生活家居", "服饰鞋包", "运动健身", "游戏娱乐", "学习教育", "其他"]
-        if (validCategories.includes(result.category)) {
-          setCategory(result.category)
+      if (result.category) {
+        const matched = matchCategory(result.category)
+        if (matched) {
+          setCategory(matched)
         }
       }
-      if (result.estimatedPrice > 0 && !purchasePrice) {
+      if (!purchaseDate) {
+        setPurchaseDate(todayStr())
+      }
+      if (result.estimatedPrice > 0) {
         setPurchasePrice(result.estimatedPrice.toString())
       }
-      if (result.description && !note) {
+      if (result.description) {
         setNote(result.description)
       }
     } catch (e) {
@@ -246,11 +425,7 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm text-white/70 mb-1">购入日期</label>
-          <input type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} required
-            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm outline-none focus:border-emerald-500/50" />
-        </div>
+        <DatePicker value={purchaseDate} onChange={setPurchaseDate} label="购入日期" />
         <div>
           <label className="block text-sm text-white/70 mb-1">购入价格</label>
           <input type="number" step="0.01" min="0" value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} required
@@ -260,11 +435,7 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
 
       {status !== "active" && (
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm text-white/70 mb-1">结束日期</label>
-            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required
-              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm outline-none focus:border-emerald-500/50" />
-          </div>
+          <DatePicker value={endDate} onChange={setEndDate} label="结束日期" />
           {status === "recycled" && (
             <div>
               <label className="block text-sm text-white/70 mb-1">回收金额</label>
