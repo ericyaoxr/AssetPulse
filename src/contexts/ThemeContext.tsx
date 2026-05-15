@@ -60,7 +60,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
       if (saved && themeRegistry.some((t) => t.id === saved)) return saved
-    } catch {}
+    } catch {
+      // localStorage unavailable
+    }
     return "dark"
   })
 
@@ -81,7 +83,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setThemeState(id)
     try {
       localStorage.setItem(STORAGE_KEY, id)
-    } catch {}
+    } catch {
+      // localStorage unavailable
+    }
   }, [])
 
   const currentDefinition = themeRegistry.find((t) => t.id === theme) || themeRegistry[0]
