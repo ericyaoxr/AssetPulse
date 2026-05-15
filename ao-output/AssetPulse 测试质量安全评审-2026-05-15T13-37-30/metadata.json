@@ -1,0 +1,58 @@
+{
+  "name": "AssetPulse 测试质量安全评审",
+  "success": false,
+  "totalDuration": "0.6s",
+  "totalTokens": {
+    "input": 0,
+    "output": 0
+  },
+  "inputs": {
+    "project_context": "AssetPulse是一个个人资产管理PWA应用。技术栈：React18+TypeScript+TailwindCSS+Zustand+Recharts+Vite前端，Express+SQLite后端，Docker部署。已知严重漏洞：1.JWT_SECRET硬编码默认值 2.SSRF漏洞(ai.js中baseUrl和imageURL来自用户输入) 3.bcrypt降级回退到btoa()明文存储密码 4.CORS无限制 5.前端直接调用AI API暴露API Key。高危：6.无速率限制 7.无安全响应头 8.弱密码策略(最低4位) 9.API Key明文存储 10.容器以root运行 11.破坏性导入操作。中危：12.同步bcrypt阻塞 13.无输入校验 14.JSON.parse无try/catch 15.sourcemap泄露 16.用户ID可预测。质量：零测试覆盖，categories/locations代码重复，数据格式不统一，无数据库迁移。"
+  },
+  "steps": [
+    {
+      "id": "test_review",
+      "role": "engineering/engineering-test-engineer",
+      "status": "failed",
+      "output_var": "test_report",
+      "duration": "0.0s",
+      "tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "id": "quality_review",
+      "role": "engineering/engineering-quality-engineer",
+      "status": "failed",
+      "output_var": "quality_report",
+      "duration": "0.0s",
+      "tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "id": "security_review",
+      "role": "engineering/engineering-security-engineer",
+      "agentName": "安全工程师",
+      "status": "failed",
+      "output_var": "security_report",
+      "duration": "0.5s",
+      "tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "id": "summary",
+      "role": "product/product-manager",
+      "status": "skipped",
+      "duration": "0.0s",
+      "tokens": {
+        "input": 0,
+        "output": 0
+      }
+    }
+  ]
+}

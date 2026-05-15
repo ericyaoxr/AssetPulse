@@ -1,33 +1,27 @@
 import { Package, Activity, Wallet, TrendingUp, Diamond } from "lucide-react"
 import type { Asset } from "@/types"
 import { formatCurrency } from "@/utils/format"
+import { useThemeVar } from "@/hooks/useThemeVar"
 
 interface StatsCardsProps {
   assets: Asset[]
-}
-
-function getCSSVar(name: string): string {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
 }
 
 function StatCard({
   icon: Icon,
   label,
   value,
-  gradientFromVar,
-  gradientToVar,
+  gradientFrom,
+  gradientTo,
   iconBg,
 }: {
   icon: React.ElementType
   label: string
   value: string
-  gradientFromVar: string
-  gradientToVar: string
+  gradientFrom: string
+  gradientTo: string
   iconBg: string
 }) {
-  const gradientFrom = getCSSVar(gradientFromVar) || "#10B981"
-  const gradientTo = getCSSVar(gradientToVar) || "#34D399"
-
   return (
     <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-3 sm:p-4 transition-all hover:bg-surface-hover hover:border-white/20">
       <div className="flex items-center gap-2 mb-1.5">
@@ -66,45 +60,56 @@ export default function StatsCards({ assets }: StatsCardsProps) {
     return sum
   }, 0)
 
+  const emeraldFrom = useThemeVar("--stat-gradient-emerald-from", "#10B981")
+  const emeraldTo = useThemeVar("--stat-gradient-emerald-to", "#34D399")
+  const blueFrom = useThemeVar("--stat-gradient-blue-from", "#3B82F6")
+  const blueTo = useThemeVar("--stat-gradient-blue-to", "#60A5FA")
+  const amberFrom = useThemeVar("--stat-gradient-amber-from", "#F59E0B")
+  const amberTo = useThemeVar("--stat-gradient-amber-to", "#FBBF24")
+  const purpleFrom = useThemeVar("--stat-gradient-purple-from", "#8B5CF6")
+  const purpleTo = useThemeVar("--stat-gradient-purple-to", "#A78BFA")
+  const tealFrom = useThemeVar("--stat-gradient-teal-from", "#14B8A6")
+  const tealTo = useThemeVar("--stat-gradient-teal-to", "#22D3EE")
+
   const cards = [
     {
       icon: Package,
       label: "资产总数",
       value: totalAssets.toString(),
-      gradientFromVar: "--stat-gradient-emerald-from",
-      gradientToVar: "--stat-gradient-emerald-to",
+      gradientFrom: emeraldFrom,
+      gradientTo: emeraldTo,
       iconBg: "bg-gradient-to-br from-emerald-500 to-emerald-600",
     },
     {
       icon: Activity,
       label: "使用中",
       value: activeAssets.toString(),
-      gradientFromVar: "--stat-gradient-blue-from",
-      gradientToVar: "--stat-gradient-blue-to",
+      gradientFrom: blueFrom,
+      gradientTo: blueTo,
       iconBg: "bg-gradient-to-br from-blue-500 to-blue-600",
     },
     {
       icon: Wallet,
       label: "总投入",
       value: formatCurrency(totalInvestment),
-      gradientFromVar: "--stat-gradient-amber-from",
-      gradientToVar: "--stat-gradient-amber-to",
+      gradientFrom: amberFrom,
+      gradientTo: amberTo,
       iconBg: "bg-gradient-to-br from-amber-500 to-amber-600",
     },
     {
       icon: TrendingUp,
       label: "平均日均成本",
       value: formatCurrency(avgDailyCost),
-      gradientFromVar: "--stat-gradient-purple-from",
-      gradientToVar: "--stat-gradient-purple-to",
+      gradientFrom: purpleFrom,
+      gradientTo: purpleTo,
       iconBg: "bg-gradient-to-br from-purple-500 to-purple-600",
     },
     {
       icon: Diamond,
       label: "资产净值",
       value: formatCurrency(netValue),
-      gradientFromVar: "--stat-gradient-teal-from",
-      gradientToVar: "--stat-gradient-teal-to",
+      gradientFrom: tealFrom,
+      gradientTo: tealTo,
       iconBg: "bg-gradient-to-br from-teal-500 to-cyan-500",
     },
   ]

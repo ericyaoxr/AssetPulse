@@ -1,0 +1,60 @@
+{
+  "name": "AssetPulse 测试质量安全评审",
+  "success": false,
+  "totalDuration": "254.8s",
+  "totalTokens": {
+    "input": 0,
+    "output": 0
+  },
+  "inputs": {
+    "project_context": "AssetPulse个人资产管理PWA。React18+TS+Zustand+Recharts+Vite前端，Express+SQLite后端，Docker部署。严重漏洞：JWT硬编码、SSRF、btoa降级、CORS无限制、前端暴露APIKey。高危：无速率限制、无helmet、弱密码、Key明文、root容器、破坏性导入。中危：同步bcrypt、无输入校验、JSON.parse无try-catch、sourcemap泄露。质量：零测试、代码重复、数据格式不统一、无迁移机制。"
+  },
+  "steps": [
+    {
+      "id": "test_review",
+      "role": "testing/testing-api-tester",
+      "agentName": "API 测试员",
+      "status": "failed",
+      "output_var": "test_report",
+      "duration": "84.8s",
+      "tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "id": "quality_review",
+      "role": "engineering/engineering-code-reviewer",
+      "agentName": "代码审查员",
+      "status": "failed",
+      "output_var": "quality_report",
+      "duration": "78.5s",
+      "tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "id": "security_review",
+      "role": "engineering/engineering-security-engineer",
+      "agentName": "安全工程师",
+      "status": "failed",
+      "output_var": "security_report",
+      "duration": "91.5s",
+      "tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "id": "summary",
+      "role": "product/product-manager",
+      "status": "skipped",
+      "duration": "0.0s",
+      "tokens": {
+        "input": 0,
+        "output": 0
+      }
+    }
+  ]
+}
