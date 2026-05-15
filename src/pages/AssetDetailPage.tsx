@@ -12,11 +12,11 @@ export default function AssetDetailPage() {
 
   if (!asset) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-white/30">
+      <div className="flex flex-col items-center justify-center py-20 text-content-faint">
         <p className="text-lg">资产未找到</p>
         <button
           onClick={() => navigate("/assets")}
-          className="mt-4 rounded-lg bg-emerald-600 px-4 py-2 text-sm text-white hover:bg-emerald-500"
+          className="mt-4 rounded-lg bg-accent px-4 py-2 text-sm text-white hover:bg-accent-hover"
         >
           返回列表
         </button>
@@ -28,7 +28,7 @@ export default function AssetDetailPage() {
     <div className="space-y-6">
       <button
         onClick={() => navigate("/assets")}
-        className="flex items-center gap-1.5 text-sm text-white/50 transition-colors hover:text-white"
+        className="flex items-center gap-1.5 text-sm text-content-tertiary transition-colors hover:text-content-primary"
       >
         <ArrowLeft className="h-4 w-4" />
         返回列表

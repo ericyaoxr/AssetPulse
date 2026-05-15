@@ -3,10 +3,11 @@ import { Link, useLocation } from "react-router-dom"
 import {
   LayoutDashboard, Package, PlusCircle, Download, Upload, Activity,
   Trash2, TrendingUp, FileSpreadsheet, FileText, ChevronDown, LogOut,
-  Settings, Sparkles, DatabaseBackup, User,
+  Settings, Sparkles, DatabaseBackup, User, Palette,
 } from "lucide-react"
 import { useAssetStore } from "@/store/useAssetStore"
 import { useAuthStore } from "@/store/useAuthStore"
+import ThemeToggle from "@/components/layout/ThemeToggle"
 import type { ExportFormat } from "@/utils/storage"
 
 const navItems = [
@@ -19,6 +20,7 @@ const navItems = [
 
 const settingsItems = [
   { to: "/settings/account", label: "账户管理", icon: User },
+  { to: "/settings/appearance", label: "外观设置", icon: Palette },
   { to: "/settings/ai", label: "AI 估值", icon: Sparkles },
   { to: "/settings/backup", label: "数据备份", icon: DatabaseBackup },
 ]
@@ -63,11 +65,11 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/5 bg-[#0D1B1E] md:flex">
-      <div className="flex h-16 items-center gap-2.5 border-b border-white/5 px-6">
-        <Activity className="h-7 w-7 text-emerald" />
-        <span className="font-mono text-xl font-bold tracking-tight">
-          Asset<span className="text-emerald">Pulse</span>
+    <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-edge-subtle bg-ink md:flex">
+      <div className="flex h-16 items-center gap-2.5 border-b border-edge-subtle px-6">
+        <Activity className="h-7 w-7 text-accent" />
+        <span className="font-mono text-xl font-bold tracking-tight text-content-primary">
+          Asset<span className="text-accent">Pulse</span>
         </span>
       </div>
 
@@ -81,8 +83,8 @@ export default function Sidebar() {
               to={item.to}
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                 isActive
-                  ? "bg-emerald/10 text-emerald"
-                  : "text-gray-400 hover:bg-white/5 hover:text-white"
+                  ? "bg-accent-light text-accent"
+                  : "text-content-tertiary hover:bg-surface-hover hover:text-content-primary"
               }`}
             >
               <Icon className="h-5 w-5" />
@@ -101,8 +103,8 @@ export default function Sidebar() {
             onClick={() => setShowSettings(!showSettings)}
             className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
               isSettingsActive
-                ? "bg-emerald/10 text-emerald"
-                : "text-gray-400 hover:bg-white/5 hover:text-white"
+                ? "bg-accent-light text-accent"
+                : "text-content-tertiary hover:bg-surface-hover hover:text-content-primary"
             }`}
           >
             <Settings className="h-5 w-5" />
@@ -110,7 +112,7 @@ export default function Sidebar() {
             <ChevronDown className={`ml-auto h-4 w-4 transition-transform ${showSettings ? "rotate-180" : ""}`} />
           </button>
           {showSettings && (
-            <div className="mt-1 ml-4 space-y-1 border-l border-white/10 pl-3">
+            <div className="mt-1 ml-4 space-y-1 border-l border-edge pl-3">
               {settingsItems.map((item) => {
                 const isActive = location.pathname === item.to
                 const Icon = item.icon
@@ -120,8 +122,8 @@ export default function Sidebar() {
                     to={item.to}
                     className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
                       isActive
-                        ? "bg-emerald/10 text-emerald"
-                        : "text-white/50 hover:bg-white/5 hover:text-white"
+                        ? "bg-accent-light text-accent"
+                        : "text-content-muted hover:bg-surface-hover hover:text-content-primary"
                     }`}
                   >
                     <Icon className="h-4 w-4" />
@@ -134,48 +136,48 @@ export default function Sidebar() {
         </div>
       </nav>
 
-      <div className="border-t border-white/5 px-3 py-4">
+      <div className="border-t border-edge-subtle px-3 py-4">
         {currentUser && (
-          <div className="mb-4 flex items-center gap-3 rounded-lg bg-white/5 px-3 py-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 text-sm font-bold text-emerald-400">
+          <div className="mb-4 flex items-center gap-3 rounded-lg bg-surface px-3 py-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-light text-sm font-bold text-accent">
               {currentUser.username.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="truncate text-sm font-medium text-white">{currentUser.username}</p>
-              <p className="text-xs text-white/30">已登录</p>
+              <p className="truncate text-sm font-medium text-content-primary">{currentUser.username}</p>
+              <p className="text-xs text-content-muted">已登录</p>
             </div>
             <button
               onClick={logout}
               title="退出登录"
-              className="text-white/30 transition-colors hover:text-red-400"
+              className="text-content-muted transition-colors hover:text-red-400"
             >
               <LogOut className="h-4 w-4" />
             </button>
           </div>
         )}
 
-        <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
+        <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-content-muted">
           数据管理
         </p>
         <div className="space-y-1">
           <div className="relative">
             <button
               onClick={() => setShowExportMenu(!showExportMenu)}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-400 transition-colors hover:bg-white/5 hover:text-white"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-content-tertiary transition-colors hover:bg-surface-hover hover:text-content-primary"
             >
               <Download className="h-5 w-5" />
               导出数据
               <ChevronDown className={`ml-auto h-4 w-4 transition-transform ${showExportMenu ? "rotate-180" : ""}`} />
             </button>
             {showExportMenu && (
-              <div className="mt-1 rounded-lg border border-white/10 bg-[#0D1B1E] py-1 shadow-xl">
+              <div className="mt-1 rounded-lg border border-edge bg-ink py-1 shadow-xl">
                 {exportFormats.map((fmt) => {
                   const Icon = fmt.icon
                   return (
                     <button
                       key={fmt.value}
                       onClick={() => handleExport(fmt.value)}
-                      className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-white/70 transition-colors hover:bg-white/5 hover:text-white"
+                      className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-content-secondary transition-colors hover:bg-surface-hover hover:text-content-primary"
                     >
                       <Icon className="h-4 w-4" />
                       {fmt.label}
@@ -188,7 +190,7 @@ export default function Sidebar() {
 
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-400 transition-colors hover:bg-white/5 hover:text-white"
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-content-tertiary transition-colors hover:bg-surface-hover hover:text-content-primary"
           >
             <Upload className="h-5 w-5" />
             导入数据
@@ -198,7 +200,7 @@ export default function Sidebar() {
             <p className="px-3 py-1 text-xs text-red-400">{importError}</p>
           )}
 
-          <p className="px-3 text-xs text-white/20">
+          <p className="px-3 text-xs text-content-faint">
             支持 JSON / Excel / CSV
           </p>
 
@@ -209,6 +211,10 @@ export default function Sidebar() {
             onChange={handleImport}
             className="hidden"
           />
+        </div>
+
+        <div className="mt-3 border-t border-edge-subtle pt-3">
+          <ThemeToggle />
         </div>
       </div>
     </aside>

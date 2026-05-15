@@ -48,14 +48,14 @@ export default function AppLayout() {
 
   if (!authInitialized) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0D1B1E]">
+      <div className="flex min-h-screen items-center justify-center bg-ink">
         <div className="flex flex-col items-center gap-4">
-          <Activity className="h-12 w-12 text-emerald-500 animate-pulse" />
+          <Activity className="h-12 w-12 text-accent animate-pulse" />
           <div className="text-center">
-            <p className="font-mono text-xl font-bold tracking-tight text-white">
-              Asset<span className="text-emerald-500">Pulse</span>
+            <p className="font-mono text-xl font-bold tracking-tight text-content-primary">
+              Asset<span className="text-accent">Pulse</span>
             </p>
-            <p className="mt-1 text-sm text-white/40">正在加载...</p>
+            <p className="mt-1 text-sm text-content-muted">正在加载...</p>
           </div>
         </div>
       </div>
@@ -68,14 +68,14 @@ export default function AppLayout() {
 
   if (loading && !initialized) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0D1B1E]">
+      <div className="flex min-h-screen items-center justify-center bg-ink">
         <div className="flex flex-col items-center gap-4">
-          <Activity className="h-12 w-12 text-emerald-500 animate-pulse" />
+          <Activity className="h-12 w-12 text-accent animate-pulse" />
           <div className="text-center">
-            <p className="font-mono text-xl font-bold tracking-tight text-white">
-              Asset<span className="text-emerald-500">Pulse</span>
+            <p className="font-mono text-xl font-bold tracking-tight text-content-primary">
+              Asset<span className="text-accent">Pulse</span>
             </p>
-            <p className="mt-1 text-sm text-white/40">正在加载数据...</p>
+            <p className="mt-1 text-sm text-content-muted">正在加载数据...</p>
           </div>
         </div>
       </div>
@@ -83,7 +83,7 @@ export default function AppLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0D1B1E] font-sans text-white">
+    <div className="min-h-screen bg-ink font-sans text-content-primary">
       <Sidebar />
 
       <main className="pb-20 md:pb-0 md:pl-64">

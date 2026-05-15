@@ -96,7 +96,7 @@ export default function AISettings() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-emerald-400" />
+        <Loader2 className="h-6 w-6 animate-spin text-accent" />
       </div>
     )
   }
@@ -104,24 +104,24 @@ export default function AISettings() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
-          <Sparkles className="h-6 w-6 text-emerald-400" />
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-content-primary">
+          <Sparkles className="h-6 w-6 text-accent" />
           AI 估值设置
         </h1>
-        <p className="mt-1 text-sm text-white/50">配置 AI 模型以估算资产二手市场价值</p>
+        <p className="mt-1 text-sm text-content-tertiary">配置 AI 模型以估算资产二手市场价值</p>
       </div>
 
-      <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-6 space-y-5">
+      <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-6 space-y-5">
         <div>
-          <label className="block text-sm text-white/70 mb-1">AI 服务商</label>
+          <label className="block text-sm text-content-secondary mb-1">AI 服务商</label>
           <select
             value={selectedLabel}
             onChange={(e) => handleProviderChange(e.target.value)}
-            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm outline-none focus:border-emerald-500/50"
+            className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-content-primary text-sm outline-none focus:border-accent/30"
           >
-            <option value="" className="bg-[#0D1B1E]">选择服务商</option>
+            <option value="" className="bg-ink">选择服务商</option>
             {PRESET_PROVIDERS.map((p) => (
-              <option key={p.label} value={p.label} className="bg-[#0D1B1E]">
+              <option key={p.label} value={p.label} className="bg-ink">
                 {p.label}
               </option>
             ))}
@@ -129,19 +129,19 @@ export default function AISettings() {
         </div>
 
         <div>
-          <label className="block text-sm text-white/70 mb-1">API Key</label>
+          <label className="block text-sm text-content-secondary mb-1">API Key</label>
           <div className="relative">
             <input
               type={showKey ? "text" : "password"}
               value={apiKey}
               onChange={(e) => { setApiKey(e.target.value); setTestResult(null); setSaveMsg(null) }}
               placeholder="sk-..."
-              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 pr-10 text-white text-sm outline-none focus:border-emerald-500/50"
+              className="w-full rounded-lg border border-edge bg-surface px-3 py-2 pr-10 text-content-primary text-sm outline-none focus:border-accent/30"
             />
             <button
               type="button"
               onClick={() => setShowKey(!showKey)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-content-muted hover:text-content-secondary"
             >
               {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
@@ -149,24 +149,24 @@ export default function AISettings() {
         </div>
 
         <div>
-          <label className="block text-sm text-white/70 mb-1">API 地址</label>
+          <label className="block text-sm text-content-secondary mb-1">API 地址</label>
           <input
             type="text"
             value={baseUrl}
             onChange={(e) => { setBaseUrl(e.target.value); setTestResult(null); setSaveMsg(null) }}
             placeholder="https://api.example.com/v1"
-            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm outline-none focus:border-emerald-500/50"
+            className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-content-primary text-sm outline-none focus:border-accent/30"
           />
         </div>
 
         <div>
-          <label className="block text-sm text-white/70 mb-1">模型名称</label>
+          <label className="block text-sm text-content-secondary mb-1">模型名称</label>
           <input
             type="text"
             value={model}
             onChange={(e) => { setModel(e.target.value); setTestResult(null); setSaveMsg(null) }}
             placeholder="model-name"
-            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm outline-none focus:border-emerald-500/50"
+            className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-content-primary text-sm outline-none focus:border-accent/30"
           />
         </div>
 
@@ -174,7 +174,7 @@ export default function AISettings() {
           <div
             className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${
               testResult.ok
-                ? "bg-emerald-500/10 text-emerald-400"
+                ? "bg-accent-light text-accent"
                 : "bg-red-500/10 text-red-400"
             }`}
           >
@@ -187,7 +187,7 @@ export default function AISettings() {
           <div
             className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${
               saveMsg.ok
-                ? "bg-emerald-500/10 text-emerald-400"
+                ? "bg-accent-light text-accent"
                 : "bg-red-500/10 text-red-400"
             }`}
           >
@@ -201,7 +201,7 @@ export default function AISettings() {
             type="button"
             onClick={handleTest}
             disabled={testing}
-            className="flex items-center gap-2 rounded-lg border border-white/10 px-4 py-2.5 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-lg border border-edge px-4 py-2.5 text-sm font-medium text-content-secondary transition-colors hover:bg-surface disabled:opacity-50"
           >
             {testing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wifi className="h-4 w-4" />}
             测试连接
@@ -209,14 +209,14 @@ export default function AISettings() {
           <button
             type="button"
             onClick={handleSave}
-            className="flex-1 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-500"
+            className="flex-1 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
           >
             保存配置
           </button>
         </div>
       </div>
 
-      <p className="text-xs text-white/30">
+      <p className="text-xs text-content-faint">
         API Key 加密存储在服务器数据库中
       </p>
     </div>

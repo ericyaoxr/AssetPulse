@@ -44,10 +44,10 @@ export default function StatusDistribution({ assets }: StatusDistributionProps) 
   }, [assets])
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-5">
-      <h3 className="mb-4 text-base font-semibold text-white">资产状态分布</h3>
+    <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-5">
+      <h3 className="mb-4 text-base font-semibold text-content-primary">资产状态分布</h3>
       {data.length === 0 ? (
-        <div className="flex h-48 items-center justify-center text-sm text-white/30">
+        <div className="flex h-48 items-center justify-center text-sm text-content-faint">
           暂无数据
         </div>
       ) : (
@@ -72,10 +72,10 @@ export default function StatusDistribution({ assets }: StatusDistributionProps) 
               </PieChart>
             </ResponsiveContainer>
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-              <span className="font-['Space_Grotesk'] text-3xl font-bold text-white">
+              <span className="font-['Space_Grotesk'] text-3xl font-bold text-content-primary">
                 {total}
               </span>
-              <span className="text-xs text-white/40">总资产</span>
+              <span className="text-xs text-content-muted">总资产</span>
             </div>
           </div>
           <div className="mt-4 flex items-center justify-center gap-6">
@@ -88,10 +88,10 @@ export default function StatusDistribution({ assets }: StatusDistributionProps) 
                     <span
                       className={`inline-block h-2.5 w-2.5 rounded-full ${STATUS_BG[status]}`}
                     />
-                    <span className="text-sm text-white/60">
+                    <span className="text-sm text-content-secondary">
                       {getStatusLabel(status)}
                     </span>
-                    <span className="text-sm font-medium text-white">
+                    <span className="text-sm font-medium text-content-primary">
                       {item.count}
                     </span>
                   </div>
