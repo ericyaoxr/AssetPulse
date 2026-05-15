@@ -117,7 +117,7 @@ export default function AssetCard({ asset }: AssetCardProps) {
                   AI估值 {formatCurrency(asset.aiValuation.estimatedValue)}
                 </span>
                 <span className="text-white/25">
-                  ({asset.aiValuation.depreciationRate.toFixed(0)}%折旧)
+                  ({(asset.aiValuation.depreciationRate * 100).toFixed(0)}%折旧)
                 </span>
               </div>
             )}
