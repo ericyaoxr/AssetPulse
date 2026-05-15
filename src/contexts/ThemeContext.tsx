@@ -27,12 +27,12 @@ export const themeRegistry: ThemeDefinition[] = [
   {
     id: "apple",
     name: "苹果风格",
-    description: "清新明亮，毛玻璃质感，致敬 Apple 设计语言",
+    description: "毛玻璃质感，Apple HIG 设计语言",
     preview: {
-      bg: "#f5f5f7",
+      bg: "#f2f2f7",
       accent: "#007AFF",
       text: "#1d1d1f",
-      card: "rgba(255,255,255,0.7)",
+      card: "rgba(255,255,255,0.65)",
     },
   },
 ]

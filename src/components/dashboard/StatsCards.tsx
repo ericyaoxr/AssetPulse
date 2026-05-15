@@ -6,21 +6,28 @@ interface StatsCardsProps {
   assets: Asset[]
 }
 
+function getCSSVar(name: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+}
+
 function StatCard({
   icon: Icon,
   label,
   value,
-  gradientFrom,
-  gradientTo,
+  gradientFromVar,
+  gradientToVar,
   iconBg,
 }: {
   icon: React.ElementType
   label: string
   value: string
-  gradientFrom: string
-  gradientTo: string
+  gradientFromVar: string
+  gradientToVar: string
   iconBg: string
 }) {
+  const gradientFrom = getCSSVar(gradientFromVar) || "#10B981"
+  const gradientTo = getCSSVar(gradientToVar) || "#34D399"
+
   return (
     <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-3 sm:p-4 transition-all hover:bg-surface-hover hover:border-white/20">
       <div className="flex items-center gap-2 mb-1.5">
@@ -32,7 +39,7 @@ function StatCard({
         <p className="text-[11px] sm:text-xs text-content-tertiary truncate">{label}</p>
       </div>
       <p
-        className="font-['Space_Grotesk'] text-base sm:text-lg font-bold text-white leading-tight"
+        className="font-['Space_Grotesk'] text-base sm:text-lg font-bold text-content-primary leading-tight"
         style={{
           backgroundImage: `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})`,
           WebkitBackgroundClip: "text",
@@ -64,40 +71,40 @@ export default function StatsCards({ assets }: StatsCardsProps) {
       icon: Package,
       label: "资产总数",
       value: totalAssets.toString(),
-      gradientFrom: "#10B981",
-      gradientTo: "#34D399",
+      gradientFromVar: "--stat-gradient-emerald-from",
+      gradientToVar: "--stat-gradient-emerald-to",
       iconBg: "bg-gradient-to-br from-emerald-500 to-emerald-600",
     },
     {
       icon: Activity,
       label: "使用中",
       value: activeAssets.toString(),
-      gradientFrom: "#3B82F6",
-      gradientTo: "#60A5FA",
+      gradientFromVar: "--stat-gradient-blue-from",
+      gradientToVar: "--stat-gradient-blue-to",
       iconBg: "bg-gradient-to-br from-blue-500 to-blue-600",
     },
     {
       icon: Wallet,
       label: "总投入",
       value: formatCurrency(totalInvestment),
-      gradientFrom: "#F59E0B",
-      gradientTo: "#FBBF24",
+      gradientFromVar: "--stat-gradient-amber-from",
+      gradientToVar: "--stat-gradient-amber-to",
       iconBg: "bg-gradient-to-br from-amber-500 to-amber-600",
     },
     {
       icon: TrendingUp,
       label: "平均日均成本",
       value: formatCurrency(avgDailyCost),
-      gradientFrom: "#8B5CF6",
-      gradientTo: "#A78BFA",
+      gradientFromVar: "--stat-gradient-purple-from",
+      gradientToVar: "--stat-gradient-purple-to",
       iconBg: "bg-gradient-to-br from-purple-500 to-purple-600",
     },
     {
       icon: Diamond,
       label: "资产净值",
       value: formatCurrency(netValue),
-      gradientFrom: "#14B8A6",
-      gradientTo: "#22D3EE",
+      gradientFromVar: "--stat-gradient-teal-from",
+      gradientToVar: "--stat-gradient-teal-to",
       iconBg: "bg-gradient-to-br from-teal-500 to-cyan-500",
     },
   ]
