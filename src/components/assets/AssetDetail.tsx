@@ -8,15 +8,12 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts"
 import { differenceInDays, format, eachMonthOfInterval } from "date-fns"
-
-function getCSSVar(name: string): string {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
-}
 import type { Asset, AssetStatus } from "@/types"
 import { formatCurrency, formatDays, formatDate } from "@/utils/format"
 import { useAssetStore } from "@/store/useAssetStore"
 import { estimateAssetValue, loadAIConfig } from "@/utils/aiValuation"
 import StatusBadge from "@/components/assets/StatusBadge"
+import { useThemeVars } from "@/hooks/useThemeVar"
 
 interface AssetDetailProps {
   asset: Asset
@@ -68,6 +65,15 @@ const AssetDetail = ({ asset }: AssetDetailProps) => {
       return { date: format(month, "yyyy-MM"), cost: Math.round(((asset.purchasePrice - recycle) / daysSoFar) * 100) / 100 }
     })
   }, [asset])
+
+  const chartVars = useThemeVars({
+    "--chart-grid": "rgba(255,255,255,0.06)",
+    "--chart-text": "rgba(255,255,255,0.4)",
+    "--chart-daily-cost": "#10B981",
+    "--chart-tooltip-bg": "rgba(13,27,30,0.95)",
+    "--chart-tooltip-border": "rgba(255,255,255,0.1)",
+    "--text-primary": "#ffffff",
+  })
 
   const progress = asset.targetDailyCost && asset.targetDailyCost > 0
     ? Math.min(100, (asset.targetDailyCost / Math.max(0.01, asset.dailyCost)) * 100)
@@ -256,11 +262,11 @@ const AssetDetail = ({ asset }: AssetDetailProps) => {
           <h3 className="mb-4 text-sm font-medium text-content-secondary">日均成本趋势</h3>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke={getCSSVar("--chart-grid") || "rgba(255,255,255,0.06)"} />
-              <XAxis dataKey="date" tick={{ fill: getCSSVar("--chart-text") || "rgba(255,255,255,0.4)", fontSize: 11 }} />
-              <YAxis tick={{ fill: getCSSVar("--chart-text") || "rgba(255,255,255,0.4)", fontSize: 11 }} />
-              <Tooltip contentStyle={{ backgroundColor: getCSSVar("--chart-tooltip-bg") || "#0D1B1E", border: `1px solid ${getCSSVar("--chart-tooltip-border") || "rgba(255,255,255,0.1)"}`, borderRadius: "8px", color: getCSSVar("--text-primary") || "#fff", fontSize: 12 }} />
-              <Line type="monotone" dataKey="cost" stroke={getCSSVar("--chart-daily-cost") || "#10B981"} strokeWidth={2} dot={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartVars["--chart-grid"]} />
+              <XAxis dataKey="date" tick={{ fill: chartVars["--chart-text"], fontSize: 11 }} />
+              <YAxis tick={{ fill: chartVars["--chart-text"], fontSize: 11 }} />
+              <Tooltip contentStyle={{ backgroundColor: chartVars["--chart-tooltip-bg"], border: `1px solid ${chartVars["--chart-tooltip-border"]}`, borderRadius: "8px", color: chartVars["--text-primary"], fontSize: 12 }} />
+              <Line type="monotone" dataKey="cost" stroke={chartVars["--chart-daily-cost"]} strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>

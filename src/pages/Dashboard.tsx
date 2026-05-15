@@ -4,12 +4,9 @@ import { useAssetStore } from "@/store/useAssetStore"
 import StatsCards from "@/components/dashboard/StatsCards"
 import CostRanking from "@/components/dashboard/CostRanking"
 import TrendChart from "@/components/dashboard/TrendChart"
-import StatusDistribution from "@/components/dashboard/StatusDistribution"
+import AIValuationOverview from "@/components/dashboard/AIValuationOverview"
 import { formatCurrency, formatDays } from "@/utils/format"
-
-function getCSSVar(name: string): string {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
-}
+import { useThemeVar } from "@/hooks/useThemeVar"
 
 export default function Dashboard() {
   const { assets, recalculateAll } = useAssetStore()
@@ -43,9 +40,9 @@ export default function Dashboard() {
     [categoryData]
   )
 
-  const categoryBarFrom = getCSSVar("--chart-bar-low") || "#3B82F6"
-  const categoryBarTo = getCSSVar("--chart-status-recycled") || "#60A5FA"
-  const tagIconColor = getCSSVar("--chart-bar-low") || "#3B82F6"
+  const categoryBarFrom = useThemeVar("--chart-bar-low", "#3B82F6")
+  const categoryBarTo = useThemeVar("--chart-status-recycled", "#60A5FA")
+  const tagIconColor = useThemeVar("--chart-bar-low", "#3B82F6")
 
   return (
     <div className="space-y-6">
@@ -58,7 +55,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <CostRanking assets={assets} />
-        <StatusDistribution assets={assets} />
+        <AIValuationOverview assets={assets} />
       </div>
 
       <TrendChart assets={assets} />

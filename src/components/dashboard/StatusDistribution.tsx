@@ -2,13 +2,10 @@ import { useMemo } from "react"
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts"
 import type { Asset, AssetStatus } from "@/types"
 import { getStatusLabel } from "@/utils/format"
+import { useThemeVars } from "@/hooks/useThemeVar"
 
 interface StatusDistributionProps {
   assets: Asset[]
-}
-
-function getCSSVar(name: string): string {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
 }
 
 const STATUS_BG: Record<AssetStatus, string> = {
@@ -24,15 +21,17 @@ interface ChartData {
 }
 
 export default function StatusDistribution({ assets }: StatusDistributionProps) {
-  const { data, total } = useMemo(() => {
-    const activeColor = getCSSVar("--chart-status-active") || "#10B981"
-    const recycledColor = getCSSVar("--chart-status-recycled") || "#3B82F6"
-    const scrappedColor = getCSSVar("--chart-status-scrapped") || "#F59E0B"
+  const vars = useThemeVars({
+    "--chart-status-active": "#10B981",
+    "--chart-status-recycled": "#3B82F6",
+    "--chart-status-scrapped": "#F59E0B",
+  })
 
+  const { data, total } = useMemo(() => {
     const STATUS_COLORS: Record<AssetStatus, string> = {
-      active: activeColor,
-      recycled: recycledColor,
-      scrapped: scrappedColor,
+      active: vars["--chart-status-active"],
+      recycled: vars["--chart-status-recycled"],
+      scrapped: vars["--chart-status-scrapped"],
     }
 
     const countMap = new Map<AssetStatus, number>()
@@ -49,7 +48,7 @@ export default function StatusDistribution({ assets }: StatusDistributionProps) 
         color: STATUS_COLORS[status],
       }))
     return { data, total: assets.length }
-  }, [assets])
+  }, [assets, vars])
 
   return (
     <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-5">

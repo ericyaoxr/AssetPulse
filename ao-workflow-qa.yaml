@@ -1,0 +1,130 @@
+name: "AssetPulse 测试质量安全评审"
+agents_dir: "agency-agents-zh"
+llm:
+  provider: "codex-cli"
+concurrency: 2
+inputs:
+  - name: project_context
+    required: true
+steps:
+  - id: test_review
+    role: "testing/testing-api-tester"
+    task: |
+      你是一位资深测试工程师，请对以下资产管理应用进行测试评审。
+
+      技术栈：React 18 + TypeScript + Zustand + Recharts + Vite + Express + SQLite
+      当前测试覆盖：零测试文件，无任何 .test.* 或 .spec.* 文件
+
+      已知问题：
+      - 整个项目无任何测试
+      - importData 串行创建，大量数据时性能差
+      - deleteAsset 客户端构造 trashItem，可能与服务端不一致
+      - JSON.parse 无 try/catch（多处）
+      - bcrypt 同步方法阻塞事件循环
+      - 无数据库迁移机制
+
+      请输出：
+      1. 测试策略：推荐哪些测试框架和工具？如何与现有技术栈集成？
+      2. 优先级排序的测试用例清单（按模块分组）
+      3. 关键路径的 E2E 测试场景
+      4. CI/CD 集成建议
+      5. 测试覆盖率目标（短期/中期/长期）
+
+      项目上下文：
+      {{project_context}}
+
+    output: test_report
+
+  - id: quality_review
+    role: "engineering/engineering-code-reviewer"
+    task: |
+      你是一位资深质量工程师，请对以下资产管理应用进行代码质量评审。
+
+      技术栈：React 18 + TypeScript + Zustand + Recharts + Vite + Express + SQLite
+
+      已知问题：
+      - categories.js 和 locations.js 代码完全重复，仅表名不同
+      - ai.js 和 aiValuation.ts 前后端 JSON 解析逻辑重复
+      - 模块级变量 initPromise 需手动 resetInitPromise()
+      - importData 串行创建性能差
+      - 数据格式不统一（camelCase vs snake_case）
+      - 无数据库迁移机制
+      - formatCurrency 硬编码 ¥符号
+      - 生产环境 console.log
+      - sourcemap 和 babel 插件未区分环境
+
+      请输出：
+      1. 代码质量评分（0-100）和改进路线图
+      2. 重构优先级清单（按影响排序）
+      3. 代码规范建议（ESLint 规则、Prettier 配置）
+      4. 技术债务追踪方案
+      5. 代码审查 Checklist
+
+      项目上下文：
+      {{project_context}}
+
+    output: quality_report
+
+  - id: security_review
+    role: "engineering/engineering-security-engineer"
+    task: |
+      你是一位资深安全工程师，请对以下资产管理应用进行安全评审。
+
+      已知严重漏洞：
+      1. JWT_SECRET 硬编码默认值 "assetpulse_secret_key_2024"
+      2. SSRF 漏洞：ai.js 中 baseUrl 和 image URL 来自用户输入，服务端直接 fetch
+      3. bcrypt 降级回退到 btoa()，等于明文存储密码
+      4. CORS 无限制：app.use(cors()) 允许任意来源
+      5. 前端直接调用 AI API，API Key 暴露在浏览器
+
+      已知高危问题：
+      6. 无速率限制，登录/注册接口易受暴力破解
+      7. 无安全响应头（缺少 helmet）
+      8. 弱密码策略：最低4位，无复杂度要求
+      9. API Key 明文存储和传输
+      10. 容器以 root 运行
+      11. 破坏性导入操作先删后插，无确认和回滚
+
+      已知中危问题：
+      12. 同步 bcrypt 阻塞事件循环
+      13. 无输入类型/范围校验
+      14. JSON.parse 无 try/catch
+      15. sourcemap 配置泄露源码
+      16. 用户 ID 可预测
+
+      请输出：
+      1. OWASP Top 10 映射分析
+      2. 每个漏洞的具体修复方案（含代码示例）
+      3. 安全加固 Checklist
+      4. 渗透测试建议
+      5. 安全监控和告警方案
+
+      项目上下文：
+      {{project_context}}
+
+    output: security_report
+
+  - id: summary
+    role: "product/product-manager"
+    task: |
+      请综合以下三位工程师的评审报告，输出一份结构化的行动计划：
+
+      1. 测试工程师报告：
+      {{test_report}}
+
+      2. 质量工程师报告：
+      {{quality_report}}
+
+      3. 安全工程师报告：
+      {{security_report}}
+
+      请按优先级排序，输出：
+      - P0（紧急修复）：安全漏洞和关键缺陷
+      - P1（短期优化）：1-2 周内可完成
+      - P2（中期规划）：1-2 个月内完成
+      - P3（长期演进）：后续迭代
+
+      每条包含：问题描述、修复方案、预期收益、实施难度（低/中/高）
+
+    depends_on: [test_review, quality_review, security_review]
+    output: summary

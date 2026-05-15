@@ -1,0 +1,85 @@
+name: "AssetPulse 专家优化评审"
+agents_dir: "agency-agents-zh"
+llm:
+  provider: "claude-code"
+concurrency: 2
+inputs:
+  - name: project_context
+    required: true
+steps:
+  - id: ux_review
+    role: "design/design-ux-architect"
+    task: |
+      你是一位资深 Apple UI/UX 设计专家，请对以下资产管理应用的主题系统进行专业评审，重点关注苹果风格主题的设计质量。
+
+      项目背景：AssetPulse 是一个个人资产管理 PWA，支持深色主题和苹果风格主题切换。
+
+      当前苹果主题实现：
+      - 背景色：#f2f2f7（Apple 标准浅灰）
+      - 主色：#007AFF（Apple Blue）
+      - 毛玻璃：blur(40px) saturate(180%)
+      - 阴影：三层叠加（1px + 8px + 24px）
+      - 字体：SF Pro Display/Text 优先
+      - 图表色：Apple 系统色（Orange #FF9500, Green #34C759, Blue #007AFF, Purple #BF5AF2）
+
+      请从以下维度给出具体优化建议（每条建议必须包含具体的代码/数值）：
+      1. 色彩系统：当前 Apple 系统色映射是否准确？有无遗漏的 Apple HIG 色彩？
+      2. 排版层级：字号、字重、行高是否符合 Apple HIG 规范？
+      3. 间距与布局：padding/margin 是否符合 8pt 网格系统？
+      4. 交互反馈：hover/active/focus 状态是否符合 Apple 的交互规范？
+      5. 毛玻璃效果：blur 值和透明度是否需要调整？
+      6. 图表可视化：recharts 图表在苹果主题下的配色和字体是否足够清晰？
+      7. 移动端适配：手机端抽屉菜单和底部导航的苹果风格是否到位？
+
+      项目上下文：
+      {{project_context}}
+
+    output: ux_report
+
+  - id: arch_review
+    role: "engineering/engineering-software-architect"
+    task: |
+      你是一位资深前端架构师，请对以下资产管理应用的主题系统架构进行专业评审。
+
+      技术栈：React 18 + TypeScript + Tailwind CSS + Zustand + Recharts + Vite
+
+      当前主题架构：
+      - ThemeContext + themeRegistry 管理主题切换
+      - CSS 变量（--bg-primary, --text-primary 等）驱动颜色
+      - Tailwind 自定义颜色映射到 CSS 变量
+      - 苹果主题通过 [data-theme="apple"] 选择器覆盖 40+ 条 CSS 规则
+      - 图表组件通过 getCSSVar() 运行时读取 CSS 变量
+
+      请从以下维度给出具体优化建议：
+      1. 主题架构：当前 CSS 变量 + Tailwind 映射 + CSS 覆盖的方式是否合理？有无更优雅的方案？
+      2. 40+ 条 CSS 覆盖规则是否过多？如何减少？
+      3. getCSSVar() 运行时读取是否影响性能？是否应该用 React hook 替代？
+      4. 主题切换时的 transition 是否流畅？有无闪烁问题？
+      5. 主题系统扩展性：添加第三个主题需要改动多少文件？
+      6. 代码组织：主题相关代码是否应该集中管理？
+
+      项目上下文：
+      {{project_context}}
+
+    output: arch_report
+
+  - id: summary
+    role: "product/product-manager"
+    task: |
+      请综合以下两位专家的评审报告，输出一份结构化的优化方案：
+
+      1. UX 设计专家报告：
+      {{ux_report}}
+
+      2. 前端架构师报告：
+      {{arch_report}}
+
+      请按优先级排序，输出：
+      - P0（必须立即修复）：影响用户体验的关键问题
+      - P1（短期优化）：1-2 周内可完成的优化
+      - P2（长期规划）：后续迭代中逐步优化
+
+      每条建议包含：问题描述、优化方案、预期收益、实施难度（低/中/高）
+
+    depends_on: [ux_review, arch_review]
+    output: summary

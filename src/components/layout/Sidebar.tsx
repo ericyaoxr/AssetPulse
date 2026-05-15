@@ -7,7 +7,6 @@ import {
 } from "lucide-react"
 import { useAssetStore } from "@/store/useAssetStore"
 import { useAuthStore } from "@/store/useAuthStore"
-import ThemeToggle from "@/components/layout/ThemeToggle"
 import type { ExportFormat } from "@/utils/storage"
 
 const navItems = [
@@ -213,9 +212,7 @@ export default function Sidebar() {
           />
         </div>
 
-        <div className="mt-3 border-t border-edge-subtle pt-3">
-          <ThemeToggle />
-        </div>
+
       </div>
     </aside>
   )

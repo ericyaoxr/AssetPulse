@@ -13,6 +13,7 @@ import { format, parseISO, addMonths, startOfMonth } from "date-fns"
 import { zhCN } from "date-fns/locale"
 import type { Asset } from "@/types"
 import { formatCurrency } from "@/utils/format"
+import { useThemeVars } from "@/hooks/useThemeVar"
 
 interface TrendChartProps {
   assets: Asset[]
@@ -25,26 +26,26 @@ interface ChartData {
   dailyCostSum: number
 }
 
-function getCSSVar(name: string): string {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
-}
-
 function CustomTooltip({
   active,
   payload,
   label,
+  tooltipBg,
+  tooltipBorder,
 }: {
   active?: boolean
   payload?: Array<{ value: number; dataKey: string; color: string }>
   label?: string
+  tooltipBg: string
+  tooltipBorder: string
 }) {
   if (!active || !payload?.length) return null
   return (
     <div
       className="rounded-xl px-3.5 py-2.5 shadow-xl"
       style={{
-        backgroundColor: getCSSVar("--chart-tooltip-bg"),
-        border: `1px solid ${getCSSVar("--chart-tooltip-border")}`,
+        backgroundColor: tooltipBg,
+        border: `1px solid ${tooltipBorder}`,
         backdropFilter: "blur(20px) saturate(180%)",
         WebkitBackdropFilter: "blur(20px) saturate(180%)",
       }}
@@ -101,7 +102,7 @@ export default function TrendChart({ assets }: TrendChartProps) {
       const key = format(current, "yyyy-MM")
       result.push({
         month: key,
-        label: format(current, "yy/M", { locale: zhCN }),
+        label: format(current, "yyyy/M", { locale: zhCN }),
         purchaseAmount: Number((monthPurchaseMap.get(key) || 0).toFixed(2)),
         dailyCostSum: Number((monthDailyCostMap.get(key) || 0).toFixed(2)),
       })
@@ -111,10 +112,19 @@ export default function TrendChart({ assets }: TrendChartProps) {
     return result
   }, [assets])
 
-  const chartTextColor = getCSSVar("--chart-text") || "rgba(255,255,255,0.4)"
-  const chartTextLabelColor = getCSSVar("--chart-text-label") || "rgba(255,255,255,0.6)"
-  const purchaseColor = getCSSVar("--chart-purchase") || "#F59E0B"
-  const dailyCostColor = getCSSVar("--chart-daily-cost") || "#10B981"
+  const vars = useThemeVars({
+    "--chart-text": "rgba(255,255,255,0.4)",
+    "--chart-text-label": "rgba(255,255,255,0.6)",
+    "--chart-purchase": "#F59E0B",
+    "--chart-daily-cost": "#10B981",
+    "--chart-tooltip-bg": "rgba(13,27,30,0.95)",
+    "--chart-tooltip-border": "rgba(255,255,255,0.1)",
+  })
+
+  const chartTextColor = vars["--chart-text"]
+  const chartTextLabelColor = vars["--chart-text-label"]
+  const purchaseColor = vars["--chart-purchase"]
+  const dailyCostColor = vars["--chart-daily-cost"]
 
   return (
     <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-5">
@@ -154,7 +164,7 @@ export default function TrendChart({ assets }: TrendChartProps) {
               tickLine={false}
               tickFormatter={(v: number) => `¥${v}`}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<CustomTooltip tooltipBg={vars["--chart-tooltip-bg"]} tooltipBorder={vars["--chart-tooltip-border"]} />} />
             <Legend
               wrapperStyle={{ fontSize: 12 }}
               formatter={(value: string) => (

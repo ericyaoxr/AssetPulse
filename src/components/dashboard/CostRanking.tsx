@@ -10,24 +10,10 @@ import {
 } from "recharts"
 import type { Asset } from "@/types"
 import { formatCurrency } from "@/utils/format"
+import { useThemeVar, useThemeVars } from "@/hooks/useThemeVar"
 
 interface CostRankingProps {
   assets: Asset[]
-}
-
-function getCSSVar(name: string): string {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
-}
-
-function getBarColor(dailyCost: number, maxCost: number): string {
-  const barHigh = getCSSVar("--chart-bar-high") || "#F59E0B"
-  const barMid = getCSSVar("--chart-bar-mid") || "#10B981"
-  const barLow = getCSSVar("--chart-bar-low") || "#3B82F6"
-  if (maxCost === 0) return barLow
-  const ratio = dailyCost / maxCost
-  if (ratio > 0.7) return barHigh
-  if (ratio > 0.3) return barMid
-  return barLow
 }
 
 interface ChartData {
@@ -39,9 +25,13 @@ interface ChartData {
 function CustomTooltip({
   active,
   payload,
+  tooltipBg,
+  tooltipBorder,
 }: {
   active?: boolean
   payload?: Array<{ payload: ChartData }>
+  tooltipBg: string
+  tooltipBorder: string
 }) {
   if (!active || !payload?.length) return null
   const data = payload[0].payload
@@ -49,8 +39,8 @@ function CustomTooltip({
     <div
       className="rounded-xl px-3.5 py-2.5 shadow-xl"
       style={{
-        backgroundColor: getCSSVar("--chart-tooltip-bg"),
-        border: `1px solid ${getCSSVar("--chart-tooltip-border")}`,
+        backgroundColor: tooltipBg,
+        border: `1px solid ${tooltipBorder}`,
         backdropFilter: "blur(20px) saturate(180%)",
         WebkitBackdropFilter: "blur(20px) saturate(180%)",
       }}
@@ -64,20 +54,36 @@ function CustomTooltip({
 }
 
 export default function CostRanking({ assets }: CostRankingProps) {
+  const barHigh = useThemeVar("--chart-bar-high", "#F59E0B")
+  const barMid = useThemeVar("--chart-bar-mid", "#10B981")
+  const barLow = useThemeVar("--chart-bar-low", "#3B82F6")
+
   const data = useMemo(() => {
     const sorted = [...assets]
       .sort((a, b) => b.dailyCost - a.dailyCost)
       .slice(0, 5)
     const maxCost = sorted.length > 0 ? sorted[0].dailyCost : 0
-    return sorted.map((a) => ({
-      name: a.name.length > 8 ? a.name.slice(0, 8) + "…" : a.name,
-      dailyCost: Number(a.dailyCost.toFixed(2)),
-      color: getBarColor(a.dailyCost, maxCost),
-    }))
-  }, [assets])
+    return sorted.map((a) => {
+      let color = barLow
+      if (maxCost > 0) {
+        const ratio = a.dailyCost / maxCost
+        if (ratio > 0.7) color = barHigh
+        else if (ratio > 0.3) color = barMid
+      }
+      return {
+        name: a.name.length > 8 ? a.name.slice(0, 8) + "…" : a.name,
+        dailyCost: Number(a.dailyCost.toFixed(2)),
+        color,
+      }
+    })
+  }, [assets, barHigh, barMid, barLow])
 
-  const chartTextColor = getCSSVar("--chart-text") || "rgba(255,255,255,0.4)"
-  const chartTextLabelColor = getCSSVar("--chart-text-label") || "rgba(255,255,255,0.6)"
+  const vars = useThemeVars({
+    "--chart-text": "rgba(255,255,255,0.4)",
+    "--chart-text-label": "rgba(255,255,255,0.6)",
+    "--chart-tooltip-bg": "rgba(13,27,30,0.95)",
+    "--chart-tooltip-border": "rgba(255,255,255,0.1)",
+  })
 
   return (
     <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-5">
@@ -95,7 +101,7 @@ export default function CostRanking({ assets }: CostRankingProps) {
           >
             <XAxis
               type="number"
-              tick={{ fill: chartTextColor, fontSize: 12 }}
+              tick={{ fill: vars["--chart-text"], fontSize: 12 }}
               axisLine={false}
               tickLine={false}
               tickFormatter={(v: number) => `¥${v}`}
@@ -104,11 +110,11 @@ export default function CostRanking({ assets }: CostRankingProps) {
               type="category"
               dataKey="name"
               width={80}
-              tick={{ fill: chartTextLabelColor, fontSize: 12 }}
+              tick={{ fill: vars["--chart-text-label"], fontSize: 12 }}
               axisLine={false}
               tickLine={false}
             />
-            <Tooltip content={<CustomTooltip />} cursor={false} />
+            <Tooltip content={<CustomTooltip tooltipBg={vars["--chart-tooltip-bg"]} tooltipBorder={vars["--chart-tooltip-border"]} />} cursor={false} />
             <Bar dataKey="dailyCost" radius={[0, 6, 6, 0]} barSize={20}>
               {data.map((entry, index) => (
                 <Cell key={index} fill={entry.color} />
