@@ -39,7 +39,7 @@ export default function AssetCard({ asset }: AssetCardProps) {
       onClick={() => navigate(`/assets/${asset.id}`)}
       className={`cursor-pointer rounded-xl border border-white/10 border-l-4 ${borderColorMap[asset.status]} bg-white/5 backdrop-blur-md p-4 transition-all hover:bg-white/10 hover:border-white/20`}
     >
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 flex-1 min-w-0">
           {asset.imageUrl && (
             <img
@@ -50,24 +50,22 @@ export default function AssetCard({ asset }: AssetCardProps) {
           )}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h3 className="truncate text-white font-medium text-sm">
-                {asset.name}
-              </h3>
               <StatusBadge status={asset.status} />
-            </div>
-            <div className="flex items-center gap-2 text-xs text-white/40 mb-2">
-              <span>{asset.category}</span>
+              <span className="text-xs text-white/30">{asset.category}</span>
               {asset.location && (
                 <>
-                  <span className="text-white/20">·</span>
-                  <span className="flex items-center gap-0.5">
+                  <span className="text-white/15">·</span>
+                  <span className="flex items-center gap-0.5 text-xs text-white/30">
                     <MapPin className="h-3 w-3" />
                     {asset.location}
                   </span>
                 </>
               )}
             </div>
-            <div className="flex items-center gap-4 text-xs text-white/50">
+            <h3 className="text-white font-medium text-sm leading-snug line-clamp-2">
+              {asset.name}
+            </h3>
+            <div className="flex items-center gap-4 text-xs text-white/50 mt-1.5">
               <span className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
                 {formatDate(asset.purchaseDate)}
@@ -135,7 +133,7 @@ export default function AssetCard({ asset }: AssetCardProps) {
             )}
           </div>
         </div>
-        <div className="text-right ml-4 shrink-0">
+        <div className="text-right shrink-0 self-center">
           <p
             className="text-2xl font-bold text-emerald-400"
             style={{ fontFamily: "'Space Grotesk', monospace" }}
