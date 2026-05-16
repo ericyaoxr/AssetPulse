@@ -16,9 +16,10 @@ FROM node:22-alpine
 WORKDIR /app
 COPY --from=server /app/node_modules ./node_modules
 COPY --from=server /app/*.js ./
-RUN mkdir -p /app/routes /app/middleware
+RUN mkdir -p /app/routes /app/middleware /app/utils
 COPY --from=server /app/routes ./routes
 COPY --from=server /app/middleware ./middleware
+COPY --from=server /app/utils ./utils
 COPY --from=build /app/dist ./dist
 
 RUN mkdir -p /app/data && \
