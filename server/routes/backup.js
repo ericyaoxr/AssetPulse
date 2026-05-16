@@ -1,6 +1,7 @@
 import { Router } from "express"
 import db from "../db.js"
 import { authMiddleware } from "../middleware/auth.js"
+import { safeParseJSON } from "../utils/json.js"
 
 const router = Router()
 router.use(authMiddleware)
@@ -18,11 +19,11 @@ router.get("/export", (req, res) => {
     users,
     assets: assets.map((a) => ({
       ...a,
-      ai_valuation: a.ai_valuation ? JSON.parse(a.ai_valuation) : null,
+      ai_valuation: a.ai_valuation ? safeParseJSON(a.ai_valuation) : null,
     })),
     trash: trash.map((t) => ({
       ...t,
-      asset_data: JSON.parse(t.asset_data),
+      asset_data: safeParseJSON(t.asset_data),
     })),
     categories,
     locations,

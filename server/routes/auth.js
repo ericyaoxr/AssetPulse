@@ -2,30 +2,43 @@ import { Router } from "express"
 import db from "../db.js"
 import { generateToken, authMiddleware } from "../middleware/auth.js"
 import { createRequire } from 'module'
+import crypto from "crypto"
 
 const require = createRequire(import.meta.url)
 let bcrypt
 try {
   bcrypt = require('bcryptjs')
 } catch (e) {
-  console.error("Failed to load bcryptjs:", e)
-  bcrypt = {
-    hashSync: (p) => `fallback_${btoa(p)}`,
-    compareSync: (p, h) => h === `fallback_${btoa(p)}`
-  }
+  console.error("FATAL: bcryptjs is required but failed to load:", e.message)
+  process.exit(1)
 }
 
-console.log("bcrypt loaded:", !!bcrypt)
-
 const router = Router()
+
+function validatePassword(password) {
+  if (!password || password.length < 8) {
+    return "密码至少8位"
+  }
+  if (!/[A-Z]/.test(password)) {
+    return "密码需包含至少一个大写字母"
+  }
+  if (!/[0-9]/.test(password)) {
+    return "密码需包含至少一个数字"
+  }
+  return null
+}
 
 router.post("/register", (req, res) => {
   const { username, password } = req.body
   if (!username || !password) {
     return res.status(400).json({ error: "用户名和密码不能为空" })
   }
-  if (password.length < 4) {
-    return res.status(400).json({ error: "密码至少4位" })
+  if (username.length < 2 || username.length > 32) {
+    return res.status(400).json({ error: "用户名长度需在2-32位之间" })
+  }
+  const pwdError = validatePassword(password)
+  if (pwdError) {
+    return res.status(400).json({ error: pwdError })
   }
 
   const existing = db.prepare("SELECT id FROM users WHERE username = ?").get(username)
@@ -33,8 +46,8 @@ router.post("/register", (req, res) => {
     return res.status(409).json({ error: "用户名已存在" })
   }
 
-  const id = "u_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
-  const passwordHash = bcrypt.hashSync(password, 10)
+  const id = "u_" + crypto.randomUUID().replace(/-/g, "").slice(0, 16)
+  const passwordHash = bcrypt.hashSync(password, 12)
 
   db.prepare("INSERT INTO users (id, username, password_hash) VALUES (?, ?, ?)").run(id, username, passwordHash)
 
@@ -78,8 +91,9 @@ router.put("/password", authMiddleware, (req, res) => {
   if (!oldPassword || !newPassword) {
     return res.status(400).json({ error: "请输入旧密码和新密码" })
   }
-  if (newPassword.length < 4) {
-    return res.status(400).json({ error: "新密码至少4位" })
+  const pwdError = validatePassword(newPassword)
+  if (pwdError) {
+    return res.status(400).json({ error: pwdError })
   }
 
   const user = db.prepare("SELECT * FROM users WHERE id = ?").get(req.userId)
@@ -89,7 +103,7 @@ router.put("/password", authMiddleware, (req, res) => {
     return res.status(401).json({ error: "旧密码错误" })
   }
 
-  const newHash = bcrypt.hashSync(newPassword, 10)
+  const newHash = bcrypt.hashSync(newPassword, 12)
   db.prepare("UPDATE users SET password_hash = ? WHERE id = ?").run(newHash, req.userId)
   res.json({ ok: true })
 })

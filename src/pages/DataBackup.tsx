@@ -13,8 +13,10 @@ import {
 import { api } from "@/utils/api"
 import { useAssetStore, resetInitPromise } from "@/store/useAssetStore"
 import { useAuthStore } from "@/store/useAuthStore"
+import { useToast } from "@/contexts/ToastContext"
 
 export default function DataBackup() {
+  const toast = useToast()
   const [exporting, setExporting] = useState(false)
   const [importing, setImporting] = useState(false)
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
@@ -43,12 +45,13 @@ export default function DataBackup() {
       a.click()
       URL.revokeObjectURL(url)
       setMessage({ ok: true, text: `备份成功，共 ${(data as { assets: unknown[] }).assets?.length ?? 0} 项资产` })
+      toast.success("备份导出成功")
     } catch (e) {
       setMessage({ ok: false, text: e instanceof Error ? e.message : "导出失败" })
     } finally {
       setExporting(false)
     }
-  }, [])
+  }, [toast])
 
   const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -83,13 +86,14 @@ export default function DataBackup() {
       resetStore()
       await assetInit(currentUser.id)
       setMessage({ ok: true, text: "数据恢复成功" })
+      toast.success("数据恢复成功")
     } catch (e) {
       setMessage({ ok: false, text: e instanceof Error ? e.message : "恢复失败" })
     } finally {
       setImporting(false)
       setConfirmRestore(null)
     }
-  }, [confirmRestore, currentUser, resetStore, assetInit])
+  }, [confirmRestore, currentUser, resetStore, assetInit, toast])
 
   return (
     <div className="space-y-6">
@@ -189,8 +193,8 @@ export default function DataBackup() {
       </div>
 
       {confirmRestore && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="mx-4 w-full max-w-md rounded-2xl border border-edge bg-ink p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm modal-overlay-enter">
+          <div className="mx-4 w-full max-w-md rounded-2xl border border-edge bg-ink p-6 shadow-2xl modal-content-enter">
             <h3 className="text-lg font-bold text-content-primary">确认恢复数据</h3>
             <p className="mt-2 text-sm text-content-secondary">
               恢复备份将<strong className="text-amber-400">覆盖当前所有数据</strong>，此操作不可撤销。

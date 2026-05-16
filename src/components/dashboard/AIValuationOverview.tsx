@@ -3,7 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import { Sparkles } from "lucide-react"
 import type { Asset } from "@/types"
 import { formatCurrency } from "@/utils/format"
-import { useThemeVars } from "@/hooks/useThemeVar"
+import { useThemeVar } from "@/hooks/useThemeVar"
 
 interface AIValuationOverviewProps {
   assets: Asset[]
@@ -51,16 +51,14 @@ function CustomTooltip({
 }
 
 export default function AIValuationOverview({ assets }: AIValuationOverviewProps) {
-  const vars = useThemeVars({
-    "--chart-text": "rgba(255,255,255,0.4)",
-    "--chart-text-label": "rgba(255,255,255,0.6)",
-    "--chart-bar-high": "#F59E0B",
-    "--chart-bar-mid": "#10B981",
-    "--chart-bar-low": "#3B82F6",
-    "--chart-tooltip-bg": "rgba(13,27,30,0.95)",
-    "--chart-tooltip-border": "rgba(255,255,255,0.1)",
-    "--accent": "#10B981",
-  })
+  const chartBarLow = useThemeVar("--chart-bar-low", "#3B82F6")
+  const chartBarMid = useThemeVar("--chart-bar-mid", "#10B981")
+  const chartBarHigh = useThemeVar("--chart-bar-high", "#F59E0B")
+  const chartText = useThemeVar("--chart-text", "rgba(255,255,255,0.4)")
+  const chartTextLabel = useThemeVar("--chart-text-label", "rgba(255,255,255,0.6)")
+  const tooltipBg = useThemeVar("--chart-tooltip-bg", "rgba(13,27,30,0.95)")
+  const tooltipBorder = useThemeVar("--chart-tooltip-border", "rgba(255,255,255,0.1)")
+  const accentColor = useThemeVar("--accent", "#10B981")
 
   const { data, totalPurchase, totalEstimated, totalDiff } = useMemo(() => {
     const withValuation = assets.filter(
@@ -83,9 +81,9 @@ export default function AIValuationOverview({ assets }: AIValuationOverviewProps
 
     const data: ChartData[] = sorted.map((a) => {
       const diff = a.aiValuation!.estimatedValue - a.purchasePrice
-      let color = vars["--chart-bar-low"]
-      if (diff > 0) color = vars["--chart-bar-mid"]
-      else if (diff < 0) color = vars["--chart-bar-high"]
+      let color = chartBarLow
+      if (diff > 0) color = chartBarMid
+      else if (diff < 0) color = chartBarHigh
       return {
         name: a.name.length > 6 ? a.name.slice(0, 6) + "…" : a.name,
         purchasePrice: Number(a.purchasePrice.toFixed(2)),
@@ -96,7 +94,7 @@ export default function AIValuationOverview({ assets }: AIValuationOverviewProps
     })
 
     return { data, totalPurchase: tp, totalEstimated: te, totalDiff: te - tp }
-  }, [assets, vars])
+  }, [assets, chartBarLow, chartBarMid, chartBarHigh])
 
   const diffPercent =
     totalPurchase > 0 ? ((totalDiff / totalPurchase) * 100).toFixed(1) : "0"
@@ -104,7 +102,7 @@ export default function AIValuationOverview({ assets }: AIValuationOverviewProps
   return (
     <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-5">
       <div className="mb-4 flex items-center gap-2">
-        <Sparkles className="h-5 w-5" style={{ color: vars["--accent"] }} />
+        <Sparkles className="h-5 w-5" style={{ color: accentColor }} />
         <h3 className="text-base font-semibold text-content-primary">AI 估值总计</h3>
       </div>
 
@@ -147,12 +145,12 @@ export default function AIValuationOverview({ assets }: AIValuationOverviewProps
             >
               <XAxis
                 dataKey="name"
-                tick={{ fill: vars["--chart-text"], fontSize: 11 }}
+                tick={{ fill: chartText, fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fill: vars["--chart-text"], fontSize: 11 }}
+                tick={{ fill: chartTextLabel, fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={(v: number) => `¥${(v / 1000).toFixed(0)}k`}
@@ -160,8 +158,8 @@ export default function AIValuationOverview({ assets }: AIValuationOverviewProps
               <Tooltip
                 content={
                   <CustomTooltip
-                    tooltipBg={vars["--chart-tooltip-bg"]}
-                    tooltipBorder={vars["--chart-tooltip-border"]}
+                    tooltipBg={tooltipBg}
+                    tooltipBorder={tooltipBorder}
                   />
                 }
                 cursor={false}

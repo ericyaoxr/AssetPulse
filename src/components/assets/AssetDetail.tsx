@@ -28,6 +28,7 @@ const AssetDetail = ({ asset }: AssetDetailProps) => {
   const { deleteAsset, updateStatus, updateAssetAIValuation } = useAssetStore()
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showStatusDropdown, setShowStatusDropdown] = useState(false)
+  const [showImagePreview, setShowImagePreview] = useState(false)
   const [newStatus, setNewStatus] = useState<AssetStatus | null>(null)
   const [statusEndDate, setStatusEndDate] = useState("")
   const [statusRecycleAmount, setStatusRecycleAmount] = useState("")
@@ -100,7 +101,12 @@ const AssetDetail = ({ asset }: AssetDetailProps) => {
   return (
     <div className="space-y-6">
       {asset.imageUrl && (
-        <img src={asset.imageUrl} alt={asset.name} className="w-full max-h-64 object-cover rounded-xl" />
+        <img
+          src={asset.imageUrl}
+          alt={asset.name}
+          className="w-full max-h-64 object-cover rounded-xl cursor-pointer hover:opacity-90"
+          onClick={() => setShowImagePreview(true)}
+        />
       )}
 
       <div className="flex items-start justify-between">
@@ -307,8 +313,8 @@ const AssetDetail = ({ asset }: AssetDetailProps) => {
       </div>
 
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="w-80 rounded-xl border border-edge bg-ink p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm modal-overlay-enter">
+          <div className="w-80 rounded-xl border border-edge bg-ink p-6 shadow-2xl modal-content-enter">
             <h3 className="text-lg font-semibold text-content-primary">确认删除</h3>
             <p className="mt-2 text-sm text-content-secondary">确定要删除「{asset.name}」吗？此操作不可撤销。</p>
             <div className="mt-4 flex gap-3">
@@ -316,6 +322,20 @@ const AssetDetail = ({ asset }: AssetDetailProps) => {
               <button onClick={() => setShowDeleteModal(false)} className="flex-1 rounded-lg border border-edge px-4 py-2 text-sm font-medium text-content-secondary transition-colors hover:bg-surface">取消</button>
             </div>
           </div>
+        </div>
+      )}
+
+      {showImagePreview && asset.imageUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm modal-overlay-enter"
+          onClick={() => setShowImagePreview(false)}
+        >
+          <img
+            src={asset.imageUrl}
+            alt={asset.name}
+            className="max-w-[90vw] max-h-[90vh] object-contain cursor-pointer modal-content-enter"
+            onClick={() => setShowImagePreview(false)}
+          />
         </div>
       )}
     </div>

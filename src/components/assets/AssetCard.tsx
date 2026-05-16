@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   Calendar,
@@ -8,6 +9,7 @@ import {
   RotateCcw,
   Bot,
 } from "lucide-react"
+import React from "react"
 import type { Asset } from "@/types"
 import { formatCurrency, formatDays, formatDate } from "@/utils/format"
 import StatusBadge from "@/components/assets/StatusBadge"
@@ -22,15 +24,14 @@ interface AssetCardProps {
   asset: Asset
 }
 
-export default function AssetCard({ asset }: AssetCardProps) {
+function AssetCard({ asset }: AssetCardProps) {
   const navigate = useNavigate()
 
-  const paybackProgress =
-    asset.targetDailyCost != null && asset.status === "active"
-      ? asset.targetDailyCost > 0
-        ? Math.min(100, (asset.targetDailyCost / Math.max(0.01, asset.dailyCost)) * 100)
-        : 0
-      : null
+  const paybackProgress = useMemo(() => {
+    if (asset.targetDailyCost == null || asset.status !== "active") return null
+    if (asset.targetDailyCost <= 0) return 0
+    return Math.min(100, (asset.targetDailyCost / Math.max(0.01, asset.dailyCost)) * 100)
+  }, [asset.targetDailyCost, asset.status, asset.dailyCost])
 
   const isPaybackComplete = paybackProgress != null && asset.dailyCost <= asset.targetDailyCost!
 
@@ -153,3 +154,5 @@ export default function AssetCard({ asset }: AssetCardProps) {
     </div>
   )
 }
+
+export default React.memo(AssetCard)

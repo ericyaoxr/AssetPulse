@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { ArrowLeft } from "lucide-react"
 import { useAssetStore } from "@/store/useAssetStore"
@@ -8,7 +9,7 @@ export default function AssetDetailPage() {
   const navigate = useNavigate()
   const assets = useAssetStore((s) => s.assets)
 
-  const asset = assets.find((a) => a.id === id)
+  const asset = useMemo(() => assets.find((a) => a.id === id), [assets, id])
 
   if (!asset) {
     return (

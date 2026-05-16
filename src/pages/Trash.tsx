@@ -92,8 +92,8 @@ export default function Trash() {
       </div>
 
       {showConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="w-80 rounded-xl border border-edge bg-ink p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm modal-overlay-enter">
+          <div className="w-80 rounded-xl border border-edge bg-ink p-6 shadow-2xl modal-content-enter">
             <div className="flex items-center gap-2 text-red-400">
               <AlertTriangle className="h-5 w-5" />
               <h3 className="text-lg font-semibold text-content-primary">清空回收站</h3>
@@ -118,8 +118,8 @@ export default function Trash() {
       )}
 
       {confirmId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="w-80 rounded-xl border border-edge bg-ink p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm modal-overlay-enter">
+          <div className="w-80 rounded-xl border border-edge bg-ink p-6 shadow-2xl modal-content-enter">
             <div className="flex items-center gap-2 text-red-400">
               <AlertTriangle className="h-5 w-5" />
               <h3 className="text-lg font-semibold text-content-primary">永久删除</h3>

@@ -212,6 +212,7 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
   const [recognizeError, setRecognizeError] = useState<string | null>(null)
   const [valuing, setValuing] = useState(false)
   const [aiValuation, setAiValuation] = useState<AIValuationResult | null>(initialData?.aiValuation ?? null)
+  const [showImagePreview, setShowImagePreview] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { categories, locations, addCategory, addLocation } = useAssetStore()
@@ -277,6 +278,7 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
         setNote(result.description)
       }
 
+      setImageUrl(null)
       setRecognizing(false)
 
       setValuing(true)
@@ -354,7 +356,8 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
   const targetMet = preview && targetVal > 0 && preview.dailyCost <= targetVal
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <>
+      <form onSubmit={handleSubmit} className="space-y-5">
       <div>
         <label className="block text-sm text-content-secondary mb-1">资产名称</label>
         <input type="text" value={name} onChange={(e) => setName(e.target.value)} required
@@ -424,9 +427,20 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
         <div className="flex items-start gap-3">
           {imageUrl ? (
             <div className="relative inline-block">
-              <img src={imageUrl} alt="" className="h-20 w-20 rounded-lg object-cover border border-edge" />
-              <button type="button" onClick={() => setImageUrl(null)}
-                className="absolute -top-2 -right-2 rounded-full bg-red-500 p-0.5 text-white hover:bg-red-400">
+              <img
+                src={imageUrl}
+                alt=""
+                className="h-20 w-20 rounded-lg object-cover border border-edge cursor-pointer hover:opacity-80"
+                onClick={() => setShowImagePreview(true)}
+              />
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setImageUrl(null)
+                }}
+                className="absolute -top-2 -right-2 rounded-full bg-red-500 p-0.5 text-white hover:bg-red-400"
+              >
                 <X className="h-3 w-3" />
               </button>
             </div>
@@ -580,5 +594,20 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
         </button>
       </div>
     </form>
+
+    {showImagePreview && imageUrl && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm modal-overlay-enter"
+        onClick={() => setShowImagePreview(false)}
+      >
+        <img
+          src={imageUrl}
+          alt=""
+          className="max-w-[90vw] max-h-[90vh] object-contain cursor-pointer modal-content-enter"
+          onClick={() => setShowImagePreview(false)}
+        />
+      </div>
+    )}
+    </>
   )
 }

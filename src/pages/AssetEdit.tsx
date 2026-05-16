@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { useAssetStore } from "@/store/useAssetStore"
 import { AssetForm } from "@/components/assets/AssetForm"
@@ -10,7 +10,7 @@ export default function AssetEdit() {
   const { assets, updateAsset } = useAssetStore()
   const [submitting, setSubmitting] = useState(false)
 
-  const asset = assets.find((a) => a.id === id)
+  const asset = useMemo(() => assets.find((a) => a.id === id), [assets, id])
 
   if (!asset) {
     return (

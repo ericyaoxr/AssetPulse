@@ -1,5 +1,5 @@
 import type { AIProviderConfig, AIValuationResult, Asset } from "@/types"
-import { api } from "@/utils/api"
+import { api, getToken } from "@/utils/api"
 
 const AI_SETTINGS_KEY = "ai_config"
 
@@ -33,71 +33,23 @@ export function buildValuationPrompt(asset: Asset): string {
 请仅回复JSON，不要包含其他内容。`
 }
 
-export async function estimateAssetValue(config: AIProviderConfig, asset: Asset): Promise<AIValuationResult> {
-  const url = `${config.baseUrl}/chat/completions`
+export async function estimateAssetValue(_config: AIProviderConfig, asset: Asset): Promise<AIValuationResult> {
+  const token = getToken()
+  const headers: Record<string, string> = { "Content-Type": "application/json" }
+  if (token) headers["Authorization"] = `Bearer ${token}`
 
-  const response = await fetch(url, {
+  const response = await fetch("/api/ai/valuate", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${config.apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: config.model,
-      messages: [
-        {
-          role: "system",
-          content: "你是一个专业的二手资产估值师。根据物品信息估算其当前二手市场价值。请以JSON格式回复。",
-        },
-        {
-          role: "user",
-          content: buildValuationPrompt(asset),
-        },
-      ],
-      temperature: 0.3,
-      max_tokens: 500,
-    }),
+    headers,
+    body: JSON.stringify({ asset }),
   })
 
   if (!response.ok) {
-    const errorText = await response.text().catch(() => "")
-    throw new Error(`AI API request failed (${response.status}): ${errorText || response.statusText}`)
+    const data = await response.json().catch(() => ({ error: "请求失败" }))
+    throw new Error(data.error || `AI 估值请求失败 (${response.status})`)
   }
 
-  const data = await response.json()
-
-  const content = data?.choices?.[0]?.message?.content
-  if (!content) {
-    throw new Error("AI API returned empty response content")
-  }
-
-  let parsed: Record<string, unknown>
-  try {
-    parsed = JSON.parse(content)
-  } catch {
-    const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/)
-    if (codeBlockMatch) {
-      try {
-        parsed = JSON.parse(codeBlockMatch[1].trim())
-      } catch {
-        throw new Error("Failed to parse AI response as JSON, even after extracting from code block")
-      }
-    } else {
-      throw new Error("Failed to parse AI response as JSON")
-    }
-  }
-
-  const result: AIValuationResult = {
-    estimatedValue: Number(parsed.estimatedValue) || 0,
-    confidenceLow: Number(parsed.confidenceLow) || 0,
-    confidenceHigh: Number(parsed.confidenceHigh) || 0,
-    depreciationRate: Number(parsed.depreciationRate) || 0,
-    reasoning: String(parsed.reasoning || ""),
-    marketTrend: String(parsed.marketTrend || "稳定"),
-    estimatedAt: new Date().toISOString(),
-  }
-
-  return result
+  return await response.json()
 }
 
 export async function saveAIConfig(config: AIProviderConfig): Promise<void> {

@@ -12,7 +12,8 @@ router.get("/", (req, res) => {
 
 router.post("/", (req, res) => {
   const { name } = req.body
-  if (!name) return res.status(400).json({ error: "位置名不能为空" })
+  if (!name || typeof name !== "string") return res.status(400).json({ error: "位置名不能为空" })
+  if (name.length > 100) return res.status(400).json({ error: "位置名过长" })
   try {
     db.prepare("INSERT INTO locations (user_id, name) VALUES (?, ?)").run(req.userId, name)
   } catch (e) {
