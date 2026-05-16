@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from "react"
 import { themeRegistry } from "@/config/themes"
 import type { ThemeDefinition } from "@/config/themes"
 
@@ -56,7 +56,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const currentDefinition = themeRegistry.find((t) => t.id === theme) || themeRegistry[0]
+  const currentDefinition = useMemo(() => themeRegistry.find((t) => t.id === theme) || themeRegistry[0], [theme])
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, currentDefinition, allThemes: themeRegistry }}>

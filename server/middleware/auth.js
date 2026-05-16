@@ -1,6 +1,10 @@
 import jwt from "jsonwebtoken"
 
-const JWT_SECRET = process.env.JWT_SECRET || "assetpulse_secret_key_2024"
+const JWT_SECRET = process.env.JWT_SECRET
+if (!JWT_SECRET) {
+  console.error("FATAL: JWT_SECRET environment variable is required. Set it before starting the server.")
+  process.exit(1)
+}
 const JWT_EXPIRES = "7d"
 
 export function generateToken(payload) {

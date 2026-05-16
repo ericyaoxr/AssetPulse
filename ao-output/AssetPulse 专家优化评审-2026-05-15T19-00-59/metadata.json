@@ -1,0 +1,48 @@
+{
+  "name": "AssetPulse 专家优化评审",
+  "success": false,
+  "totalDuration": "23765.5s",
+  "totalTokens": {
+    "input": 0,
+    "output": 0
+  },
+  "inputs": {
+    "project_context": "AssetPulse是一个个人资产管理PWA应用，技术栈为React18+TypeScript+TailwindCSS+Zustand+Recharts+Vite。支持深色主题和苹果风格主题切换。当前苹果主题使用Apple系统色(#007AFF蓝/#34C759绿/#FF9500橙/#FF3B30红/#BF5AF2紫)，毛玻璃效果blur(40px)saturate(180%)，三层阴影，SF Pro字体。主题架构通过CSS变量+data-theme属性+40+条CSS覆盖规则实现。图表组件通过getCSSVar()运行时读取CSS变量适配主题。构建产物JS 1447KB(gzip 389KB)，CSS 32KB(gzip 7KB)。部署方式为Docker+Nginx。"
+  },
+  "steps": [
+    {
+      "id": "ux_review",
+      "role": "design/design-ux-architect",
+      "agentName": "UX 架构师",
+      "status": "failed",
+      "output_var": "ux_report",
+      "duration": "11891.7s",
+      "tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "id": "arch_review",
+      "role": "engineering/engineering-software-architect",
+      "agentName": "软件架构师",
+      "status": "failed",
+      "output_var": "arch_report",
+      "duration": "11873.7s",
+      "tokens": {
+        "input": 0,
+        "output": 0
+      }
+    },
+    {
+      "id": "summary",
+      "role": "product/product-manager",
+      "status": "skipped",
+      "duration": "0.0s",
+      "tokens": {
+        "input": 0,
+        "output": 0
+      }
+    }
+  ]
+}

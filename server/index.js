@@ -16,8 +16,38 @@ const PORT = process.env.PORT || 8642
 
 const app = express()
 
-app.use(cors())
-app.use(express.json({ limit: "50mb" }))
+const corsOrigin = process.env.CORS_ORIGIN || ""
+const corsOptions = corsOrigin
+  ? { origin: corsOrigin.split(",").map(s => s.trim()), credentials: true }
+  : { origin: true, credentials: true }
+app.use(cors(corsOptions))
+
+app.use(express.json({ limit: "10mb" }))
+
+try {
+  const helmet = (await import("helmet")).default
+  app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  }))
+} catch {
+  // helmet not installed, skip
+}
+
+try {
+  const { default: rateLimit } = await import("express-rate-limit")
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "请求过于频繁，请稍后再试" },
+  })
+  app.use("/api/auth/login", authLimiter)
+  app.use("/api/auth/register", authLimiter)
+} catch {
+  // express-rate-limit not installed, skip
+}
 
 app.use("/api/auth", authRoutes)
 app.use("/api/assets", assetRoutes)

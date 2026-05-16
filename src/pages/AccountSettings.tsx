@@ -1,8 +1,10 @@
 import { useState } from "react"
 import { User, Lock, Eye, EyeOff, Check, Loader2, AlertTriangle, Calendar } from "lucide-react"
 import { useAuthStore } from "@/store/useAuthStore"
+import { useToast } from "@/contexts/ToastContext"
 
 export default function AccountSettings() {
+  const toast = useToast()
   const currentUser = useAuthStore((s) => s.currentUser)
   const changePassword = useAuthStore((s) => s.changePassword)
   const logout = useAuthStore((s) => s.logout)
@@ -38,6 +40,7 @@ export default function AccountSettings() {
     try {
       await changePassword(oldPassword, newPassword)
       setMessage({ ok: true, text: "密码修改成功" })
+      toast.success("密码修改成功")
       setOldPassword("")
       setNewPassword("")
       setConfirmPassword("")

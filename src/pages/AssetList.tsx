@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useRef, useEffect, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import { Search, SlidersHorizontal, Plus } from "lucide-react"
 import { useAssetStore } from "@/store/useAssetStore"
@@ -27,6 +27,21 @@ export default function AssetList() {
   const assets = useAssetStore((s) => s.assets)
   const categories = useAssetStore((s) => s.categories)
   const [search, setSearch] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>()
+
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setSearch(value)
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+    searchTimerRef.current = setTimeout(() => setDebouncedSearch(value), 300)
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+    }
+  }, [])
   const [statusFilter, setStatusFilter] = useState<AssetStatus | "all">("all")
   const [categoryFilter, setCategoryFilter] = useState("all")
   const [sortField, setSortField] = useState<SortField>("dailyCost")
@@ -35,8 +50,8 @@ export default function AssetList() {
   const filtered = useMemo(() => {
     let result = [...assets]
 
-    if (search) {
-      const q = search.toLowerCase()
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase()
       result = result.filter((a) => a.name.toLowerCase().includes(q))
     }
 
@@ -61,7 +76,7 @@ export default function AssetList() {
     })
 
     return result
-  }, [assets, search, statusFilter, categoryFilter, sortField, sortOrder])
+  }, [assets, debouncedSearch, statusFilter, categoryFilter, sortField, sortOrder])
 
   return (
     <div className="space-y-5">
@@ -86,7 +101,7 @@ export default function AssetList() {
             type="text"
             placeholder="搜索资产名称..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={handleSearchChange}
             className="w-full rounded-lg border border-edge bg-surface py-2.5 pl-10 pr-4 text-sm text-content-primary outline-none placeholder:text-content-faint focus:border-accent/30"
           />
         </div>
@@ -140,8 +155,17 @@ export default function AssetList() {
 
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-content-faint">
-          <p className="text-lg">暂无资产</p>
-          <p className="mt-1 text-sm">点击右上角添加你的第一件资产</p>
+          {assets.length > 0 ? (
+            <>
+              <p className="text-lg">未找到匹配的资产</p>
+              <p className="mt-1 text-sm">尝试调整搜索条件或筛选器</p>
+            </>
+          ) : (
+            <>
+              <p className="text-lg">暂无资产</p>
+              <p className="mt-1 text-sm">点击右上角添加你的第一件资产</p>
+            </>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

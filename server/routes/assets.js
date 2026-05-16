@@ -1,6 +1,7 @@
 import { Router } from "express"
 import db from "../db.js"
 import { authMiddleware } from "../middleware/auth.js"
+import { safeParseJSON } from "../utils/json.js"
 
 const router = Router()
 router.use(authMiddleware)
@@ -12,6 +13,18 @@ router.get("/", (req, res) => {
 
 router.post("/", (req, res) => {
   const a = req.body
+  if (!a || !a.name) {
+    return res.status(400).json({ error: "资产名称不能为空" })
+  }
+  if (typeof a.name !== "string" || a.name.length > 200) {
+    return res.status(400).json({ error: "资产名称不合法" })
+  }
+  if (a.purchasePrice !== undefined && (typeof a.purchasePrice !== "number" || a.purchasePrice < 0)) {
+    return res.status(400).json({ error: "购买价格不合法" })
+  }
+  if (a.status && !["active", "recycled", "scrapped"].includes(a.status)) {
+    return res.status(400).json({ error: "资产状态不合法" })
+  }
   const id = a.id || (Date.now().toString(36) + Math.random().toString(36).slice(2, 9))
   const now = new Date().toISOString()
 
@@ -37,6 +50,15 @@ router.put("/:id", (req, res) => {
   if (!existing) return res.status(404).json({ error: "资产不存在" })
 
   const a = req.body
+  if (a.name !== undefined && (typeof a.name !== "string" || a.name.length > 200)) {
+    return res.status(400).json({ error: "资产名称不合法" })
+  }
+  if (a.purchasePrice !== undefined && (typeof a.purchasePrice !== "number" || a.purchasePrice < 0)) {
+    return res.status(400).json({ error: "购买价格不合法" })
+  }
+  if (a.status && !["active", "recycled", "scrapped"].includes(a.status)) {
+    return res.status(400).json({ error: "资产状态不合法" })
+  }
   const now = new Date().toISOString()
 
   db.prepare(`
@@ -92,7 +114,7 @@ function formatAsset(row) {
     dailyCost: row.daily_cost,
     rating: row.rating,
     note: row.note,
-    aiValuation: row.ai_valuation ? JSON.parse(row.ai_valuation) : null,
+    aiValuation: row.ai_valuation ? safeParseJSON(row.ai_valuation) : null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }

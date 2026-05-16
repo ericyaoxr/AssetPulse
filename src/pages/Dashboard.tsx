@@ -12,8 +12,7 @@ export default function Dashboard() {
   const { assets, recalculateAll } = useAssetStore()
 
   useEffect(() => {
-    const interval = setInterval(() => { recalculateAll() }, 60000)
-    return () => clearInterval(interval)
+    recalculateAll()
   }, [recalculateAll])
 
   const recycledAssets = useMemo(

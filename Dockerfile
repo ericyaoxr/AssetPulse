@@ -21,10 +21,13 @@ COPY --from=server /app/routes ./routes
 COPY --from=server /app/middleware ./middleware
 COPY --from=build /app/dist ./dist
 
-RUN mkdir -p /app/data
+RUN mkdir -p /app/data && \
+    addgroup -S appgroup && adduser -S appuser -G appgroup && \
+    chown -R appuser:appgroup /app/data
 
 ENV PORT=8642
 ENV DATA_DIR=/app/data
 EXPOSE 8642
 
+USER appuser
 CMD ["node", "index.js"]

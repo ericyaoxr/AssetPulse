@@ -10,7 +10,7 @@ services:
       - "${PORT:-8642}:8642"
     environment:
       - TZ=Asia/Shanghai
-      - JWT_SECRET=${JWT_SECRET:-assetpulse_secret_key_2024}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
       - DATA_DIR=/app/data
     volumes:
       - assetpulse-data:/app/data
