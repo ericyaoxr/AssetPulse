@@ -100,3 +100,28 @@ export interface AIValuationResult {
   marketTrend: string
   estimatedAt: string
 }
+
+export type AchievementId = 
+  | "long_term_holder"
+  | "cost_saver"
+  | "collector"
+  | "declutter_master"
+  | "first_asset"
+  | "daily_cost_zero"
+  | "high_value"
+  | "full_rating"
+
+export interface Achievement {
+  id: AchievementId
+  name: string
+  description: string
+  icon: string
+  rarity: "common" | "rare" | "epic" | "legendary"
+  unlockedAt: string | null
+}
+
+export interface AchievementProgress {
+  current: number
+  target: number
+  percentage: number
+}
