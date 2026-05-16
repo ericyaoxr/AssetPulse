@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom"
 import { ArrowLeft } from "lucide-react"
 import { useAssetStore } from "@/store/useAssetStore"
 import { AssetDetail } from "@/components/assets/AssetDetail"
+import { ShareCard } from "@/components/share/ShareCard"
+import { AssetShareTemplate } from "@/components/share/AssetShareTemplate"
 
 export default function AssetDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -27,13 +29,18 @@ export default function AssetDetailPage() {
 
   return (
     <div className="space-y-6">
-      <button
-        onClick={() => navigate("/assets")}
-        className="flex items-center gap-1.5 text-sm text-content-tertiary transition-colors hover:text-content-primary"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        返回列表
-      </button>
+      <div className="flex items-center justify-between">
+        <button
+          onClick={() => navigate("/assets")}
+          className="flex items-center gap-1.5 text-sm text-content-tertiary transition-colors hover:text-content-primary"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          返回列表
+        </button>
+        <ShareCard title={`我的${asset.name}`} filename={`assetpulse-${asset.name}.png`}>
+          <AssetShareTemplate asset={asset} />
+        </ShareCard>
+      </div>
 
       <AssetDetail asset={asset} />
     </div>

@@ -5,6 +5,8 @@ import StatsCards from "@/components/dashboard/StatsCards"
 import CostRanking from "@/components/dashboard/CostRanking"
 import TrendChart from "@/components/dashboard/TrendChart"
 import AIValuationOverview from "@/components/dashboard/AIValuationOverview"
+import { ShareCard } from "@/components/share/ShareCard"
+import { ReportShareTemplate } from "@/components/share/ReportShareTemplate"
 import { formatCurrency, formatDays } from "@/utils/format"
 import { useThemeVar } from "@/hooks/useThemeVar"
 
@@ -14,6 +16,8 @@ export default function Dashboard() {
   useEffect(() => {
     recalculateAll()
   }, [recalculateAll])
+
+  const currentYear = new Date().getFullYear()
 
   const recycledAssets = useMemo(
     () => assets.filter((a) => a.status === "recycled" && a.recycleAmount != null),
@@ -46,8 +50,17 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-content-primary">仪表盘</h1>
-        <p className="mt-1 text-sm text-content-tertiary">追踪你的资产日均成本</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-content-primary">仪表盘</h1>
+            <p className="mt-1 text-sm text-content-tertiary">追踪你的资产日均成本</p>
+          </div>
+          {assets.length > 0 && (
+            <ShareCard title={`${currentYear}年度资产报告`} filename={`assetpulse-report-${currentYear}.png`}>
+              <ReportShareTemplate assets={assets} year={currentYear} />
+            </ShareCard>
+          )}
+        </div>
       </div>
 
       <StatsCards assets={assets} />
