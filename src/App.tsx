@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext"
 import { ToastProvider } from "@/contexts/ToastContext"
 import { Activity } from "lucide-react"
 import AppLayout from "@/components/layout/AppLayout"
+import { AchievementNotification } from "@/components/achievements/AchievementNotification"
 
 const Dashboard = lazy(() => import("@/pages/Dashboard"))
 const AssetList = lazy(() => import("@/pages/AssetList"))
@@ -12,6 +13,7 @@ const AssetDetailPage = lazy(() => import("@/pages/AssetDetailPage"))
 const AssetEdit = lazy(() => import("@/pages/AssetEdit"))
 const Trash = lazy(() => import("@/pages/Trash"))
 const Review = lazy(() => import("@/pages/Review"))
+const AchievementsPage = lazy(() => import("@/pages/AchievementsPage"))
 const AISettings = lazy(() => import("@/pages/AISettings"))
 const DataBackup = lazy(() => import("@/pages/DataBackup"))
 const AccountSettings = lazy(() => import("@/pages/AccountSettings"))
@@ -37,6 +39,7 @@ export default function App() {
   return (
     <ThemeProvider>
       <ToastProvider>
+        <AchievementNotification />
         <Router>
         <Suspense fallback={<PageLoader />}>
           <Routes>
@@ -48,6 +51,7 @@ export default function App() {
               <Route path="/assets/:id/edit" element={<AssetEdit />} />
               <Route path="/trash" element={<Trash />} />
               <Route path="/review" element={<Review />} />
+              <Route path="/achievements" element={<AchievementsPage />} />
               <Route path="/settings/account" element={<AccountSettings />} />
               <Route path="/settings/appearance" element={<ThemeSettings />} />
               <Route path="/settings/ai" element={<AISettings />} />

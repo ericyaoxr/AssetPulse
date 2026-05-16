@@ -77,4 +77,26 @@ export const themeRegistry: ThemeDefinition[] = [
       card: "rgba(59,130,246,0.08)",
     },
   },
+  {
+    id: "retro90s",
+    name: "90年代",
+    description: "复古霓虹，经典怀旧",
+    preview: {
+      bg: "#1a0a2e",
+      accent: "#ff00ff",
+      text: "#00ff00",
+      card: "rgba(0,255,255,0.1)",
+    },
+  },
+  {
+    id: "retro2000",
+    name: "千禧年",
+    description: "Y2K 风格，科技未来",
+    preview: {
+      bg: "#000033",
+      accent: "#00ffff",
+      text: "#ff6600",
+      card: "rgba(0,255,255,0.08)",
+    },
+  },
 ]

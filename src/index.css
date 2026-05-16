@@ -1386,6 +1386,486 @@ select {
   background-color: rgba(59, 130, 246, 0.04);
 }
 
+[data-theme="retro90s"] {
+  font-family: "Comic Sans MS", "Comic Neue", cursive, sans-serif;
+  --bg-primary: #1a0a2e;
+  --bg-secondary: rgba(255, 0, 255, 0.08);
+  --bg-tertiary: rgba(0, 255, 255, 0.06);
+  --bg-hover: rgba(255, 0, 255, 0.1);
+  --bg-overlay: rgba(26, 10, 46, 0.8);
+  --bg-card: rgba(0, 255, 255, 0.1);
+  --text-primary: #00ff00;
+  --text-secondary: #ffff00;
+  --text-tertiary: #ff00ff;
+  --text-muted: #00ffff;
+  --text-faint: #ff00ff;
+  --border-primary: #ff00ff;
+  --border-secondary: #00ffff;
+  --accent: #ff00ff;
+  --accent-light: rgba(255, 0, 255, 0.2);
+  --accent-hover: #ff66ff;
+  --scrollbar-thumb: #00ff00;
+  --select-arrow: #00ff00;
+  --date-filter: hue-rotate(90deg);
+  --shadow-card: 0 0 15px #ff00ff, 0 0 30px rgba(255, 0, 255, 0.3);
+  --radius-card: 0.25rem;
+  --chart-text: #ffff00;
+  --chart-text-label: #00ff00;
+  --chart-grid: #ff00ff;
+  --chart-purchase: #ffff00;
+  --chart-daily-cost: #ff00ff;
+  --chart-bar-high: #ff0000;
+  --chart-bar-mid: #00ff00;
+  --chart-bar-low: #00ffff;
+  --chart-status-active: #00ff00;
+  --chart-status-recycled: #00ffff;
+  --chart-status-scrapped: #ffff00;
+  --chart-tooltip-bg: #1a0a2e;
+  --chart-tooltip-border: #ff00ff;
+  --stat-gradient-emerald-from: #ff00ff;
+  --stat-gradient-emerald-to: #00ff00;
+  --stat-gradient-blue-from: #00ffff;
+  --stat-gradient-blue-to: #00ff00;
+  --stat-gradient-amber-from: #ffff00;
+  --stat-gradient-amber-to: #ff6600;
+  --stat-gradient-purple-from: #ff00ff;
+  --stat-gradient-purple-to: #00ffff;
+  --stat-gradient-teal-from: #00ff00;
+  --stat-gradient-teal-to: #00ffff;
+}
+
+[data-theme="retro90s"] .bg-white\/10 {
+  background-color: rgba(0, 255, 255, 0.08);
+}
+
+[data-theme="retro90s"] .hover\:bg-white\/10:hover {
+  background-color: rgba(255, 0, 255, 0.1);
+}
+
+[data-theme="retro90s"] .hover\:border-white\/20:hover,
+[data-theme="retro90s"] .border-white\/20 {
+  border-color: #ff00ff;
+}
+
+[data-theme="retro90s"] .hover\:border-white\/20:hover {
+  border-color: #00ffff;
+}
+
+[data-theme="retro90s"] .text-white {
+  color: #00ff00;
+}
+
+[data-theme="retro90s"] .bg-amber-500\/20 {
+  background-color: rgba(255, 255, 0, 0.2);
+}
+
+[data-theme="retro90s"] .text-amber-400 {
+  color: #ffff00;
+}
+
+[data-theme="retro90s"] .fill-amber-400 {
+  fill: #ffff00;
+}
+
+[data-theme="retro90s"] .bg-red-500\/20 {
+  background-color: rgba(255, 0, 0, 0.2);
+}
+
+[data-theme="retro90s"] .text-red-400,
+[data-theme="retro90s"] .hover\:text-red-400:hover {
+  color: #ff0000;
+}
+
+[data-theme="retro90s"] .text-blue-400 {
+  color: #00ffff;
+}
+
+[data-theme="retro90s"] .text-blue-400\/70 {
+  color: rgba(0, 255, 255, 0.7);
+}
+
+[data-theme="retro90s"] .text-emerald-400 {
+  color: #ff00ff;
+}
+
+[data-theme="retro90s"] .text-purple-400\/70 {
+  color: rgba(255, 0, 255, 0.7);
+}
+
+[data-theme="retro90s"] .text-cyan-400 {
+  color: #00ffff;
+}
+
+[data-theme="retro90s"] .bg-gradient-to-r.from-blue-500.to-cyan-400 {
+  background: linear-gradient(to right, #ff00ff, #00ffff);
+}
+
+[data-theme="retro90s"] .from-emerald-500 {
+  --tw-gradient-from: #ff00ff;
+}
+
+[data-theme="retro90s"] .to-emerald-600 {
+  --tw-gradient-to: #00ff00;
+}
+
+[data-theme="retro90s"] .from-blue-500 {
+  --tw-gradient-from: #00ffff;
+}
+
+[data-theme="retro90s"] .to-blue-600 {
+  --tw-gradient-to: #00ff00;
+}
+
+[data-theme="retro90s"] .from-amber-500 {
+  --tw-gradient-from: #ffff00;
+}
+
+[data-theme="retro90s"] .to-amber-600 {
+  --tw-gradient-to: #ff6600;
+}
+
+[data-theme="retro90s"] .from-purple-500 {
+  --tw-gradient-from: #ff00ff;
+}
+
+[data-theme="retro90s"] .to-purple-600 {
+  --tw-gradient-to: #00ffff;
+}
+
+[data-theme="retro90s"] .from-teal-500 {
+  --tw-gradient-from: #00ff00;
+}
+
+[data-theme="retro90s"] .to-cyan-500 {
+  --tw-gradient-to: #00ffff;
+}
+
+[data-theme="retro90s"] .from-violet-600 {
+  --tw-gradient-from: #ff00ff;
+}
+
+[data-theme="retro90s"] .to-indigo-600 {
+  --tw-gradient-to: #00ffff;
+}
+
+[data-theme="retro90s"] .hover\:from-violet-500:hover {
+  --tw-gradient-from: #00ffff;
+}
+
+[data-theme="retro90s"] .hover\:to-indigo-500:hover {
+  --tw-gradient-from: #ff00ff;
+}
+
+[data-theme="retro90s"] .bg-emerald-500 {
+  background-color: #ff00ff;
+}
+
+[data-theme="retro90s"] .bg-emerald-500\/20 {
+  background-color: rgba(255, 0, 255, 0.2);
+}
+
+[data-theme="retro90s"] .bg-blue-500 {
+  background-color: #00ffff;
+}
+
+[data-theme="retro90s"] .bg-blue-500\/20 {
+  background-color: rgba(0, 255, 255, 0.2);
+}
+
+[data-theme="retro90s"] .bg-amber-500 {
+  background-color: #ffff00;
+}
+
+[data-theme="retro90s"] .bg-red-500,
+[data-theme="retro90s"] .bg-red-600 {
+  background-color: #ff0000;
+}
+
+[data-theme="retro90s"] .hover\:bg-red-400:hover,
+[data-theme="retro90s"] .hover\:bg-red-500:hover {
+  background-color: #ff6600;
+}
+
+[data-theme="retro90s"] .bg-accent\/80 {
+  background-color: rgba(255, 0, 255, 0.8);
+}
+
+[data-theme="retro90s"] .bg-black\/60 {
+  background-color: rgba(26, 10, 46, 0.7);
+}
+
+[data-theme="retro90s"] .bg-black\/50 {
+  background-color: rgba(26, 10, 46, 0.6);
+}
+
+[data-theme="retro90s"] .border-l-emerald-500 {
+  border-left-color: #ff00ff;
+}
+
+[data-theme="retro90s"] .border-l-blue-500 {
+  border-left-color: #00ffff;
+}
+
+[data-theme="retro90s"] .border-l-amber-500 {
+  border-left-color: #ffff00;
+}
+
+[data-theme="retro90s"] .bg-ink\/95 {
+  background-color: rgba(26, 10, 46, 0.95) !important;
+}
+
+[data-theme="retro90s"] .bg-ink {
+  background-color: #1a0a2e !important;
+}
+
+[data-theme="retro90s"] .border-edge-subtle {
+  border-color: #ff00ff;
+}
+
+[data-theme="retro90s"] .bg-white\/\[0\.03\] {
+  background-color: rgba(0, 255, 255, 0.06);
+}
+
+[data-theme="retro2000"] {
+  font-family: "Courier New", monospace;
+  --bg-primary: #000033;
+  --bg-secondary: rgba(0, 255, 255, 0.08);
+  --bg-tertiary: rgba(255, 102, 0, 0.06);
+  --bg-hover: rgba(0, 255, 255, 0.12);
+  --bg-overlay: rgba(0, 0, 51, 0.8);
+  --bg-card: rgba(0, 255, 255, 0.08);
+  --text-primary: #ff6600;
+  --text-secondary: #00ffff;
+  --text-tertiary: #ff00ff;
+  --text-muted: #ffff00;
+  --text-faint: #00ffff;
+  --border-primary: #00ffff;
+  --border-secondary: #ff6600;
+  --accent: #00ffff;
+  --accent-light: rgba(0, 255, 255, 0.2);
+  --accent-hover: #66ffff;
+  --scrollbar-thumb: #00ffff;
+  --select-arrow: #ff6600;
+  --date-filter: hue-rotate(180deg);
+  --shadow-card: 0 0 20px #00ffff, 0 0 40px rgba(0, 255, 255, 0.2);
+  --radius-card: 0;
+  --chart-text: #00ffff;
+  --chart-text-label: #ff6600;
+  --chart-grid: #ff00ff;
+  --chart-purchase: #ff6600;
+  --chart-daily-cost: #00ffff;
+  --chart-bar-high: #ff00ff;
+  --chart-bar-mid: #00ff00;
+  --chart-bar-low: #00ffff;
+  --chart-status-active: #00ff00;
+  --chart-status-recycled: #00ffff;
+  --chart-status-scrapped: #ff6600;
+  --chart-tooltip-bg: #000033;
+  --chart-tooltip-border: #00ffff;
+  --stat-gradient-emerald-from: #00ffff;
+  --stat-gradient-emerald-to: #ff6600;
+  --stat-gradient-blue-from: #00ffff;
+  --stat-gradient-blue-to: #ff00ff;
+  --stat-gradient-amber-from: #ff6600;
+  --stat-gradient-amber-to: #ffff00;
+  --stat-gradient-purple-from: #ff00ff;
+  --stat-gradient-purple-to: #00ffff;
+  --stat-gradient-teal-from: #00ff00;
+  --stat-gradient-teal-to: #00ffff;
+}
+
+[data-theme="retro2000"] .bg-white\/10 {
+  background-color: rgba(0, 255, 255, 0.08);
+}
+
+[data-theme="retro2000"] .hover\:bg-white\/10:hover {
+  background-color: rgba(255, 102, 0, 0.12);
+}
+
+[data-theme="retro2000"] .hover\:border-white\/20:hover,
+[data-theme="retro2000"] .border-white\/20 {
+  border-color: #00ffff;
+}
+
+[data-theme="retro2000"] .hover\:border-white\/20:hover {
+  border-color: #ff6600;
+}
+
+[data-theme="retro2000"] .text-white {
+  color: #ff6600;
+}
+
+[data-theme="retro2000"] .bg-amber-500\/20 {
+  background-color: rgba(255, 102, 0, 0.2);
+}
+
+[data-theme="retro2000"] .text-amber-400 {
+  color: #ff6600;
+}
+
+[data-theme="retro2000"] .fill-amber-400 {
+  fill: #ff6600;
+}
+
+[data-theme="retro2000"] .bg-red-500\/20 {
+  background-color: rgba(255, 0, 0, 0.2);
+}
+
+[data-theme="retro2000"] .text-red-400,
+[data-theme="retro2000"] .hover\:text-red-400:hover {
+  color: #ff0000;
+}
+
+[data-theme="retro2000"] .text-blue-400 {
+  color: #00ffff;
+}
+
+[data-theme="retro2000"] .text-blue-400\/70 {
+  color: rgba(0, 255, 255, 0.7);
+}
+
+[data-theme="retro2000"] .text-emerald-400 {
+  color: #00ffff;
+}
+
+[data-theme="retro2000"] .text-purple-400\/70 {
+  color: rgba(255, 0, 255, 0.7);
+}
+
+[data-theme="retro2000"] .text-cyan-400 {
+  color: #00ffff;
+}
+
+[data-theme="retro2000"] .bg-gradient-to-r.from-blue-500.to-cyan-400 {
+  background: linear-gradient(to right, #00ffff, #ff00ff);
+}
+
+[data-theme="retro2000"] .from-emerald-500 {
+  --tw-gradient-from: #00ffff;
+}
+
+[data-theme="retro2000"] .to-emerald-600 {
+  --tw-gradient-to: #ff6600;
+}
+
+[data-theme="retro2000"] .from-blue-500 {
+  --tw-gradient-from: #00ffff;
+}
+
+[data-theme="retro2000"] .to-blue-600 {
+  --tw-gradient-to: #ff00ff;
+}
+
+[data-theme="retro2000"] .from-amber-500 {
+  --tw-gradient-from: #ff6600;
+}
+
+[data-theme="retro2000"] .to-amber-600 {
+  --tw-gradient-to: #ffff00;
+}
+
+[data-theme="retro2000"] .from-purple-500 {
+  --tw-gradient-from: #ff00ff;
+}
+
+[data-theme="retro2000"] .to-purple-600 {
+  --tw-gradient-to: #00ffff;
+}
+
+[data-theme="retro2000"] .from-teal-500 {
+  --tw-gradient-from: #00ff00;
+}
+
+[data-theme="retro2000"] .to-cyan-500 {
+  --tw-gradient-to: #00ffff;
+}
+
+[data-theme="retro2000"] .from-violet-600 {
+  --tw-gradient-from: #ff00ff;
+}
+
+[data-theme="retro2000"] .to-indigo-600 {
+  --tw-gradient-to: #00ffff;
+}
+
+[data-theme="retro2000"] .hover\:from-violet-500:hover {
+  --tw-gradient-from: #00ffff;
+}
+
+[data-theme="retro2000"] .hover\:to-indigo-500:hover {
+  --tw-gradient-to: #ff00ff;
+}
+
+[data-theme="retro2000"] .bg-emerald-500 {
+  background-color: #00ffff;
+}
+
+[data-theme="retro2000"] .bg-emerald-500\/20 {
+  background-color: rgba(0, 255, 255, 0.2);
+}
+
+[data-theme="retro2000"] .bg-blue-500 {
+  background-color: #00ffff;
+}
+
+[data-theme="retro2000"] .bg-blue-500\/20 {
+  background-color: rgba(0, 255, 255, 0.2);
+}
+
+[data-theme="retro2000"] .bg-amber-500 {
+  background-color: #ff6600;
+}
+
+[data-theme="retro2000"] .bg-red-500,
+[data-theme="retro2000"] .bg-red-600 {
+  background-color: #ff0000;
+}
+
+[data-theme="retro2000"] .hover\:bg-red-400:hover,
+[data-theme="retro2000"] .hover\:bg-red-500:hover {
+  background-color: #ff6600;
+}
+
+[data-theme="retro2000"] .bg-accent\/80 {
+  background-color: rgba(0, 255, 255, 0.8);
+}
+
+[data-theme="retro2000"] .bg-black\/60 {
+  background-color: rgba(0, 0, 51, 0.7);
+}
+
+[data-theme="retro2000"] .bg-black\/50 {
+  background-color: rgba(0, 0, 51, 0.6);
+}
+
+[data-theme="retro2000"] .border-l-emerald-500 {
+  border-left-color: #00ffff;
+}
+
+[data-theme="retro2000"] .border-l-blue-500 {
+  border-left-color: #ff6600;
+}
+
+[data-theme="retro2000"] .border-l-amber-500 {
+  border-left-color: #ff00ff;
+}
+
+[data-theme="retro2000"] .bg-ink\/95 {
+  background-color: rgba(0, 0, 51, 0.95) !important;
+}
+
+[data-theme="retro2000"] .bg-ink {
+  background-color: #000033 !important;
+}
+
+[data-theme="retro2000"] .border-edge-subtle {
+  border-color: rgba(0, 255, 255, 0.15);
+}
+
+[data-theme="retro2000"] .bg-white\/\[0\.03\] {
+  background-color: rgba(0, 255, 255, 0.06);
+}
+
 .page-enter {
   animation: pageIn 0.2s ease-out;
 }
