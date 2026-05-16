@@ -19,6 +19,18 @@ export default function AssetNew() {
     }
   }
 
+  async function handleBatchSubmit(forms: AssetFormData[]) {
+    setSubmitting(true)
+    try {
+      for (const form of forms) {
+        await addAsset(form)
+      }
+      navigate("/assets")
+    } catch {
+      setSubmitting(false)
+    }
+  }
+
   return (
     <div className="mx-auto max-w-lg space-y-6">
       <div>
@@ -29,6 +41,7 @@ export default function AssetNew() {
       <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-6">
         <AssetForm
           onSubmit={handleSubmit}
+          onBatchSubmit={handleBatchSubmit}
           onCancel={() => navigate("/assets")}
           submitting={submitting}
         />

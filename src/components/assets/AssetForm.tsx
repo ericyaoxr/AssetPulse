@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useCallback } from "react"
-import { Calculator, Star, Camera, X, Sparkles, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
+import { Calculator, Star, Camera, X, Sparkles, Loader2, ChevronLeft, ChevronRight, CheckSquare, Square } from "lucide-react"
 import type { Asset, AssetFormData, AssetStatus, AIValuationResult } from "@/types"
 import { DEFAULT_CATEGORIES } from "@/types"
 import { formatCurrency, formatDays } from "@/utils/format"
@@ -7,6 +7,7 @@ import { computeAssetFromForm } from "@/utils/calculations"
 import { imageFileToBase64 } from "@/utils/storage"
 import { useAssetStore } from "@/store/useAssetStore"
 import { api } from "@/utils/api"
+import type { ImageRecognitionItem } from "@/utils/api"
 import { estimateAssetValue, loadAIConfig } from "@/utils/aiValuation"
 
 interface AssetFormProps {
@@ -14,6 +15,7 @@ interface AssetFormProps {
   onSubmit: (form: AssetFormData) => void
   onCancel: () => void
   submitting?: boolean
+  onBatchSubmit?: (forms: AssetFormData[]) => void
 }
 
 const CATEGORY_ALIASES: Record<string, string> = {
@@ -191,7 +193,7 @@ function DatePicker({ value, onChange, label }: { value: string; onChange: (v: s
   )
 }
 
-export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: AssetFormProps) => {
+export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatchSubmit }: AssetFormProps) => {
   const [name, setName] = useState(initialData?.name ?? "")
   const [status, setStatus] = useState<AssetStatus>(initialData?.status ?? "active")
   const [category, setCategory] = useState(initialData?.category ?? "")
@@ -213,6 +215,9 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
   const [valuing, setValuing] = useState(false)
   const [aiValuation, setAiValuation] = useState<AIValuationResult | null>(initialData?.aiValuation ?? null)
   const [showImagePreview, setShowImagePreview] = useState(false)
+  const [recognizedItems, setRecognizedItems] = useState<ImageRecognitionItem[]>([])
+  const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set())
+  const [showItemSelector, setShowItemSelector] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { categories, locations, addCategory, addLocation } = useAssetStore()
@@ -248,22 +253,53 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
     try {
       const result = await api.ai.recognize(imageUrl)
 
-      if (!result.name) {
+      if (!result.items || result.items.length === 0) {
         setRecognizeError("无法识别图片中的物品，请手动填写")
         return
       }
 
-      if (result.name) {
-        setName(result.brand ? `${result.brand} ${result.name}` : result.name)
-      }
-      if (result.category) {
-        const matched = matchCategory(result.category)
+      setRecognizedItems(result.items)
+      setSelectedItems(new Set(result.items.map((_, index) => index)))
+      setShowItemSelector(true)
+      setImageUrl(null)
+      setRecognizing(false)
+    } catch (e) {
+      setRecognizeError(e instanceof Error ? e.message : "识别失败，请稍后重试")
+    } finally {
+      setRecognizing(false)
+    }
+  }
+
+  const toggleItemSelection = (index: number) => {
+    const newSelected = new Set(selectedItems)
+    if (newSelected.has(index)) {
+      newSelected.delete(index)
+    } else {
+      newSelected.add(index)
+    }
+    setSelectedItems(newSelected)
+  }
+
+  const handleConfirmItems = async () => {
+    const selected = recognizedItems.filter((_, index) => selectedItems.has(index))
+    if (selected.length === 0) {
+      setShowItemSelector(false)
+      setRecognizedItems([])
+      setSelectedItems(new Set())
+      return
+    }
+
+    if (selected.length === 1) {
+      const item = selected[0]
+      setName(item.brand ? `${item.brand} ${item.name}` : item.name)
+      if (item.category) {
+        const matched = matchCategory(item.category)
         if (matched) {
           setCategory(matched)
         }
       }
-      if (result.purchaseDate) {
-        const dateStr = result.purchaseDate.trim()
+      if (item.purchaseDate) {
+        const dateStr = item.purchaseDate.trim()
         if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(dateStr)) {
           const parts = dateStr.split("-")
           setPurchaseDate(`${parts[0]}-${parts[1].padStart(2, "0")}-${parts[2].padStart(2, "0")}`)
@@ -271,30 +307,31 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
       } else if (!purchaseDate) {
         setPurchaseDate(todayStr())
       }
-      if (result.estimatedPrice > 0) {
-        setPurchasePrice(result.estimatedPrice.toString())
+      if (item.estimatedPrice > 0) {
+        setPurchasePrice(item.estimatedPrice.toString())
       }
-      if (result.description) {
-        setNote(result.description)
+      if (item.description) {
+        setNote(item.description)
       }
 
-      setImageUrl(null)
-      setRecognizing(false)
+      setShowItemSelector(false)
+      setRecognizedItems([])
+      setSelectedItems(new Set())
 
       setValuing(true)
       try {
         const config = await loadAIConfig()
         if (config && config.apiKey && config.baseUrl && config.model) {
-          const price = result.estimatedPrice > 0 ? result.estimatedPrice : parseFloat(purchasePrice) || 0
-          const pDate = result.purchaseDate || purchaseDate || todayStr()
+          const price = item.estimatedPrice > 0 ? item.estimatedPrice : parseFloat(purchasePrice) || 0
+          const pDate = item.purchaseDate || purchaseDate || todayStr()
           const tempAsset = {
             id: "",
             userId: "",
-            name: result.brand ? `${result.brand} ${result.name}` : result.name,
+            name: item.brand ? `${item.brand} ${item.name}` : item.name,
             status: "active" as AssetStatus,
-            category: matchCategory(result.category) || category,
+            category: matchCategory(item.category) || category,
             location,
-            imageUrl,
+            imageUrl: null,
             purchaseDate: pDate,
             purchasePrice: price,
             endDate: null,
@@ -303,7 +340,7 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
             effectiveDays: 0,
             dailyCost: 0,
             rating: null,
-            note: result.description || note,
+            note: item.description || note,
             aiValuation: null,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
@@ -316,10 +353,69 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
       } finally {
         setValuing(false)
       }
-    } catch (e) {
-      setRecognizeError(e instanceof Error ? e.message : "识别失败，请稍后重试")
-    } finally {
-      setRecognizing(false)
+    } else {
+      if (onBatchSubmit) {
+        const forms: AssetFormData[] = selected.map((item) => {
+          let pDate = ""
+          if (item.purchaseDate) {
+            const dateStr = item.purchaseDate.trim()
+            if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(dateStr)) {
+              const parts = dateStr.split("-")
+              pDate = `${parts[0]}-${parts[1].padStart(2, "0")}-${parts[2].padStart(2, "0")}`
+            }
+          }
+          if (!pDate) {
+            pDate = todayStr()
+          }
+          const matchedCategory = matchCategory(item.category)
+          return {
+            name: item.brand ? `${item.brand} ${item.name}` : item.name,
+            status: "active" as AssetStatus,
+            category: matchedCategory || "",
+            location: "",
+            imageUrl: null,
+            purchaseDate: pDate,
+            purchasePrice: item.estimatedPrice > 0 ? item.estimatedPrice : 0,
+            endDate: "",
+            recycleAmount: 0,
+            targetDailyCost: 0,
+            rating: 0,
+            note: item.description || "",
+            aiValuation: null,
+          }
+        })
+        setShowItemSelector(false)
+        setRecognizedItems([])
+        setSelectedItems(new Set())
+        onBatchSubmit(forms)
+      } else {
+        const item = selected[0]
+        setName(item.brand ? `${item.brand} ${item.name}` : item.name)
+        if (item.category) {
+          const matched = matchCategory(item.category)
+          if (matched) {
+            setCategory(matched)
+          }
+        }
+        if (item.purchaseDate) {
+          const dateStr = item.purchaseDate.trim()
+          if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(dateStr)) {
+            const parts = dateStr.split("-")
+            setPurchaseDate(`${parts[0]}-${parts[1].padStart(2, "0")}-${parts[2].padStart(2, "0")}`)
+          }
+        } else if (!purchaseDate) {
+          setPurchaseDate(todayStr())
+        }
+        if (item.estimatedPrice > 0) {
+          setPurchasePrice(item.estimatedPrice.toString())
+        }
+        if (item.description) {
+          setNote(item.description)
+        }
+        setShowItemSelector(false)
+        setRecognizedItems([])
+        setSelectedItems(new Set())
+      }
     }
   }
 
@@ -606,6 +702,96 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting }: Asset
           className="max-w-[90vw] max-h-[90vh] object-contain cursor-pointer modal-content-enter"
           onClick={() => setShowImagePreview(false)}
         />
+      </div>
+    )}
+
+    {showItemSelector && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm modal-overlay-enter">
+        <div className="bg-ink rounded-2xl border border-edge p-6 max-w-lg w-full mx-4 modal-content-enter max-h-[80vh] overflow-y-auto">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-content-primary">识别到 {recognizedItems.length} 个物品</h3>
+            <button
+              onClick={() => {
+                setShowItemSelector(false)
+                setRecognizedItems([])
+                setSelectedItems(new Set())
+              }}
+              className="p-1 rounded hover:bg-white/10 text-content-tertiary"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <p className="text-sm text-content-tertiary mb-4">请选择要添加的资产</p>
+
+          <div className="space-y-3 mb-6">
+            {recognizedItems.map((item, index) => (
+              <div
+                key={index}
+                onClick={() => toggleItemSelection(index)}
+                className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+                  selectedItems.has(index)
+                    ? "border-accent bg-accent/10"
+                    : "border-edge bg-surface hover:border-white/20"
+                }`}
+              >
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toggleItemSelection(index)
+                  }}
+                  className="mt-0.5 text-accent"
+                >
+                  {selectedItems.has(index) ? (
+                    <CheckSquare className="w-5 h-5" />
+                  ) : (
+                    <Square className="w-5 h-5" />
+                  )}
+                </button>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-content-primary">
+                    {item.brand ? `${item.brand} ${item.name}` : item.name}
+                  </div>
+                  <div className="flex items-center gap-2 mt-1 text-sm text-content-tertiary">
+                    <span>{matchCategory(item.category) || item.category}</span>
+                    <span>•</span>
+                    <span>{formatCurrency(item.estimatedPrice)}</span>
+                  </div>
+                  {item.description && (
+                    <p className="text-xs text-content-muted mt-1">{item.description}</p>
+                  )}
+                  {item.purchaseDate && (
+                    <p className="text-xs text-content-muted mt-1">购入日期：{item.purchaseDate}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                setShowItemSelector(false)
+                setRecognizedItems([])
+                setSelectedItems(new Set())
+              }}
+              className="flex-1 rounded-lg border border-edge px-4 py-2.5 text-sm font-medium text-content-secondary hover:bg-surface"
+            >
+              取消
+            </button>
+            <button
+              onClick={handleConfirmItems}
+              disabled={selectedItems.size === 0}
+              className="flex-1 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {selectedItems.size === 0
+                ? "请选择物品"
+                : selectedItems.size === 1
+                ? "添加 1 个资产"
+                : `添加 ${selectedItems.size} 个资产`}
+            </button>
+          </div>
+        </div>
       </div>
     )}
     </>
