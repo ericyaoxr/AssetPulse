@@ -40,13 +40,17 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return res.json()
 }
 
-export interface ImageRecognitionResult {
+export interface ImageRecognitionItem {
   name: string
   category: string
   estimatedPrice: number
   brand: string
   description: string
   purchaseDate: string
+}
+
+export interface ImageRecognitionResult {
+  items: ImageRecognitionItem[]
 }
 
 export const api = {
