@@ -9,6 +9,7 @@ import { useAssetStore } from "@/store/useAssetStore"
 import { api } from "@/utils/api"
 import type { ImageRecognitionItem } from "@/utils/api"
 import { estimateAssetValue, loadAIConfig } from "@/utils/aiValuation"
+import { TagInput } from "@/components/assets/TagInput"
 
 interface AssetFormProps {
   initialData?: Asset
@@ -199,6 +200,7 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
   const [category, setCategory] = useState(initialData?.category ?? "")
   const [location, setLocation] = useState(initialData?.location ?? "")
   const [imageUrl, setImageUrl] = useState<string | null>(initialData?.imageUrl ?? null)
+  const [tags, setTags] = useState<string[]>(initialData?.tags ?? [])
   const [purchaseDate, setPurchaseDate] = useState(initialData?.purchaseDate ?? "")
   const [purchasePrice, setPurchasePrice] = useState(initialData?.purchasePrice?.toString() ?? "")
   const [endDate, setEndDate] = useState(initialData?.endDate ?? "")
@@ -226,13 +228,13 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
     const price = parseFloat(purchasePrice)
     if (!name || !purchaseDate || isNaN(price)) return null
     return computeAssetFromForm({
-      name, status, category, location, imageUrl,
+      name, status, category, location, imageUrl, tags,
       purchaseDate, purchasePrice: price, endDate,
       recycleAmount: parseFloat(recycleAmount) || 0,
       targetDailyCost: parseFloat(targetDailyCost) || 0,
       rating, note, aiValuation,
     })
-  }, [name, status, category, location, imageUrl, purchaseDate, purchasePrice, endDate, recycleAmount, targetDailyCost, rating, note, aiValuation])
+  }, [name, status, category, location, imageUrl, tags, purchaseDate, purchasePrice, endDate, recycleAmount, targetDailyCost, rating, note, aiValuation])
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -325,26 +327,27 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
           const price = item.estimatedPrice > 0 ? item.estimatedPrice : parseFloat(purchasePrice) || 0
           const pDate = item.purchaseDate || purchaseDate || todayStr()
           const tempAsset = {
-            id: "",
-            userId: "",
-            name: item.brand ? `${item.brand} ${item.name}` : item.name,
-            status: "active" as AssetStatus,
-            category: matchCategory(item.category) || category,
-            location,
-            imageUrl: null,
-            purchaseDate: pDate,
-            purchasePrice: price,
-            endDate: null,
-            recycleAmount: null,
-            targetDailyCost: null,
-            effectiveDays: 0,
-            dailyCost: 0,
-            rating: null,
-            note: item.description || note,
-            aiValuation: null,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          }
+                id: "",
+                userId: "",
+                name: item.brand ? `${item.brand} ${item.name}` : item.name,
+                status: "active" as AssetStatus,
+                category: matchCategory(item.category) || category,
+                location,
+                imageUrl: null,
+                tags: [],
+                purchaseDate: pDate,
+                purchasePrice: price,
+                endDate: null,
+                recycleAmount: null,
+                targetDailyCost: null,
+                effectiveDays: 0,
+                dailyCost: 0,
+                rating: null,
+                note: item.description || note,
+                aiValuation: null,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              }
           const valuation = await estimateAssetValue(config, tempAsset)
           setAiValuation(valuation)
         }
@@ -356,34 +359,35 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
     } else {
       if (onBatchSubmit) {
         const forms: AssetFormData[] = selected.map((item) => {
-          let pDate = ""
-          if (item.purchaseDate) {
-            const dateStr = item.purchaseDate.trim()
-            if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(dateStr)) {
-              const parts = dateStr.split("-")
-              pDate = `${parts[0]}-${parts[1].padStart(2, "0")}-${parts[2].padStart(2, "0")}`
+            let pDate = ""
+            if (item.purchaseDate) {
+              const dateStr = item.purchaseDate.trim()
+              if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(dateStr)) {
+                const parts = dateStr.split("-")
+                pDate = `${parts[0]}-${parts[1].padStart(2, "0")}-${parts[2].padStart(2, "0")}`
+              }
             }
-          }
-          if (!pDate) {
-            pDate = todayStr()
-          }
-          const matchedCategory = matchCategory(item.category)
-          return {
-            name: item.brand ? `${item.brand} ${item.name}` : item.name,
-            status: "active" as AssetStatus,
-            category: matchedCategory || "",
-            location: "",
-            imageUrl: null,
-            purchaseDate: pDate,
-            purchasePrice: item.estimatedPrice > 0 ? item.estimatedPrice : 0,
-            endDate: "",
-            recycleAmount: 0,
-            targetDailyCost: 0,
-            rating: 0,
-            note: item.description || "",
-            aiValuation: null,
-          }
-        })
+            if (!pDate) {
+              pDate = todayStr()
+            }
+            const matchedCategory = matchCategory(item.category)
+            return {
+              name: item.brand ? `${item.brand} ${item.name}` : item.name,
+              status: "active" as AssetStatus,
+              category: matchedCategory || "",
+              location: "",
+              imageUrl: null,
+              tags: [],
+              purchaseDate: pDate,
+              purchasePrice: item.estimatedPrice > 0 ? item.estimatedPrice : 0,
+              endDate: "",
+              recycleAmount: 0,
+              targetDailyCost: 0,
+              rating: 0,
+              note: item.description || "",
+              aiValuation: null,
+            }
+          })
         setShowItemSelector(false)
         setRecognizedItems([])
         setSelectedItems(new Set())
@@ -438,7 +442,7 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     onSubmit({
-      name, status, category, location, imageUrl,
+      name, status, category, location, imageUrl, tags,
       purchaseDate, purchasePrice: parseFloat(purchasePrice),
       endDate, recycleAmount: parseFloat(recycleAmount) || 0,
       targetDailyCost: parseFloat(targetDailyCost) || 0,
@@ -626,6 +630,11 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
           </div>
         </div>
       )}
+
+      <div>
+        <label className="block text-sm text-content-secondary mb-1">标签</label>
+        <TagInput value={tags} onChange={setTags} placeholder="添加标签，用回车或逗号分隔" />
+      </div>
 
       <div>
         <label className="block text-sm text-content-secondary mb-1">备注</label>

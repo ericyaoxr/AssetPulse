@@ -35,6 +35,7 @@ export interface Asset {
   category: string
   location: string
   imageUrl: string | null
+  tags: string[]
   purchaseDate: string
   purchasePrice: number
   endDate: string | null
@@ -61,6 +62,7 @@ export interface AssetFormData {
   category: string
   location: string
   imageUrl: string | null
+  tags: string[]
   purchaseDate: string
   purchasePrice: number
   endDate: string
@@ -124,4 +126,31 @@ export interface AchievementProgress {
   current: number
   target: number
   percentage: number
+}
+
+// 小组/家庭共享相关类型
+export interface SharedGroup {
+  id: string
+  name: string
+  ownerId: string
+  members: SharedMember[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface SharedMember {
+  userId: string
+  username: string
+  role: "owner" | "editor" | "viewer"
+  joinedAt: string
+}
+
+export interface SharedAsset {
+  id: string
+  groupId: string
+  assetId: string
+  asset?: Asset
+  sharedBy: string
+  sharedAt: string
+  permission: "view" | "edit"
 }

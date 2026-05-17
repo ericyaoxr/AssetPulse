@@ -13,6 +13,7 @@ import { formatCurrency, formatDays, formatDate } from "@/utils/format"
 import { useAssetStore } from "@/store/useAssetStore"
 import { estimateAssetValue, loadAIConfig } from "@/utils/aiValuation"
 import StatusBadge from "@/components/assets/StatusBadge"
+import { ResalePanel } from "@/components/assets/ResalePanel"
 import { useThemeVars } from "@/hooks/useThemeVar"
 
 interface AssetDetailProps {
@@ -166,6 +167,20 @@ const AssetDetail = ({ asset }: AssetDetailProps) => {
         </div>
       )}
 
+      {asset.tags && asset.tags.length > 0 && (
+        <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-4">
+          <div className="mb-2 flex items-center gap-1.5 text-xs text-content-muted">
+            <Tag className="h-4 w-4" />标签
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {asset.tags.map((tag) => (
+              <span key={tag} className="px-2 py-1 rounded bg-white/10 text-sm text-content-secondary">
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
       {asset.note && (
         <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-4">
           <div className="mb-2 flex items-center gap-1.5 text-xs text-content-muted">
@@ -245,6 +260,9 @@ const AssetDetail = ({ asset }: AssetDetailProps) => {
           <p className="text-xs text-content-faint">点击「开始估算」通过 AI 估算该资产的二手市场价值</p>
         )}
       </div>
+
+      {/* 二手交易助手 */}
+      <ResalePanel asset={asset} />
 
       {asset.status === "recycled" && (
         <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-4">

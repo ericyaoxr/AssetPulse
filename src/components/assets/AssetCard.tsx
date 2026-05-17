@@ -87,6 +87,20 @@ function AssetCard({ asset }: AssetCardProps) {
                 )}
               </div>
             )}
+            {asset.tags && asset.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-1.5">
+                {asset.tags.slice(0, 3).map((tag) => (
+                  <span key={tag} className="px-1.5 py-0.5 rounded bg-white/5 text-xs text-content-faint">
+                    {tag}
+                  </span>
+                ))}
+                {asset.tags.length > 3 && (
+                  <span className="px-1.5 py-0.5 rounded bg-white/5 text-xs text-content-faint">
+                    +{asset.tags.length - 3}
+                  </span>
+                )}
+              </div>
+            )}
             {asset.note && (
               <p className="flex items-start gap-1 text-xs text-content-muted mt-1.5 line-clamp-1">
                 <FileText className="h-3 w-3 shrink-0 mt-0.5" />
