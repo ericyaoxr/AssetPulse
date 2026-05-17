@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom"
 import {
   LayoutDashboard, Package, PlusCircle, Download, Upload, Activity,
   Trash2, TrendingUp, FileSpreadsheet, FileText, ChevronDown, LogOut,
-  Settings, Sparkles, DatabaseBackup, User, Palette, Trophy,
+  Settings, Sparkles, DatabaseBackup, User, Palette, Trophy, Users,
 } from "lucide-react"
 import { useAssetStore } from "@/store/useAssetStore"
 import { useAuthStore } from "@/store/useAuthStore"
@@ -13,6 +13,7 @@ const navItems = [
   { to: "/", label: "仪表盘", icon: LayoutDashboard },
   { to: "/assets", label: "资产列表", icon: Package },
   { to: "/assets/new", label: "添加资产", icon: PlusCircle },
+  { to: "/share", label: "小组共享", icon: Users },
   { to: "/trash", label: "回收站", icon: Trash2, badge: true },
   { to: "/review", label: "盈亏复盘", icon: TrendingUp },
   { to: "/achievements", label: "成就系统", icon: Trophy },

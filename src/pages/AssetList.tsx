@@ -1,8 +1,9 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
-import { Search, SlidersHorizontal, Plus } from "lucide-react"
+import { Search, SlidersHorizontal, Plus, X } from "lucide-react"
 import { useAssetStore } from "@/store/useAssetStore"
 import AssetCard from "@/components/assets/AssetCard"
+import { TagCloud } from "@/components/assets/TagCloud"
 import type { AssetStatus, SortField, SortOrder } from "@/types"
 
 const statusOptions: { value: AssetStatus | "all"; label: string }[] = [
@@ -44,6 +45,7 @@ export default function AssetList() {
   }, [])
   const [statusFilter, setStatusFilter] = useState<AssetStatus | "all">("all")
   const [categoryFilter, setCategoryFilter] = useState("all")
+  const [tagFilter, setTagFilter] = useState<string | null>(null)
   const [sortField, setSortField] = useState<SortField>("dailyCost")
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc")
 
@@ -63,6 +65,10 @@ export default function AssetList() {
       result = result.filter((a) => a.category === categoryFilter)
     }
 
+    if (tagFilter) {
+      result = result.filter((a) => a.tags && a.tags.includes(tagFilter))
+    }
+
     result.sort((a, b) => {
       let cmp = 0
       if (sortField === "name") {
@@ -76,7 +82,19 @@ export default function AssetList() {
     })
 
     return result
-  }, [assets, debouncedSearch, statusFilter, categoryFilter, sortField, sortOrder])
+  }, [assets, debouncedSearch, statusFilter, categoryFilter, tagFilter, sortField, sortOrder])
+
+  const allTags = useMemo(() => {
+    const tagCounts: Record<string, number> = {}
+    assets.forEach((asset) => {
+      if (asset.tags) {
+        asset.tags.forEach((tag) => {
+          tagCounts[tag] = (tagCounts[tag] || 0) + 1
+        })
+      }
+    })
+    return tagCounts
+  }, [assets])
 
   return (
     <div className="space-y-5">
@@ -152,6 +170,36 @@ export default function AssetList() {
           </button>
         </div>
       </div>
+
+      {Object.keys(allTags).length > 0 && (
+        <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-content-secondary">标签筛选</h3>
+            {tagFilter && (
+              <button
+                onClick={() => setTagFilter(null)}
+                className="flex items-center gap-1 text-xs text-accent hover:text-emerald-300"
+              >
+                <X className="h-3 w-3" />清除筛选
+              </button>
+            )}
+          </div>
+          <TagCloud tags={allTags} selectedTag={tagFilter} onTagClick={setTagFilter} />
+        </div>
+      )}
+
+      {tagFilter && (
+        <div className="flex items-center gap-2 text-sm text-content-secondary">
+          筛选标签：
+          <span className="px-2 py-1 rounded bg-accent/20 text-accent">{tagFilter}</span>
+          <button
+            onClick={() => setTagFilter(null)}
+            className="text-content-muted hover:text-content-secondary"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-content-faint">
