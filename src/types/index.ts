@@ -238,3 +238,63 @@ export interface ClaimFormData {
   status: "pending" | "approved" | "rejected" | "completed"
   result: string
 }
+
+// AI顾问相关类型
+export interface AssetHealthCheck {
+  id: string
+  createdAt: string
+  overallScore: number
+  summary: string
+  recommendations: HealthRecommendation[]
+  futureExpensePrediction: ExpensePrediction
+}
+
+export interface HealthRecommendation {
+  id: string
+  type: "buy" | "sell" | "keep" | "maintain"
+  assetId?: string
+  assetName?: string
+  priority: "low" | "medium" | "high"
+  title: string
+  description: string
+  reason: string
+}
+
+export interface ExpensePrediction {
+  next30Days: number
+  next90Days: number
+  next1Year: number
+  breakdown: { category: string; amount: number }[]
+}
+
+export interface AIStory {
+  id: string
+  assetId: string
+  title: string
+  content: string
+  tags: string[]
+  createdAt: string
+}
+
+export interface AIRecommendationItem {
+  id: string
+  type: "next_buy" | "better_option"
+  name: string
+  category: string
+  priceRange: { min: number; max: number }
+  reason: string
+  relatedAssetId?: string
+  similarityScore: number
+}
+
+// 时光机相关类型
+export interface TimeMachineSnapshot {
+  date: string
+  totalAssets: number
+  totalValue: number
+  assets: {
+    id: string
+    name: string
+    value: number
+  }[]
+}

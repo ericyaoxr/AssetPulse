@@ -19,6 +19,9 @@ const InsurancePage = lazy(() => import("@/pages/InsurancePage"))
 const AnalyticsPage = lazy(() => import("@/pages/AnalyticsPage"))
 const LocaleSettings = lazy(() => import("@/pages/LocaleSettings"))
 const ApiPlatform = lazy(() => import("@/pages/ApiPlatform"))
+const AIAdvisorPage = lazy(() => import("@/pages/AIAdvisorPage"))
+const AssetUniverse = lazy(() => import("@/pages/AssetUniverse"))
+const TimeMachine = lazy(() => import("@/pages/TimeMachine"))
 const SharePage = lazy(() => import("@/pages/SharePage"))
 const ShareGroupDetail = lazy(() => import("@/pages/ShareGroupDetail"))
 const AISettings = lazy(() => import("@/pages/AISettings"))
@@ -63,6 +66,9 @@ export default function App() {
               <Route path="/insurance" element={<InsurancePage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/api" element={<ApiPlatform />} />
+              <Route path="/ai-advisor" element={<AIAdvisorPage />} />
+              <Route path="/universe" element={<AssetUniverse />} />
+              <Route path="/time-machine" element={<TimeMachine />} />
               <Route path="/share" element={<SharePage />} />
               <Route path="/share/:groupId" element={<ShareGroupDetail />} />
               <Route path="/settings/account" element={<AccountSettings />} />

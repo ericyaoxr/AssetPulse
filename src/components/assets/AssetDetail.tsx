@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import {
   Pencil, Trash2, ChevronDown, Calendar, Coins, Clock, TrendingDown, X,
   Tag, MapPin, Target, Star, FileText, Sparkles, Loader2, RefreshCw, AlertCircle,
+  Share2, Wand2
 } from "lucide-react"
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -11,7 +12,10 @@ import { differenceInDays, format, eachMonthOfInterval } from "date-fns"
 import type { Asset, AssetStatus } from "@/types"
 import { formatCurrency, formatDays, formatDate } from "@/utils/format"
 import { useAssetStore } from "@/store/useAssetStore"
+import { useAIStore } from "@/store/useAIStore"
 import { estimateAssetValue, loadAIConfig } from "@/utils/aiValuation"
+import { callAI, generateAssetStoryPrompt } from "@/utils/aiHelper"
+import { useToast } from "@/contexts/ToastContext"
 import StatusBadge from "@/components/assets/StatusBadge"
 import { ResalePanel } from "@/components/assets/ResalePanel"
 import { useThemeVars } from "@/hooks/useThemeVar"
@@ -27,6 +31,8 @@ const statusLabels: Record<AssetStatus, string> = {
 const AssetDetail = ({ asset }: AssetDetailProps) => {
   const navigate = useNavigate()
   const { deleteAsset, updateStatus, updateAssetAIValuation } = useAssetStore()
+  const { stories, addStory } = useAIStore()
+  const { info, success, error } = useToast()
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showStatusDropdown, setShowStatusDropdown] = useState(false)
   const [showImagePreview, setShowImagePreview] = useState(false)
@@ -35,8 +41,12 @@ const AssetDetail = ({ asset }: AssetDetailProps) => {
   const [statusRecycleAmount, setStatusRecycleAmount] = useState("")
   const [aiLoading, setAiLoading] = useState(false)
   const [aiError, setAiError] = useState<string | null>(null)
+  const [storyLoading, setStoryLoading] = useState(false)
+  const [showStory, setShowStory] = useState(false)
+  const [currentStory, setCurrentStory] = useState<{ id: string; assetId: string; title: string; content: string; tags: string[]; createdAt: string } | null>(null)
 
   const aiResult = asset.aiValuation
+  const existingStory = stories.find(s => s.assetId === asset.id)
 
   const handleAIValuation = async () => {
     const config = await loadAIConfig()
@@ -53,6 +63,54 @@ const AssetDetail = ({ asset }: AssetDetailProps) => {
       setAiError(e instanceof Error ? e.message : "估值失败")
     } finally {
       setAiLoading(false)
+    }
+  }
+
+  const generateStory = async () => {
+    const config = await loadAIConfig()
+    if (!config || !config.baseUrl || !config.model) {
+      info("请先在 AI 估值设置中配置 AI 服务")
+      return
+    }
+    setStoryLoading(true)
+    try {
+      const prompt = generateAssetStoryPrompt(asset)
+      const response = await callAI([{ role: "user", content: prompt }])
+      
+      const jsonMatch = response.match(/\{[\s\S]*\}/)
+      if (!jsonMatch) throw new Error("AI 返回格式错误")
+      
+      const result = JSON.parse(jsonMatch[0])
+      
+      const story = {
+        id: crypto.randomUUID(),
+        assetId: asset.id,
+        title: result.title,
+        content: result.content,
+        tags: [],
+        createdAt: new Date().toISOString(),
+      }
+      
+      addStory(story)
+      setCurrentStory(story)
+      setShowStory(true)
+      success("故事已生成")
+    } catch (err) {
+      error(err instanceof Error ? err.message : "生成故事失败")
+    } finally {
+      setStoryLoading(false)
+    }
+  }
+
+  const shareStory = async () => {
+    if (!currentStory && !existingStory) return
+    const story = currentStory || existingStory
+    const text = `✨ ${story.title}\n\n${story.content}\n\n— 来自 AssetPulse`
+    try {
+      await navigator.clipboard.writeText(text)
+      success("故事已复制到剪贴板")
+    } catch {
+      info(text)
     }
   }
 
@@ -264,6 +322,39 @@ const AssetDetail = ({ asset }: AssetDetailProps) => {
       {/* 二手交易助手 */}
       <ResalePanel asset={asset} />
 
+      {/* AI 故事生成 */}
+      <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="flex items-center gap-1.5 text-sm font-medium text-content-secondary">
+            <Wand2 className="h-4 w-4 text-accent" />AI 物品故事
+          </h3>
+          <button
+            onClick={existingStory ? () => { setCurrentStory(existingStory); setShowStory(true) } : generateStory}
+            disabled={storyLoading}
+            className="flex items-center gap-1.5 rounded-lg bg-accent/80 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
+          >
+            {storyLoading ? (
+              <><Loader2 className="h-3.5 w-3.5 animate-spin" />生成中...</>
+            ) : existingStory ? (
+              <><FileText className="h-3.5 w-3.5" />查看故事</>
+            ) : (
+              <><Wand2 className="h-3.5 w-3.5" />生成故事</>
+            )}
+          </button>
+        </div>
+        
+        {existingStory && !showStory && (
+          <div className="rounded-lg border border-edge-subtle bg-surface p-3">
+            <p className="text-sm font-medium text-content-primary">{existingStory.title}</p>
+            <p className="text-xs text-content-muted mt-1 line-clamp-2">{existingStory.content}</p>
+          </div>
+        )}
+        
+        {!existingStory && !storyLoading && (
+          <p className="text-xs text-content-faint">点击「生成故事」让 AI 为您的物品创作一个温暖有趣的故事</p>
+        )}
+      </div>
+
       {asset.status === "recycled" && (
         <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-4">
           <h3 className="mb-3 text-sm font-medium text-content-secondary">盈亏复盘</h3>
@@ -354,6 +445,42 @@ const AssetDetail = ({ asset }: AssetDetailProps) => {
             className="max-w-[90vw] max-h-[90vh] object-contain cursor-pointer modal-content-enter"
             onClick={() => setShowImagePreview(false)}
           />
+        </div>
+      )}
+
+      {/* 故事查看模态框 */}
+      {(showStory && (currentStory || existingStory)) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm modal-overlay-enter">
+          <div className="w-full max-w-lg rounded-xl border border-edge bg-ink p-6 shadow-2xl modal-content-enter">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-content-primary">
+                {(currentStory || existingStory)?.title}
+              </h3>
+              <div className="flex gap-2">
+                <button
+                  onClick={shareStory}
+                  className="flex items-center gap-1 rounded-lg border border-edge px-3 py-1.5 text-sm text-content-secondary hover:bg-surface"
+                >
+                  <Share2 className="h-4 w-4" />
+                  分享
+                </button>
+                <button
+                  onClick={() => { setShowStory(false); setCurrentStory(null) }}
+                  className="rounded-lg border border-edge px-3 py-1.5 text-sm text-content-secondary hover:bg-surface"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            <div className="rounded-lg border border-edge bg-surface p-4">
+              <p className="text-content-secondary leading-relaxed">
+                {(currentStory || existingStory)?.content}
+              </p>
+            </div>
+            <p className="mt-4 text-xs text-content-faint">
+              生成于 {new Date((currentStory || existingStory)?.createdAt || "").toLocaleString("zh-CN")}
+            </p>
+          </div>
         </div>
       )}
     </div>
