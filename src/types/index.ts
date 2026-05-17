@@ -154,3 +154,37 @@ export interface SharedAsset {
   sharedAt: string
   permission: "view" | "edit"
 }
+
+// 提醒系统相关类型
+export type ReminderType = "warranty" | "maintenance" | "price_alert" | "lifespan"
+export type ReminderStatus = "pending" | "triggered" | "dismissed"
+export type ReminderPriority = "low" | "medium" | "high"
+
+export interface Reminder {
+  id: string
+  assetId: string
+  type: ReminderType
+  title: string
+  message: string
+  dueDate: string
+  priority: ReminderPriority
+  status: ReminderStatus
+  createdAt: string
+  triggeredAt: string | null
+}
+
+export interface ReminderRule {
+  id: string
+  type: ReminderType
+  enabled: boolean
+  daysBefore: number
+  priority: ReminderPriority
+  autoCreate: boolean
+}
+
+export interface ReminderSettings {
+  notificationsEnabled: boolean
+  browserNotificationsEnabled: boolean
+  emailNotificationsEnabled: boolean
+  rules: ReminderRule[]
+}
