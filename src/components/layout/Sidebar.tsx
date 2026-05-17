@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom"
 import {
   LayoutDashboard, Package, PlusCircle, Download, Upload, Activity,
   Trash2, TrendingUp, FileSpreadsheet, FileText, ChevronDown, LogOut,
-  Settings, Sparkles, DatabaseBackup, User, Palette, Trophy, Users, Bell, ShieldAlert,
+  Settings, Sparkles, DatabaseBackup, User, Palette, Trophy, Users, Bell, ShieldAlert, BarChart3, Globe, Code,
 } from "lucide-react"
 import { useAssetStore } from "@/store/useAssetStore"
 import { useAuthStore } from "@/store/useAuthStore"
@@ -16,6 +16,8 @@ const navItems = [
   { to: "/share", label: "小组共享", icon: Users },
   { to: "/reminders", label: "提醒设置", icon: Bell },
   { to: "/insurance", label: "保险保修", icon: ShieldAlert },
+  { to: "/analytics", label: "数据分析", icon: BarChart3 },
+  { to: "/api", label: "API 平台", icon: Code },
   { to: "/trash", label: "回收站", icon: Trash2, badge: true },
   { to: "/review", label: "盈亏复盘", icon: TrendingUp },
   { to: "/achievements", label: "成就系统", icon: Trophy },
@@ -24,6 +26,7 @@ const navItems = [
 const settingsItems = [
   { to: "/settings/account", label: "账户管理", icon: User },
   { to: "/settings/appearance", label: "外观设置", icon: Palette },
+  { to: "/settings/locale", label: "语言和货币", icon: Globe },
   { to: "/settings/ai", label: "AI 估值", icon: Sparkles },
   { to: "/settings/backup", label: "数据备份", icon: DatabaseBackup },
 ]

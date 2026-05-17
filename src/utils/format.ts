@@ -1,5 +1,7 @@
+import { formatCurrency as formatCurrencyWithStore } from "@/store/useLocaleStore"
+
 export function formatCurrency(value: number): string {
-  return `¥${value.toFixed(2)}`
+  return formatCurrencyWithStore(value)
 }
 
 export function formatDays(days: number): string {

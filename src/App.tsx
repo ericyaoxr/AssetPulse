@@ -16,6 +16,9 @@ const Review = lazy(() => import("@/pages/Review"))
 const AchievementsPage = lazy(() => import("@/pages/AchievementsPage"))
 const RemindersPage = lazy(() => import("@/pages/RemindersPage"))
 const InsurancePage = lazy(() => import("@/pages/InsurancePage"))
+const AnalyticsPage = lazy(() => import("@/pages/AnalyticsPage"))
+const LocaleSettings = lazy(() => import("@/pages/LocaleSettings"))
+const ApiPlatform = lazy(() => import("@/pages/ApiPlatform"))
 const SharePage = lazy(() => import("@/pages/SharePage"))
 const ShareGroupDetail = lazy(() => import("@/pages/ShareGroupDetail"))
 const AISettings = lazy(() => import("@/pages/AISettings"))
@@ -58,10 +61,13 @@ export default function App() {
               <Route path="/achievements" element={<AchievementsPage />} />
               <Route path="/reminders" element={<RemindersPage />} />
               <Route path="/insurance" element={<InsurancePage />} />
+              <Route path="/analytics" element={<AnalyticsPage />} />
+              <Route path="/api" element={<ApiPlatform />} />
               <Route path="/share" element={<SharePage />} />
               <Route path="/share/:groupId" element={<ShareGroupDetail />} />
               <Route path="/settings/account" element={<AccountSettings />} />
               <Route path="/settings/appearance" element={<ThemeSettings />} />
+              <Route path="/settings/locale" element={<LocaleSettings />} />
               <Route path="/settings/ai" element={<AISettings />} />
               <Route path="/settings/backup" element={<DataBackup />} />
             </Route>
