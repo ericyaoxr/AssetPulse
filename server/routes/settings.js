@@ -6,18 +6,34 @@ import { encrypt, decrypt } from "../utils/crypto.js"
 const SENSITIVE_KEYS = new Set(["ai_config"])
 
 function encryptIfNeeded(key, value) {
-  if (SENSITIVE_KEYS.has(key) && typeof value === "string") {
-    return encrypt(value)
+  try {
+    const stringValue = typeof value === "string" ? value : JSON.stringify(value)
+    if (SENSITIVE_KEYS.has(key)) {
+      const encrypted = encrypt(stringValue)
+      return encrypted
+    }
+    return stringValue
+  } catch (e) {
+    console.error("encryptIfNeeded error:", e)
+    return typeof value === "string" ? value : JSON.stringify(value)
   }
-  return typeof value === "string" ? value : JSON.stringify(value)
 }
 
 function decryptIfNeeded(key, value) {
-  if (SENSITIVE_KEYS.has(key) && typeof value === "string") {
-    const decrypted = decrypt(value)
-    return decrypted !== null ? decrypted : value
+  try {
+    if (SENSITIVE_KEYS.has(key) && typeof value === "string") {
+      const decrypted = decrypt(value)
+      if (decrypted !== null) {
+        return decrypted
+      }
+      // 如果解密失败，可能是值没有加密过，直接返回原值
+      return value
+    }
+    return value
+  } catch (e) {
+    console.error("decryptIfNeeded error:", e)
+    return value
   }
-  return value
 }
 
 const router = Router()
@@ -39,12 +55,18 @@ router.get("/:key", (req, res) => {
 })
 
 router.put("/:key", (req, res) => {
-  const { value } = req.body
-  if (value === undefined) return res.status(400).json({ error: "缺少 value" })
-  db.prepare("INSERT OR REPLACE INTO settings (user_id, key, value) VALUES (?, ?, ?)").run(
-    req.userId, req.params.key, encryptIfNeeded(req.params.key, value)
-  )
-  res.json({ ok: true })
+  try {
+    const { value } = req.body
+    if (value === undefined) return res.status(400).json({ error: "缺少 value" })
+    const storedValue = encryptIfNeeded(req.params.key, value)
+    db.prepare("INSERT OR REPLACE INTO settings (user_id, key, value) VALUES (?, ?, ?)").run(
+      req.userId, req.params.key, storedValue
+    )
+    res.json({ ok: true })
+  } catch (e) {
+    console.error("Settings save error:", e)
+    res.status(500).json({ error: e.message || "保存失败" })
+  }
 })
 
 router.delete("/:key", (req, res) => {
