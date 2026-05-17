@@ -15,6 +15,7 @@ const Trash = lazy(() => import("@/pages/Trash"))
 const Review = lazy(() => import("@/pages/Review"))
 const AchievementsPage = lazy(() => import("@/pages/AchievementsPage"))
 const RemindersPage = lazy(() => import("@/pages/RemindersPage"))
+const InsurancePage = lazy(() => import("@/pages/InsurancePage"))
 const SharePage = lazy(() => import("@/pages/SharePage"))
 const ShareGroupDetail = lazy(() => import("@/pages/ShareGroupDetail"))
 const AISettings = lazy(() => import("@/pages/AISettings"))
@@ -56,6 +57,7 @@ export default function App() {
               <Route path="/review" element={<Review />} />
               <Route path="/achievements" element={<AchievementsPage />} />
               <Route path="/reminders" element={<RemindersPage />} />
+              <Route path="/insurance" element={<InsurancePage />} />
               <Route path="/share" element={<SharePage />} />
               <Route path="/share/:groupId" element={<ShareGroupDetail />} />
               <Route path="/settings/account" element={<AccountSettings />} />

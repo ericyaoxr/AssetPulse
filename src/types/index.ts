@@ -188,3 +188,53 @@ export interface ReminderSettings {
   emailNotificationsEnabled: boolean
   rules: ReminderRule[]
 }
+
+// 保险和保修系统相关类型
+export interface Warranty {
+  id: string
+  assetId: string
+  provider: string
+  policyNumber: string
+  startDate: string
+  endDate: string
+  coverage: string
+  deductible: number
+  cost: number
+  notes: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Claim {
+  id: string
+  warrantyId: string
+  assetId: string
+  claimNumber: string
+  date: string
+  amount: number
+  description: string
+  status: "pending" | "approved" | "rejected" | "completed"
+  result: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface WarrantyFormData {
+  provider: string
+  policyNumber: string
+  startDate: string
+  endDate: string
+  coverage: string
+  deductible: number
+  cost: number
+  notes: string
+}
+
+export interface ClaimFormData {
+  claimNumber: string
+  date: string
+  amount: number
+  description: string
+  status: "pending" | "approved" | "rejected" | "completed"
+  result: string
+}
