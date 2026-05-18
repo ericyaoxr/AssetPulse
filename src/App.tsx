@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react"
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import { ThemeProvider } from "@/contexts/ThemeContext"
 import { ToastProvider } from "@/contexts/ToastContext"
 import { Activity } from "lucide-react"
@@ -62,10 +62,13 @@ export default function App() {
               <Route path="/trash" element={<Trash />} />
               <Route path="/review" element={<Review />} />
               <Route path="/achievements" element={<AchievementsPage />} />
-              <Route path="/reminders" element={<RemindersPage />} />
-              <Route path="/insurance" element={<InsurancePage />} />
+              <Route path="/reminders" element={<Navigate to="/settings/reminders" replace />} />
+              <Route path="/insurance" element={<Navigate to="/settings/insurance" replace />} />
+              <Route path="/api" element={<Navigate to="/settings/api" replace />} />
+              <Route path="/settings/reminders" element={<RemindersPage />} />
+              <Route path="/settings/insurance" element={<InsurancePage />} />
+              <Route path="/settings/api" element={<ApiPlatform />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
-              <Route path="/api" element={<ApiPlatform />} />
               <Route path="/ai-advisor" element={<AIAdvisorPage />} />
               <Route path="/universe" element={<AssetUniverse />} />
               <Route path="/time-machine" element={<TimeMachine />} />
