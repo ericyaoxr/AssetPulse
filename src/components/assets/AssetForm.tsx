@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useCallback } from "react"
 import { Calculator, Star, Camera, X, Sparkles, Loader2, ChevronLeft, ChevronRight, CheckSquare, Square } from "lucide-react"
-import type { Asset, AssetFormData, AssetStatus, AIValuationResult } from "@/types"
+import type { Asset, AssetFormData, AssetStatus } from "@/types"
 import { DEFAULT_CATEGORIES } from "@/types"
 import { formatCurrency, formatDays } from "@/utils/format"
 import { computeAssetFromForm } from "@/utils/calculations"
@@ -8,7 +8,6 @@ import { imageFileToBase64 } from "@/utils/storage"
 import { useAssetStore } from "@/store/useAssetStore"
 import { api } from "@/utils/api"
 import type { ImageRecognitionItem } from "@/utils/api"
-import { estimateAssetValue, loadAIConfig } from "@/utils/aiValuation"
 import { TagInput } from "@/components/assets/TagInput"
 
 interface AssetFormProps {
@@ -214,8 +213,7 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
   const [showNewLocation, setShowNewLocation] = useState(false)
   const [recognizing, setRecognizing] = useState(false)
   const [recognizeError, setRecognizeError] = useState<string | null>(null)
-  const [valuing, setValuing] = useState(false)
-  const [aiValuation, setAiValuation] = useState<AIValuationResult | null>(initialData?.aiValuation ?? null)
+  const aiValuation = initialData?.aiValuation ?? null
   const [showImagePreview, setShowImagePreview] = useState(false)
   const [recognizedItems, setRecognizedItems] = useState<ImageRecognitionItem[]>([])
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set())
@@ -318,43 +316,6 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
       setShowItemSelector(false)
       setRecognizedItems([])
       setSelectedItems(new Set())
-
-      setValuing(true)
-      try {
-        const config = await loadAIConfig()
-        if (config && config.apiKey && config.baseUrl && config.model) {
-          const price = item.estimatedPrice > 0 ? item.estimatedPrice : parseFloat(purchasePrice) || 0
-          const pDate = item.purchaseDate || purchaseDate || todayStr()
-          const tempAsset = {
-                id: "",
-                userId: "",
-                name: item.brand ? `${item.brand} ${item.name}` : item.name,
-                status: "active" as AssetStatus,
-                category: matchCategory(item.category) || category,
-                location,
-                imageUrl: null,
-                tags: [],
-                purchaseDate: pDate,
-                purchasePrice: price,
-                endDate: null,
-                recycleAmount: null,
-                targetDailyCost: null,
-                effectiveDays: 0,
-                dailyCost: 0,
-                rating: null,
-                note: item.description || note,
-                aiValuation: null,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-              }
-          const valuation = await estimateAssetValue(config, tempAsset)
-          setAiValuation(valuation)
-        }
-      } catch {
-        // valuation failure is non-critical, silently ignore
-      } finally {
-        setValuing(false)
-      }
     } else {
       if (onBatchSubmit) {
         const forms: AssetFormData[] = selected.map((item) => {
@@ -553,18 +514,13 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
             <button
               type="button"
               onClick={imageUrl ? handleRecognize : () => fileInputRef.current?.click()}
-              disabled={recognizing || valuing}
+              disabled={recognizing}
               className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-3 py-2 text-xs font-medium text-white transition-all hover:from-violet-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {recognizing ? (
                 <>
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   识别中...
-                </>
-              ) : valuing ? (
-                <>
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  估算残值...
                 </>
               ) : (
                 <>

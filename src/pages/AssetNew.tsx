@@ -7,12 +7,14 @@ import type { AssetFormData } from "@/types"
 export default function AssetNew() {
   const navigate = useNavigate()
   const addAsset = useAssetStore((s) => s.addAsset)
+  const requestAIValuation = useAssetStore((s) => s.requestAIValuation)
   const [submitting, setSubmitting] = useState(false)
 
   async function handleSubmit(form: AssetFormData) {
     setSubmitting(true)
     try {
-      await addAsset(form)
+      const asset = await addAsset(form)
+      requestAIValuation(asset)
       navigate("/assets")
     } catch {
       setSubmitting(false)
@@ -23,7 +25,8 @@ export default function AssetNew() {
     setSubmitting(true)
     try {
       for (const form of forms) {
-        await addAsset(form)
+        const asset = await addAsset(form)
+        requestAIValuation(asset)
       }
       navigate("/assets")
     } catch {

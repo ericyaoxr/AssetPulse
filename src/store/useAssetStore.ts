@@ -5,6 +5,7 @@ import { calculateEffectiveDays, calculateDailyCost, recalculateAsset } from "@/
 import { exportAssets, importAssetsFromFile } from "@/utils/storage"
 import type { ExportFormat } from "@/utils/storage"
 import { api } from "@/utils/api"
+import { estimateAssetValue, loadAIConfig } from "@/utils/aiValuation"
 
 interface AssetStore {
   assets: Asset[]
@@ -15,7 +16,7 @@ interface AssetStore {
   loading: boolean
   initialize: (userId: string) => Promise<void>
   resetStore: () => void
-  addAsset: (form: AssetFormData) => Promise<void>
+  addAsset: (form: AssetFormData) => Promise<Asset>
   updateAsset: (id: string, form: AssetFormData) => Promise<void>
   deleteAsset: (id: string) => Promise<void>
   restoreAsset: (id: string) => Promise<void>
@@ -23,6 +24,7 @@ interface AssetStore {
   clearTrash: () => Promise<void>
   updateStatus: (id: string, status: Asset["status"], endDate: string | null, recycleAmount: number | null) => Promise<void>
   updateAssetAIValuation: (id: string, valuation: import("@/types").AIValuationResult) => Promise<void>
+  requestAIValuation: (asset: Asset) => void
   recalculateAll: () => Promise<void>
   exportData: (format: ExportFormat) => void
   importData: (file: File) => Promise<void>
@@ -112,7 +114,9 @@ export const useAssetStore = create<AssetStore>((set, get) => ({
       updatedAt: now,
     })
 
-    set({ assets: [...get().assets, recalculateAsset(asset)] })
+    const recalculated = recalculateAsset(asset)
+    set({ assets: [...get().assets, recalculated] })
+    return recalculated
   },
 
   updateAsset: async (id, form) => {
@@ -196,6 +200,19 @@ export const useAssetStore = create<AssetStore>((set, get) => ({
     })
 
     set({ assets: get().assets.map((a) => (a.id === id ? recalculateAsset(updated) : a)) })
+  },
+
+  requestAIValuation: (asset) => {
+    ;(async () => {
+      try {
+        const config = await loadAIConfig()
+        if (!config || !config.apiKey || !config.baseUrl || !config.model) return
+        const valuation = await estimateAssetValue(config, asset)
+        await get().updateAssetAIValuation(asset.id, valuation)
+      } catch {
+        // background valuation failure is non-critical
+      }
+    })()
   },
 
   recalculateAll: async () => {
