@@ -31,13 +31,15 @@ router.post("/", (req, res) => {
   db.prepare(`
     INSERT INTO assets (id, user_id, name, status, category, location, image_url,
       purchase_date, purchase_price, end_date, recycle_amount, target_daily_cost,
-      effective_days, daily_cost, rating, note, ai_valuation, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      effective_days, daily_cost, rating, note, tags, ai_valuation, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     id, req.userId, a.name, a.status || "active", a.category || "", a.location || "",
     a.imageUrl || null, a.purchaseDate, a.purchasePrice || 0, a.endDate || null,
-    a.recycleAmount || null, a.targetDailyCost || null, a.effectiveDays || 0,
-    a.dailyCost || 0, a.rating || null, a.note || "", a.aiValuation ? JSON.stringify(a.aiValuation) : null,
+    a.recycleAmount != null ? a.recycleAmount : null, a.targetDailyCost != null ? a.targetDailyCost : null,
+    a.effectiveDays || 0, a.dailyCost || 0, a.rating || null, a.note || "",
+    JSON.stringify(a.tags || []),
+    a.aiValuation ? JSON.stringify(a.aiValuation) : null,
     a.createdAt || now, now
   )
 
@@ -64,7 +66,7 @@ router.put("/:id", (req, res) => {
   db.prepare(`
     UPDATE assets SET name=?, status=?, category=?, location=?, image_url=?,
       purchase_date=?, purchase_price=?, end_date=?, recycle_amount=?, target_daily_cost=?,
-      effective_days=?, daily_cost=?, rating=?, note=?, ai_valuation=?, updated_at=?
+      effective_days=?, daily_cost=?, rating=?, note=?, tags=?, ai_valuation=?, updated_at=?
     WHERE id=? AND user_id=?
   `).run(
     a.name ?? existing.name, a.status ?? existing.status, a.category ?? existing.category,
@@ -75,6 +77,7 @@ router.put("/:id", (req, res) => {
     a.targetDailyCost !== undefined ? a.targetDailyCost : existing.target_daily_cost,
     a.effectiveDays ?? existing.effective_days, a.dailyCost ?? existing.daily_cost,
     a.rating !== undefined ? a.rating : existing.rating, a.note ?? existing.note,
+    a.tags !== undefined ? JSON.stringify(a.tags) : existing.tags,
     a.aiValuation !== undefined ? (a.aiValuation ? JSON.stringify(a.aiValuation) : null) : existing.ai_valuation,
     now, req.params.id, req.userId
   )
@@ -105,6 +108,7 @@ function formatAsset(row) {
     category: row.category,
     location: row.location,
     imageUrl: row.image_url,
+    tags: row.tags ? safeParseJSON(row.tags) || [] : [],
     purchaseDate: row.purchase_date,
     purchasePrice: row.purchase_price,
     endDate: row.end_date,

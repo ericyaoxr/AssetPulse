@@ -42,6 +42,7 @@ db.exec(`
     daily_cost REAL NOT NULL DEFAULT 0,
     rating INTEGER,
     note TEXT NOT NULL DEFAULT '',
+    tags TEXT NOT NULL DEFAULT '[]',
     ai_valuation TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -85,5 +86,10 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_trash_user_id ON trash(user_id);
   CREATE INDEX IF NOT EXISTS idx_settings_user_id ON settings(user_id);
 `)
+
+const columns = db.prepare("PRAGMA table_info(assets)").all().map(c => c.name)
+if (!columns.includes("tags")) {
+  db.exec("ALTER TABLE assets ADD COLUMN tags TEXT NOT NULL DEFAULT '[]'")
+}
 
 export default db

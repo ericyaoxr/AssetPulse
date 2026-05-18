@@ -263,7 +263,6 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
       setRecognizedItems(result.items)
       setSelectedItems(new Set(result.items.map((_, index) => index)))
       setShowItemSelector(true)
-      setImageUrl(null)
       setRecognizing(false)
     } catch (e) {
       setRecognizeError(e instanceof Error ? e.message : "识别失败，请稍后重试")
@@ -376,7 +375,7 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
               status: "active" as AssetStatus,
               category: matchedCategory || "",
               location: "",
-              imageUrl: null,
+              imageUrl: imageUrl,
               tags: [],
               purchaseDate: pDate,
               purchasePrice: item.estimatedPrice > 0 ? item.estimatedPrice : 0,

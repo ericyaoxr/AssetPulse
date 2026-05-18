@@ -4,9 +4,11 @@ import { api, getToken } from "@/utils/api"
 const AI_SETTINGS_KEY = "ai_config"
 
 export function buildValuationPrompt(asset: Asset): string {
-  const purchaseDate = new Date(asset.purchaseDate)
+  const purchaseDate = asset.purchaseDate ? new Date(asset.purchaseDate) : null
   const now = new Date()
-  const usageDays = Math.floor((now.getTime() - purchaseDate.getTime()) / (1000 * 60 * 60 * 24))
+  const usageDays = purchaseDate && !isNaN(purchaseDate.getTime())
+    ? Math.floor((now.getTime() - purchaseDate.getTime()) / (1000 * 60 * 60 * 24))
+    : 0
 
   const noteSection = asset.note ? `\n备注说明：${asset.note}` : ""
   const locationSection = asset.location ? `\n所在地区：${asset.location}` : ""
