@@ -54,7 +54,7 @@ export function useAnalytics() {
   const tagStats = useMemo(() => {
     const stats: Record<string, number> = {}
     assets.forEach((asset) => {
-      asset.tags.forEach((tag) => {
+      (asset.tags || []).forEach((tag) => {
         stats[tag] = (stats[tag] || 0) + 1
       })
     })

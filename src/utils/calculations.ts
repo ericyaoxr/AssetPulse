@@ -52,7 +52,7 @@ export function recalculateAsset(asset: Asset): Asset {
     asset.recycleAmount,
     effectiveDays
   )
-  return { ...asset, effectiveDays, dailyCost }
+  return { ...asset, tags: asset.tags || [], effectiveDays, dailyCost }
 }
 
 export function generateId(): string {

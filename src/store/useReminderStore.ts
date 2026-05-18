@@ -168,7 +168,7 @@ export const useReminderStore = create<ReminderStore>()(
         const { reminders, settings } = get()
         const now = new Date()
 
-        settings.rules.forEach((rule) => {
+        ;(settings.rules || []).forEach((rule) => {
           if (!rule.enabled || !rule.autoCreate) return
 
           const existingReminders = reminders.filter(

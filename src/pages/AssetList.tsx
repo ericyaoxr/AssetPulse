@@ -88,7 +88,7 @@ export default function AssetList() {
     const tagCounts: Record<string, number> = {}
     assets.forEach((asset) => {
       if (asset.tags) {
-        asset.tags.forEach((tag) => {
+        (asset.tags || []).forEach((tag) => {
           tagCounts[tag] = (tagCounts[tag] || 0) + 1
         })
       }
