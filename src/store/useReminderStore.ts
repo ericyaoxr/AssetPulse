@@ -217,6 +217,13 @@ export const useReminderStore = create<ReminderStore>()(
     }),
     {
       name: "assetpulse-reminder-storage",
+      merge: (persisted, current) => {
+        const merged = { ...current, ...(persisted as Partial<ReminderStore>) }
+        if (!merged.settings.rules) {
+          merged.settings = { ...merged.settings, rules: DEFAULT_RULES }
+        }
+        return merged
+      },
     }
   )
 )

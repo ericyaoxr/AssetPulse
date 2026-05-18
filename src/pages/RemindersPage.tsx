@@ -73,6 +73,7 @@ export default function RemindersPage() {
     setShowAddRule(false)
   }
 
+  const rules = settings.rules ?? []
   const pendingReminders = reminders.filter((r) => r.status === "pending")
   const triggeredReminders = reminders.filter((r) => r.status === "triggered")
 
@@ -153,7 +154,7 @@ export default function RemindersPage() {
         </div>
 
         <div className="space-y-2">
-          {settings.rules.map((rule) => (
+          {rules.map((rule) => (
             <div
               key={rule.id}
               className="flex items-center justify-between p-3 rounded-lg bg-white/5"
