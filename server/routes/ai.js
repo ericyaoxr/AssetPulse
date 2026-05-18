@@ -2,6 +2,7 @@ import { Router } from "express"
 import db from "../db.js"
 import { authMiddleware } from "../middleware/auth.js"
 import { safeParseJSON } from "../utils/json.js"
+import { decrypt } from "../utils/crypto.js"
 
 const ALLOWED_AI_HOSTS = [
   "api.openai.com",
@@ -57,7 +58,8 @@ router.post("/recognize", authMiddleware, async (req, res) => {
   }
 
   let config
-  const parsed = safeParseJSON(configRow.value)
+  const rawValue = decrypt(configRow.value) || configRow.value
+  const parsed = safeParseJSON(rawValue)
   if (!parsed) {
     return res.status(400).json({ error: "AI 配置格式错误" })
   }
@@ -217,7 +219,8 @@ router.post("/valuate", authMiddleware, async (req, res) => {
   }
 
   let config
-  const parsed = safeParseJSON(configRow.value)
+  const rawValue = decrypt(configRow.value) || configRow.value
+  const parsed = safeParseJSON(rawValue)
   if (!parsed) {
     return res.status(400).json({ error: "AI 配置格式错误" })
   }
