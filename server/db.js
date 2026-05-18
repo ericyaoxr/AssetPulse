@@ -10,7 +10,25 @@ if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true })
 }
 
+try {
+  fs.accessSync(DATA_DIR, fs.constants.W_OK)
+} catch {
+  try {
+    fs.chmodSync(DATA_DIR, 0o777)
+  } catch {}
+}
+
 const DB_PATH = path.join(DATA_DIR, "assetpulse.db")
+
+if (fs.existsSync(DB_PATH)) {
+  try {
+    fs.accessSync(DB_PATH, fs.constants.W_OK)
+  } catch {
+    try {
+      fs.chmodSync(DB_PATH, 0o666)
+    } catch {}
+  }
+}
 
 const db = new Database(DB_PATH)
 
