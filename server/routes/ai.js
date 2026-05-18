@@ -54,13 +54,17 @@ router.post("/recognize", authMiddleware, async (req, res) => {
 
   const configRow = db.prepare("SELECT value FROM settings WHERE user_id = ? AND key = ?").get(req.userId, "ai_config")
   if (!configRow) {
+    const anyConfig = db.prepare("SELECT key, user_id FROM settings WHERE key = ?").all("ai_config")
+    console.error("AI config not found for user:", req.userId, "all ai_config rows:", JSON.stringify(anyConfig))
     return res.status(400).json({ error: "请先配置 AI 设置" })
   }
 
   let config
-  const rawValue = decrypt(configRow.value) || configRow.value
+  const decrypted = decrypt(configRow.value)
+  const rawValue = decrypted || configRow.value
   const parsed = safeParseJSON(rawValue)
   if (!parsed) {
+    console.error("AI config parse failed, decrypted:", decrypted ? "yes" : "no", "rawValue prefix:", rawValue.substring(0, 50))
     return res.status(400).json({ error: "AI 配置格式错误" })
   }
   config = parsed
@@ -215,13 +219,17 @@ router.post("/valuate", authMiddleware, async (req, res) => {
 
   const configRow = db.prepare("SELECT value FROM settings WHERE user_id = ? AND key = ?").get(req.userId, "ai_config")
   if (!configRow) {
+    const anyConfig = db.prepare("SELECT key, user_id FROM settings WHERE key = ?").all("ai_config")
+    console.error("AI config not found for user:", req.userId, "all ai_config rows:", JSON.stringify(anyConfig))
     return res.status(400).json({ error: "请先配置 AI 设置" })
   }
 
   let config
-  const rawValue = decrypt(configRow.value) || configRow.value
+  const decrypted = decrypt(configRow.value)
+  const rawValue = decrypted || configRow.value
   const parsed = safeParseJSON(rawValue)
   if (!parsed) {
+    console.error("AI config parse failed, decrypted:", decrypted ? "yes" : "no", "rawValue prefix:", rawValue.substring(0, 50))
     return res.status(400).json({ error: "AI 配置格式错误" })
   }
   config = parsed
