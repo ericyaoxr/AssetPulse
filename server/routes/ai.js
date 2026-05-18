@@ -9,6 +9,7 @@ const ALLOWED_AI_HOSTS = [
   "open.bigmodel.cn",
   "api.siliconflow.cn",
   "ark.cn-beijing.volces.com",
+  "dashscope.aliyuncs.com",
   "localhost",
   "127.0.0.1",
 ]
