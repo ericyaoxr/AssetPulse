@@ -58,7 +58,7 @@ app.use("/api/backup", backupRoutes)
 app.use("/api/settings", settingsRoutes)
 app.use("/api/ai", aiRoutes)
 
-const distPath = process.env.DIST_DIR || path.join(__dirname, "dist")
+const distPath = process.env.DIST_DIR || path.join(__dirname, "..", "dist")
 app.use(express.static(distPath))
 app.get("*", (req, res) => {
   if (!req.path.startsWith("/api")) {
