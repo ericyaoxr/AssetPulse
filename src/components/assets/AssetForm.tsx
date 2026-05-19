@@ -1,9 +1,8 @@
-import { useState, useMemo, useRef, useCallback } from "react"
-import { Calculator, Star, Camera, X, Sparkles, Loader2, ChevronLeft, ChevronRight, CheckSquare, Square } from "lucide-react"
+import { useState, useRef, useCallback } from "react"
+import { Star, Camera, X, Sparkles, Loader2, ChevronLeft, ChevronRight, CheckSquare, Square } from "lucide-react"
 import type { Asset, AssetFormData, AssetStatus } from "@/types"
 import { DEFAULT_CATEGORIES } from "@/types"
-import { formatCurrency, formatDays } from "@/utils/format"
-import { computeAssetFromForm } from "@/utils/calculations"
+import { formatCurrency } from "@/utils/format"
 import { imageFileToBase64 } from "@/utils/storage"
 import { useAssetStore } from "@/store/useAssetStore"
 import { api } from "@/utils/api"
@@ -200,7 +199,7 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
   const [location, setLocation] = useState(initialData?.location ?? "")
   const [imageUrl, setImageUrl] = useState<string | null>(initialData?.imageUrl ?? null)
   const [tags, setTags] = useState<string[]>(initialData?.tags ?? [])
-  const [purchaseDate, setPurchaseDate] = useState(initialData?.purchaseDate ?? "")
+  const [purchaseDate, setPurchaseDate] = useState(initialData?.purchaseDate ?? todayStr())
   const [purchasePrice, setPurchasePrice] = useState(initialData?.purchasePrice?.toString() ?? "")
   const [endDate, setEndDate] = useState(initialData?.endDate ?? "")
   const [recycleAmount, setRecycleAmount] = useState(initialData?.recycleAmount?.toString() ?? "")
@@ -218,21 +217,10 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
   const [recognizedItems, setRecognizedItems] = useState<ImageRecognitionItem[]>([])
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set())
   const [showItemSelector, setShowItemSelector] = useState(false)
+  const [showAdvanced, setShowAdvanced] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { categories, locations, addCategory, addLocation } = useAssetStore()
-
-  const preview = useMemo(() => {
-    const price = parseFloat(purchasePrice)
-    if (!name || !purchaseDate || isNaN(price)) return null
-    return computeAssetFromForm({
-      name, status, category, location, imageUrl, tags,
-      purchaseDate, purchasePrice: price, endDate,
-      recycleAmount: parseFloat(recycleAmount) || 0,
-      targetDailyCost: parseFloat(targetDailyCost) || 0,
-      rating, note, aiValuation,
-    })
-  }, [name, status, category, location, imageUrl, tags, purchaseDate, purchasePrice, endDate, recycleAmount, targetDailyCost, rating, note, aiValuation])
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -410,11 +398,6 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
     })
   }
 
-  const targetVal = parseFloat(targetDailyCost)
-  const targetProgress = preview && targetVal > 0 && preview.dailyCost > 0
-    ? Math.min(100, (targetVal / preview.dailyCost) * 100) : 0
-  const targetMet = preview && targetVal > 0 && preview.dailyCost <= targetVal
-
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -426,12 +409,41 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
 
       <div>
         <label className="block text-sm text-content-secondary mb-1">状态</label>
-        <select value={status} onChange={(e) => setStatus(e.target.value as AssetStatus)}
-          className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-content-primary text-sm outline-none focus:border-accent/30">
-          <option value="active" className="bg-ink">使用中</option>
-          <option value="recycled" className="bg-ink">已回收</option>
-          <option value="scrapped" className="bg-ink">已报废</option>
-        </select>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setStatus("active")}
+            className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+              status === "active"
+                ? "border-accent bg-accent/20 text-accent"
+                : "border-edge bg-surface text-content-secondary hover:border-white/20"
+            }`}
+          >
+            使用中
+          </button>
+          <button
+            type="button"
+            onClick={() => setStatus(status === "active" ? "recycled" : status)}
+            className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+              status === "recycled"
+                ? "border-green-500/50 bg-green-500/20 text-green-400"
+                : "border-edge bg-surface text-content-secondary hover:border-white/20"
+            }`}
+          >
+            已回收
+          </button>
+          <button
+            type="button"
+            onClick={() => setStatus(status === "active" ? "scrapped" : status)}
+            className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+              status === "scrapped"
+                ? "border-red-500/50 bg-red-500/20 text-red-400"
+                : "border-edge bg-surface text-content-secondary hover:border-white/20"
+            }`}
+          >
+            已报废
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -568,78 +580,47 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
       )}
 
       <div>
-        <label className="block text-sm text-content-secondary mb-1">目标日均成本</label>
-        <input type="number" step="0.01" min="0" value={targetDailyCost} onChange={(e) => setTargetDailyCost(e.target.value)} placeholder="可选"
-          className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-content-primary text-sm outline-none focus:border-accent/30" />
+        <button
+          type="button"
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className="flex items-center gap-2 text-sm text-content-secondary hover:text-content-primary transition-colors"
+        >
+          <span className="text-xs">{showAdvanced ? "▼" : "▶"}</span>
+          高级选项
+        </button>
       </div>
 
-      {(status === "recycled" || status === "scrapped") && (
-        <div>
-          <label className="block text-sm text-content-secondary mb-1">评分</label>
-          <div className="flex gap-1">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <button key={star} type="button" onClick={() => setRating(star)} className="p-0.5">
-                <Star className={`h-5 w-5 ${star <= rating ? "fill-yellow-400 text-yellow-400" : "text-content-faint"}`} />
-              </button>
-            ))}
+      {showAdvanced && (
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm text-content-secondary mb-1">目标日均成本</label>
+            <input type="number" step="0.01" min="0" value={targetDailyCost} onChange={(e) => setTargetDailyCost(e.target.value)} placeholder="设置回本目标"
+              className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-content-primary text-sm outline-none focus:border-accent/30" />
           </div>
-        </div>
-      )}
 
-      <div>
-        <label className="block text-sm text-content-secondary mb-1">标签</label>
-        <TagInput value={tags} onChange={setTags} placeholder="添加标签，用回车或逗号分隔" />
-      </div>
-
-      <div>
-        <label className="block text-sm text-content-secondary mb-1">备注</label>
-        <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} placeholder="可选"
-          className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-content-primary text-sm outline-none focus:border-accent/30 resize-none" />
-      </div>
-
-      {preview && (
-        <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-4">
-          <div className="flex items-center gap-2 mb-3 text-sm text-content-secondary">
-            <Calculator className="h-4 w-4" />
-            实时计算预览
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+          {(status === "recycled" || status === "scrapped") && (
             <div>
-              <p className="text-xs text-content-muted">有效天数</p>
-              <p className="text-lg font-semibold text-content-primary">{formatDays(preview.effectiveDays)}</p>
-            </div>
-            <div>
-              <p className="text-xs text-content-muted">日均成本</p>
-              <p className="text-lg font-semibold text-accent">{formatCurrency(preview.dailyCost)}</p>
-            </div>
-          </div>
-          {aiValuation && (
-            <div className="mt-3 pt-3 border-t border-edge grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-xs text-content-muted">AI 估算残值</p>
-                <p className="text-lg font-semibold text-cyan-400">{formatCurrency(aiValuation.estimatedValue)}</p>
-              </div>
-              <div>
-                <p className="text-xs text-content-muted">折旧率</p>
-                <p className="text-lg font-semibold text-amber-400">{(aiValuation.depreciationRate * 100).toFixed(0)}%</p>
+              <label className="block text-sm text-content-secondary mb-1">评分</label>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button key={star} type="button" onClick={() => setRating(star)} className="p-0.5">
+                    <Star className={`h-5 w-5 ${star <= rating ? "fill-yellow-400 text-yellow-400" : "text-content-faint"}`} />
+                  </button>
+                ))}
               </div>
             </div>
           )}
-          {targetVal > 0 && preview.dailyCost > 0 && (
-            <div className="mt-3 pt-3 border-t border-edge">
-              <div className="flex items-center justify-between text-xs text-content-muted mb-1">
-                <span>目标进度</span>
-                {targetMet ? (
-                  <span className="text-accent font-medium">已回本</span>
-                ) : (
-                  <span>{targetProgress.toFixed(1)}%</span>
-                )}
-              </div>
-              <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${targetProgress}%` }} />
-              </div>
-            </div>
-          )}
+
+          <div>
+            <label className="block text-sm text-content-secondary mb-1">标签</label>
+            <TagInput value={tags} onChange={setTags} placeholder="添加标签" />
+          </div>
+
+          <div>
+            <label className="block text-sm text-content-secondary mb-1">备注</label>
+            <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="备注信息"
+              className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-content-primary text-sm outline-none focus:border-accent/30 resize-none" />
+          </div>
         </div>
       )}
 

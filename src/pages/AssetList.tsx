@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
-import { Search, SlidersHorizontal, Plus, X } from "lucide-react"
+import { Search, SlidersHorizontal, Plus, X, Package, Camera } from "lucide-react"
 import { useAssetStore } from "@/store/useAssetStore"
 import AssetCard from "@/components/assets/AssetCard"
 import { TagCloud } from "@/components/assets/TagCloud"
@@ -202,17 +202,57 @@ export default function AssetList() {
       )}
 
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-content-faint">
+        <div className="flex flex-col items-center justify-center py-16">
           {assets.length > 0 ? (
-            <>
-              <p className="text-lg">未找到匹配的资产</p>
-              <p className="mt-1 text-sm">尝试调整搜索条件或筛选器</p>
-            </>
+            <div className="text-center">
+              <p className="text-lg text-content-secondary">未找到匹配的资产</p>
+              <p className="mt-1 text-sm text-content-muted">尝试调整搜索条件或筛选器</p>
+            </div>
           ) : (
-            <>
-              <p className="text-lg">暂无资产</p>
-              <p className="mt-1 text-sm">点击右上角添加你的第一件资产</p>
-            </>
+            <div className="text-center max-w-md">
+              <div className="mb-6 flex justify-center">
+                <div className="relative">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-accent/20">
+                    <Package className="h-10 w-10 text-accent" />
+                  </div>
+                  <div className="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-accent">
+                    <Plus className="h-4 w-4 text-white" />
+                  </div>
+                </div>
+              </div>
+              <h2 className="text-xl font-semibold text-content-primary">开始记录你的资产</h2>
+              <p className="mt-2 text-sm text-content-muted">拍照即可自动识别物品信息，轻轻松松管理你的每一件物品</p>
+              <div className="mt-6 flex flex-col gap-3">
+                <button
+                  onClick={() => navigate("/assets/new")}
+                  className="flex items-center justify-center gap-2 rounded-lg bg-accent px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+                >
+                  <Camera className="h-4 w-4" />
+                  拍照添加资产
+                </button>
+                <button
+                  onClick={() => navigate("/assets/new?manual=true")}
+                  className="flex items-center justify-center gap-2 rounded-lg border border-edge px-6 py-3 text-sm font-medium text-content-secondary transition-colors hover:bg-surface"
+                >
+                  <Plus className="h-4 w-4" />
+                  手动添加资产
+                </button>
+              </div>
+              <div className="mt-8 grid grid-cols-3 gap-4 text-center">
+                <div className="p-3">
+                  <div className="text-2xl mb-1">📸</div>
+                  <div className="text-xs text-content-muted">拍照识别</div>
+                </div>
+                <div className="p-3">
+                  <div className="text-2xl mb-1">🤖</div>
+                  <div className="text-xs text-content-muted">AI 智能填表</div>
+                </div>
+                <div className="p-3">
+                  <div className="text-2xl mb-1">📊</div>
+                  <div className="text-xs text-content-muted">追踪成本</div>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       ) : (
