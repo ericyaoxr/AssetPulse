@@ -290,6 +290,18 @@ export interface AIRecommendationItem {
   similarityScore: number
 }
 
+export interface HealthCheckResult {
+  overallScore: number
+  summary: string
+  recommendations: HealthRecommendation[]
+  futureExpensePrediction: ExpensePrediction
+}
+
+export interface RecommendationsResult {
+  nextBuys: AIRecommendationItem[]
+  betterOptions: AIRecommendationItem[]
+}
+
 // 时光机相关类型
 export interface TimeMachineSnapshot {
   date: string

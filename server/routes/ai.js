@@ -367,4 +367,316 @@ router.post("/valuate", authMiddleware, async (req, res) => {
   }
 })
 
+router.post("/health-check", authMiddleware, async (req, res) => {
+  const { assets } = req.body
+  if (!assets || !Array.isArray(assets)) {
+    return res.status(400).json({ error: "请提供资产信息" })
+  }
+
+  const check = checkAndConsumeAIUsage(req.userId)
+  if (!check.ok) {
+    return res.status(402).json({ error: check.error })
+  }
+
+  const configRow = db.prepare("SELECT value FROM settings WHERE user_id = ? AND key = ?").get(req.userId, "ai_config")
+  if (!configRow) {
+    return res.status(400).json({ error: "请先配置 AI 设置" })
+  }
+
+  let config
+  const decrypted = decrypt(configRow.value)
+  const rawValue = decrypted || configRow.value
+  const parsed = safeParseJSON(rawValue)
+  if (!parsed) {
+    return res.status(400).json({ error: "AI 配置格式错误" })
+  }
+  config = parsed
+
+  if (!config.apiKey || !config.baseUrl || !config.model) {
+    return res.status(400).json({ error: "AI 配置不完整" })
+  }
+
+  if (!isAllowedAIUrl(config.baseUrl)) {
+    return res.status(400).json({ error: "不支持的 AI 服务地址" })
+  }
+
+  const url = `${config.baseUrl.replace(/\/+$/, "")}/chat/completions`
+  const activeAssets = assets.filter(a => a.status === "active")
+  const totalValue = activeAssets.reduce((sum, a) => sum + a.purchasePrice, 0)
+
+  const prompt = `请作为我的资产管理顾问，帮我分析以下资产并生成体检报告。
+
+我的资产概况：
+- 总资产数量：${activeAssets.length}件
+- 总价值：${totalValue}元
+- 资产列表：
+${activeAssets.map(a => `- ${a.name}（${a.category}，¥${a.purchasePrice}，${a.effectiveDays}天，日均¥${(a.dailyCost || 0).toFixed(2)}）`).join("\n")}
+
+请用JSON格式返回分析结果：
+{
+  "overallScore": 0-100的综合评分,
+  "summary": "200字以内的总体评价",
+  "recommendations": [
+    {
+      "type": "buy|sell|keep|maintain",
+      "assetId": "资产ID（如果有的话）",
+      "assetName": "资产名称（如果有的话）",
+      "priority": "low|medium|high",
+      "title": "简短建议标题",
+      "description": "建议详情",
+      "reason": "给出这个建议的原因"
+    }
+  ],
+  "futureExpensePrediction": {
+    "next30Days": 未来30天预计支出,
+    "next90Days": 未来90天预计支出,
+    "next1Year": 未来1年预计支出,
+    "breakdown": [
+      {"category": "类别名称", "amount": 金额}
+    ]
+  }
+}`
+
+  try {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 30000)
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${config.apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: config.model,
+        messages: [
+          {
+            role: "system",
+            content: "你是一个专业的资产管理顾问，擅长分析个人资产状况并给出建议。请以JSON格式回复。",
+          },
+          { role: "user", content: prompt },
+        ],
+        temperature: 0.7,
+        max_tokens: 2000,
+      }),
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeout)
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "")
+      return res.status(502).json({ error: `AI API 请求失败 (${response.status})` })
+    }
+
+    const data = await response.json()
+    const content = data?.choices?.[0]?.message?.content
+    if (!content) {
+      return res.status(502).json({ error: "AI API 返回内容为空" })
+    }
+
+    let parsed
+    try {
+      parsed = JSON.parse(content)
+    } catch {
+      const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/)
+      if (codeBlockMatch) {
+        try {
+          parsed = JSON.parse(codeBlockMatch[1].trim())
+        } catch {
+          return res.status(502).json({ error: "AI 返回内容无法解析为JSON" })
+        }
+      } else {
+        return res.status(502).json({ error: "AI 返回内容无法解析为JSON" })
+      }
+    }
+
+    res.json({
+      overallScore: Number(parsed.overallScore) || 50,
+      summary: String(parsed.summary || ""),
+      recommendations: (parsed.recommendations || []).map((r) => ({
+        id: crypto.randomUUID(),
+        type: String(r.type || "keep"),
+        assetId: String(r.assetId || ""),
+        assetName: String(r.assetName || ""),
+        priority: String(r.priority || "medium"),
+        title: String(r.title || ""),
+        description: String(r.description || ""),
+        reason: String(r.reason || ""),
+      })),
+      futureExpensePrediction: {
+        next30Days: Number(parsed.futureExpensePrediction?.next30Days || 0),
+        next90Days: Number(parsed.futureExpensePrediction?.next90Days || 0),
+        next1Year: Number(parsed.futureExpensePrediction?.next1Year || 0),
+        breakdown: (parsed.futureExpensePrediction?.breakdown || []).map((b) => ({
+          category: String(b.category || ""),
+          amount: Number(b.amount || 0),
+        })),
+      },
+    })
+  } catch (e) {
+    if (e.name === "AbortError") {
+      return res.status(504).json({ error: "AI API 请求超时，请稍后重试" })
+    }
+    console.error("Health check error:", e.message)
+    res.status(500).json({ error: "生成体检报告失败，请稍后重试" })
+  }
+})
+
+router.post("/recommendations", authMiddleware, async (req, res) => {
+  const { assets } = req.body
+  if (!assets || !Array.isArray(assets)) {
+    return res.status(400).json({ error: "请提供资产信息" })
+  }
+
+  const check = checkAndConsumeAIUsage(req.userId)
+  if (!check.ok) {
+    return res.status(402).json({ error: check.error })
+  }
+
+  const configRow = db.prepare("SELECT value FROM settings WHERE user_id = ? AND key = ?").get(req.userId, "ai_config")
+  if (!configRow) {
+    return res.status(400).json({ error: "请先配置 AI 设置" })
+  }
+
+  let config
+  const decrypted = decrypt(configRow.value)
+  const rawValue = decrypted || configRow.value
+  const parsed = safeParseJSON(rawValue)
+  if (!parsed) {
+    return res.status(400).json({ error: "AI 配置格式错误" })
+  }
+  config = parsed
+
+  if (!config.apiKey || !config.baseUrl || !config.model) {
+    return res.status(400).json({ error: "AI 配置不完整" })
+  }
+
+  if (!isAllowedAIUrl(config.baseUrl)) {
+    return res.status(400).json({ error: "不支持的 AI 服务地址" })
+  }
+
+  const url = `${config.baseUrl.replace(/\/+$/, "")}/chat/completions`
+  const activeAssets = assets.filter(a => a.status === "active")
+
+  const prompt = `基于我的资产，推荐我"下一个可能买的东西"和"替代旧物品的更划算选择"。
+
+我的资产：
+${activeAssets.map(a => `- ${a.name}（${a.category}，¥${a.purchasePrice}，ID:${a.id}）`).join("\n")}
+
+请用JSON格式返回推荐结果：
+{
+  "nextBuys": [
+    {
+      "name": "物品名称",
+      "category": "分类",
+      "priceRange": {"min": 最低价格, "max": 最高价格},
+      "reason": "推荐理由",
+      "similarityScore": 0-1的相似度分数
+    }
+  ],
+  "betterOptions": [
+    {
+      "name": "物品名称",
+      "category": "分类",
+      "priceRange": {"min": 最低价格, "max": 最高价格},
+      "reason": "为什么比现有物品更好",
+      "relatedAssetId": "被替代的资产ID",
+      "similarityScore": 0-1的相似度分数
+    }
+  ]
+}
+
+请各推荐3-5个物品。`
+
+  try {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 30000)
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${config.apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: config.model,
+        messages: [
+          {
+            role: "system",
+            content: "你是一个专业的购物顾问，基于用户的现有资产推荐合适的下一个购买物品和更划算的替代选择。请以JSON格式回复。",
+          },
+          { role: "user", content: prompt },
+        ],
+        temperature: 0.7,
+        max_tokens: 2000,
+      }),
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeout)
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "")
+      return res.status(502).json({ error: `AI API 请求失败 (${response.status})` })
+    }
+
+    const data = await response.json()
+    const content = data?.choices?.[0]?.message?.content
+    if (!content) {
+      return res.status(502).json({ error: "AI API 返回内容为空" })
+    }
+
+    let parsed
+    try {
+      parsed = JSON.parse(content)
+    } catch {
+      const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/)
+      if (codeBlockMatch) {
+        try {
+          parsed = JSON.parse(codeBlockMatch[1].trim())
+        } catch {
+          return res.status(502).json({ error: "AI 返回内容无法解析为JSON" })
+        }
+      } else {
+        return res.status(502).json({ error: "AI 返回内容无法解析为JSON" })
+      }
+    }
+
+    res.json({
+      nextBuys: (parsed.nextBuys || []).map((item) => ({
+        id: crypto.randomUUID(),
+        name: String(item.name || ""),
+        category: String(item.category || ""),
+        priceRange: {
+          min: Number(item.priceRange?.min || 0),
+          max: Number(item.priceRange?.max || 0),
+        },
+        reason: String(item.reason || ""),
+        similarityScore: Number(item.similarityScore || 0.5),
+        type: "next_buy",
+      })),
+      betterOptions: (parsed.betterOptions || []).map((item) => ({
+        id: crypto.randomUUID(),
+        name: String(item.name || ""),
+        category: String(item.category || ""),
+        priceRange: {
+          min: Number(item.priceRange?.min || 0),
+          max: Number(item.priceRange?.max || 0),
+        },
+        reason: String(item.reason || ""),
+        relatedAssetId: String(item.relatedAssetId || ""),
+        similarityScore: Number(item.similarityScore || 0.5),
+        type: "better_option",
+      })),
+    })
+  } catch (e) {
+    if (e.name === "AbortError") {
+      return res.status(504).json({ error: "AI API 请求超时，请稍后重试" })
+    }
+    console.error("Recommendations error:", e.message)
+    res.status(500).json({ error: "生成推荐失败，请稍后重试" })
+  }
+})
+
 export default router

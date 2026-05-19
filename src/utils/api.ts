@@ -110,6 +110,18 @@ function localProxy<T>(path: string, options: RequestInit = {}): T {
     const action = path.replace("/ai/", "")
     if (action === "recognize") return la.ai.recognize() as T
     if (action === "valuate") return la.ai.valuate() as T
+    if (action === "health-check") return Promise.resolve({
+      overallScore: 75,
+      summary: "Demo 模式：您的资产状况良好，建议继续保持。",
+      recommendations: [
+        { id: crypto.randomUUID(), type: "keep", priority: "medium", title: "保持现状", description: "继续维护现有资产", reason: "当前资产组合合理" }
+      ],
+      futureExpensePrediction: { next30Days: 1000, next90Days: 3000, next1Year: 12000, breakdown: [] }
+    }) as T
+    if (action === "recommendations") return Promise.resolve({
+      nextBuys: [],
+      betterOptions: []
+    }) as T
   }
 
   return Promise.reject(new Error("Demo 模式不支持此操作")) as T
@@ -230,6 +242,16 @@ export const api = {
       request<import("@/types").AIValuationResult>("/ai/valuate", {
         method: "POST",
         body: JSON.stringify({ asset }),
+      }),
+    healthCheck: (assets: import("@/types").Asset[]) =>
+      request<import("@/types").HealthCheckResult>("/ai/health-check", {
+        method: "POST",
+        body: JSON.stringify({ assets }),
+      }),
+    recommendations: (assets: import("@/types").Asset[]) =>
+      request<import("@/types").RecommendationsResult>("/ai/recommendations", {
+        method: "POST",
+        body: JSON.stringify({ assets }),
       }),
   },
 }

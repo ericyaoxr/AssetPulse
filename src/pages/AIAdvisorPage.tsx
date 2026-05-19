@@ -2,14 +2,16 @@ import { useState } from "react"
 import { Sparkles, TrendingUp, AlertTriangle, CheckCircle, Clock, Loader2, RefreshCw, DollarSign } from "lucide-react"
 import { useAssetStore } from "@/store/useAssetStore"
 import { useAIStore } from "@/store/useAIStore"
-import { callAI, generateHealthCheckPrompt, generateRecommendationsPrompt } from "@/utils/aiHelper"
+import { api } from "@/utils/api"
 import { useToast } from "@/contexts/ToastContext"
+import { useAuthStore } from "@/store/useAuthStore"
 import { formatCurrency } from "@/utils/format"
-import type { HealthRecommendation, ExpensePrediction, AIRecommendationItem } from "@/types"
+import type { HealthRecommendation, ExpensePrediction } from "@/types"
 
 export default function AIAdvisorPage() {
   const { assets } = useAssetStore()
   const { healthChecks, recommendations, addHealthCheck, setRecommendations } = useAIStore()
+  const { refreshUser } = useAuthStore()
   const { info, success, error } = useToast()
   const [loading, setLoading] = useState(false)
   const [loadingRecommendations, setLoadingRecommendations] = useState(false)
@@ -34,30 +36,20 @@ export default function AIAdvisorPage() {
     setLoading(true)
     setCurrentCheck(null)
     try {
-      const prompt = generateHealthCheckPrompt(assets)
-      const response = await callAI([{ role: "user", content: prompt }])
-      
-      const jsonMatch = response.match(/\{[\s\S]*\}/)
-      if (!jsonMatch) throw new Error("AI 返回格式错误")
-      
-      const result = JSON.parse(jsonMatch[0]) as {
-        overallScore: number
-        summary: string
-        recommendations: HealthRecommendation[]
-        futureExpensePrediction: ExpensePrediction
-      }
-      
+      const result = await api.ai.healthCheck(assets)
+
       const check = {
         id: crypto.randomUUID(),
         createdAt: new Date().toISOString(),
         overallScore: result.overallScore,
         summary: result.summary,
-        recommendations: result.recommendations || [],
+        recommendations: result.recommendations,
         futureExpensePrediction: result.futureExpensePrediction,
       }
-      
+
       addHealthCheck(check)
       setCurrentCheck(check)
+      await refreshUser()
       success("资产体检报告已生成")
     } catch (err) {
       error(err instanceof Error ? err.message : "生成报告失败")
@@ -74,30 +66,10 @@ export default function AIAdvisorPage() {
 
     setLoadingRecommendations(true)
     try {
-      const prompt = generateRecommendationsPrompt(assets)
-      const response = await callAI([{ role: "user", content: prompt }])
-      
-      const jsonMatch = response.match(/\{[\s\S]*\}/)
-      if (!jsonMatch) throw new Error("AI 返回格式错误")
-      
-      const result = JSON.parse(jsonMatch[0]) as {
-        nextBuys?: Omit<AIRecommendationItem, "id" | "type">[]
-        betterOptions?: Omit<AIRecommendationItem, "id" | "type">[]
-      }
-      
-      const nextBuys: AIRecommendationItem[] = (result.nextBuys || []).map((item) => ({
-        ...item,
-        id: crypto.randomUUID(),
-        type: "next_buy" as const,
-      }))
-      
-      const betterOptions: AIRecommendationItem[] = (result.betterOptions || []).map((item) => ({
-        ...item,
-        id: crypto.randomUUID(),
-        type: "better_option" as const,
-      }))
-      
-      setRecommendations({ nextBuys, betterOptions })
+      const result = await api.ai.recommendations(assets)
+
+      setRecommendations(result)
+      await refreshUser()
       success("推荐已生成")
     } catch (err) {
       error(err instanceof Error ? err.message : "生成推荐失败")
