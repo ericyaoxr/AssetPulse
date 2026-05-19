@@ -13,6 +13,8 @@ dist-ssr
 *.local
 data/
 node22/
+.netlify-config/
+assetpulse-latest.tar
 
 # Editor directories and files
 .vscode/*
