@@ -4,7 +4,7 @@ import path from "path"
 import fs from "fs"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const DATA_DIR = process.env.NETLIFY ? "/tmp/assetpulse-data" : (process.env.DATA_DIR || path.join(__dirname, "..", "data"))
+const DATA_DIR = process.env.VERCEL ? "/tmp/assetpulse-data" : (process.env.DATA_DIR || path.join(__dirname, "..", "data"))
 
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true })
@@ -50,10 +50,7 @@ db.exec(`
     id TEXT PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
-    invite_code TEXT UNIQUE NOT NULL,
-    invited_by TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY (invited_by) REFERENCES users(id) ON DELETE SET NULL
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
   CREATE TABLE IF NOT EXISTS invites (
@@ -134,17 +131,13 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_assets_status ON assets(user_id, status);
   CREATE INDEX IF NOT EXISTS idx_trash_user_id ON trash(user_id);
   CREATE INDEX IF NOT EXISTS idx_settings_user_id ON settings(user_id);
-  CREATE INDEX IF NOT EXISTS idx_users_invite_code ON users(invite_code);
-  CREATE INDEX IF NOT EXISTS idx_invites_inviter ON invites(inviter_id);
 `)
 
-// 为已有用户补 invite_code（如果不存在）
-function addInviteCodeIfNeeded() {
+function migrateUsersTable() {
   const cols = db.prepare("PRAGMA table_info(users)").all().map(c => c.name)
   if (!cols.includes("invite_code")) {
     try {
       db.exec("ALTER TABLE users ADD COLUMN invite_code TEXT UNIQUE")
-      // 为已存在用户生成邀请码
       const users = db.prepare("SELECT id FROM users WHERE invite_code IS NULL").all()
       users.forEach(u => {
         const code = Math.random().toString(36).slice(2, 8).toUpperCase()
@@ -163,7 +156,18 @@ function addInviteCodeIfNeeded() {
   }
 }
 
-addInviteCodeIfNeeded()
+migrateUsersTable()
+
+try {
+  db.exec("CREATE INDEX IF NOT EXISTS idx_users_invite_code ON users(invite_code)")
+} catch (e) {
+  console.error("Warning: Failed to create invite_code index:", e.message)
+}
+try {
+  db.exec("CREATE INDEX IF NOT EXISTS idx_invites_inviter ON invites(inviter_id)")
+} catch (e) {
+  console.error("Warning: Failed to create invites index:", e.message)
+}
 
 const columns = db.prepare("PRAGMA table_info(assets)").all().map(c => c.name)
 if (!columns.includes("tags")) {
