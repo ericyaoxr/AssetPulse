@@ -7,10 +7,11 @@ interface AuthStore {
   loading: boolean
   initialized: boolean
   initialize: () => Promise<void>
-  register: (username: string, password: string) => Promise<UserProfile>
+  register: (username: string, password: string, inviteCode?: string) => Promise<UserProfile>
   login: (username: string, password: string) => Promise<UserProfile>
   logout: () => void
   changePassword: (oldPassword: string, newPassword: string) => Promise<void>
+  refreshUser: () => Promise<void>
 }
 
 export const useAuthStore = create<AuthStore>((set) => ({
@@ -20,45 +21,33 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   initialize: async () => {
     const token = getToken()
-    if (!token) {
-      set({ currentUser: null, loading: false, initialized: true })
-      return
-    }
+    if (!token) { set({ currentUser: null, loading: false, initialized: true }); return }
     try {
       const user = await api.auth.me()
-      set({
-        currentUser: { id: user.id, username: user.username, createdAt: user.createdAt },
-        loading: false,
-        initialized: true,
-      })
-    } catch {
-      clearToken()
-      set({ currentUser: null, loading: false, initialized: true })
-    }
+      set({ currentUser: user, loading: false, initialized: true })
+    } catch { clearToken(); set({ currentUser: null, loading: false, initialized: true }) }
   },
 
-  register: async (username, password) => {
-    const res = await api.auth.register(username, password)
+  register: async (username, password, inviteCode) => {
+    const res = await api.auth.register(username, password, inviteCode)
     setToken(res.token)
-    const profile: UserProfile = { id: res.user.id, username: res.user.username, createdAt: res.user.createdAt }
-    set({ currentUser: profile })
-    return profile
+    set({ currentUser: res.user })
+    return res.user
   },
 
   login: async (username, password) => {
     const res = await api.auth.login(username, password)
     setToken(res.token)
-    const profile: UserProfile = { id: res.user.id, username: res.user.username, createdAt: res.user.createdAt }
-    set({ currentUser: profile })
-    return profile
+    set({ currentUser: res.user })
+    return res.user
   },
 
-  logout: () => {
-    clearToken()
-    set({ currentUser: null })
-  },
+  logout: () => { clearToken(); set({ currentUser: null }) },
 
-  changePassword: async (oldPassword, newPassword) => {
-    await api.auth.changePassword(oldPassword, newPassword)
+  changePassword: async (oldPassword, newPassword) => { await api.auth.changePassword(oldPassword, newPassword) },
+
+  refreshUser: async () => {
+    const user = await api.auth.me()
+    set({ currentUser: user })
   },
 }))

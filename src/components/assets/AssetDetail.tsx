@@ -12,6 +12,7 @@ import { differenceInDays, format, eachMonthOfInterval } from "date-fns"
 import type { Asset, AssetStatus } from "@/types"
 import { formatCurrency, formatDays, formatDate } from "@/utils/format"
 import { useAssetStore } from "@/store/useAssetStore"
+import { useAuthStore } from "@/store/useAuthStore"
 import { useAIStore } from "@/store/useAIStore"
 import { estimateAssetValue, loadAIConfig } from "@/utils/aiValuation"
 import { callAI, generateAssetStoryPrompt } from "@/utils/aiHelper"
@@ -32,6 +33,7 @@ const AssetDetail = ({ asset }: AssetDetailProps) => {
   const navigate = useNavigate()
   const { deleteAsset, updateStatus, updateAssetAIValuation } = useAssetStore()
   const { stories, addStory } = useAIStore()
+  const refreshUser = useAuthStore(s => s.refreshUser)
   const { info, success, error } = useToast()
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showStatusDropdown, setShowStatusDropdown] = useState(false)
@@ -59,6 +61,7 @@ const AssetDetail = ({ asset }: AssetDetailProps) => {
     try {
       const result = await estimateAssetValue(config, asset)
       await updateAssetAIValuation(asset.id, result)
+      await refreshUser()
     } catch (e) {
       setAiError(e instanceof Error ? e.message : "估值失败")
     } finally {

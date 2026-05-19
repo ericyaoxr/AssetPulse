@@ -5,6 +5,7 @@ import { DEFAULT_CATEGORIES } from "@/types"
 import { formatCurrency } from "@/utils/format"
 import { imageFileToBase64 } from "@/utils/storage"
 import { useAssetStore } from "@/store/useAssetStore"
+import { useAuthStore } from "@/store/useAuthStore"
 import { api } from "@/utils/api"
 import type { ImageRecognitionItem } from "@/utils/api"
 import { TagInput } from "@/components/assets/TagInput"
@@ -221,6 +222,7 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { categories, locations, addCategory, addLocation } = useAssetStore()
+  const refreshUser = useAuthStore((s) => s.refreshUser)
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -240,6 +242,7 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
 
     try {
       const result = await api.ai.recognize(imageUrl)
+      refreshUser()
 
       if (!result.items || result.items.length === 0) {
         setRecognizeError("无法识别图片中的物品，请手动填写")

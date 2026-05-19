@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Activity, Eye, EyeOff, Loader2 } from "lucide-react"
 import { useAuthStore } from "@/store/useAuthStore"
+import { isDemoMode } from "@/utils/api"
 
 type AuthMode = "login" | "register"
 
@@ -9,6 +10,7 @@ export default function AuthPage() {
   const [mode, setMode] = useState<AuthMode>("login")
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
+  const [inviteCode, setInviteCode] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -29,7 +31,7 @@ export default function AuthPage() {
     setLoading(true)
     try {
       if (mode === "register") {
-        await register(username.trim(), password)
+        await register(username.trim(), password, inviteCode.trim().toUpperCase())
       } else {
         await login(username.trim(), password)
       }
@@ -99,6 +101,23 @@ export default function AuthPage() {
               </div>
             </div>
 
+            {mode === "register" && (
+              <div>
+                <label className="block text-sm text-content-secondary mb-1">
+                  邀请码（可选）
+                </label>
+                <input
+                  type="text"
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value)}
+                  placeholder="输入邀请码，双方各得10次AI次数"
+                  autoComplete="off"
+                  className="w-full rounded-lg border border-edge bg-surface px-3 py-2.5 text-content-primary text-sm outline-none focus:border-accent/30"
+                />
+                <p className="mt-1 text-xs text-content-faint">输入邀请码注册后，双方各得10次AI次数奖励</p>
+              </div>
+            )}
+
             {error && (
               <div className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">
                 {error}
@@ -131,7 +150,7 @@ export default function AuthPage() {
         </div>
 
         <p className="text-center text-xs text-content-faint">
-          数据安全存储在服务器上，登录即可访问
+          {isDemoMode() ? "🌐 预览模式 · 数据保存在浏览器本地" : "数据安全存储在服务器上，登录即可访问"}
         </p>
       </div>
     </div>

@@ -44,12 +44,30 @@ function isPrivateIP(hostname) {
   )
 }
 
+function checkAndConsumeAIUsage(userId) {
+  const usage = db.prepare("SELECT * FROM ai_usage WHERE user_id = ?").get(userId)
+  if (!usage) {
+    db.prepare("INSERT INTO ai_usage (user_id, remaining_count, total_used) VALUES (?, 10, 0)").run(userId)
+    return { ok: true }
+  }
+  if (usage.remaining_count <= 0) {
+    return { ok: false, error: "AI 次数已用完，请邀请好友获取更多次数" }
+  }
+  db.prepare("UPDATE ai_usage SET remaining_count = remaining_count - 1, total_used = total_used + 1, updated_at = datetime('now') WHERE user_id = ?").run(userId)
+  return { ok: true }
+}
+
 const router = Router()
 
 router.post("/recognize", authMiddleware, async (req, res) => {
   const { image } = req.body
   if (!image) {
     return res.status(400).json({ error: "请提供图片数据" })
+  }
+
+  const check = checkAndConsumeAIUsage(req.userId)
+  if (!check.ok) {
+    return res.status(402).json({ error: check.error })
   }
 
   const configRow = db.prepare("SELECT value FROM settings WHERE user_id = ? AND key = ?").get(req.userId, "ai_config")
@@ -215,6 +233,11 @@ router.post("/valuate", authMiddleware, async (req, res) => {
   const { asset } = req.body
   if (!asset || !asset.name) {
     return res.status(400).json({ error: "请提供资产信息" })
+  }
+
+  const check = checkAndConsumeAIUsage(req.userId)
+  if (!check.ok) {
+    return res.status(402).json({ error: check.error })
   }
 
   const configRow = db.prepare("SELECT value FROM settings WHERE user_id = ? AND key = ?").get(req.userId, "ai_config")

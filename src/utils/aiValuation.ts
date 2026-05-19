@@ -1,5 +1,5 @@
 import type { AIProviderConfig, AIValuationResult, Asset } from "@/types"
-import { api, getToken } from "@/utils/api"
+import { api } from "@/utils/api"
 
 const AI_SETTINGS_KEY = "ai_config"
 
@@ -36,22 +36,7 @@ export function buildValuationPrompt(asset: Asset): string {
 }
 
 export async function estimateAssetValue(_config: AIProviderConfig, asset: Asset): Promise<AIValuationResult> {
-  const token = getToken()
-  const headers: Record<string, string> = { "Content-Type": "application/json" }
-  if (token) headers["Authorization"] = `Bearer ${token}`
-
-  const response = await fetch("/api/ai/valuate", {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ asset }),
-  })
-
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({ error: "请求失败" }))
-    throw new Error(data.error || `AI 估值请求失败 (${response.status})`)
-  }
-
-  return await response.json()
+  return await api.ai.valuate(asset)
 }
 
 export async function saveAIConfig(config: AIProviderConfig): Promise<void> {

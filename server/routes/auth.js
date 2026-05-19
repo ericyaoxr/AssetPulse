@@ -15,6 +15,10 @@ try {
 
 const router = Router()
 
+function generateInviteCode() {
+  return Math.random().toString(36).slice(2, 8).toUpperCase()
+}
+
 function validatePassword(password) {
   if (!password || password.length < 8) {
     return "密码至少8位"
@@ -29,7 +33,7 @@ function validatePassword(password) {
 }
 
 router.post("/register", (req, res) => {
-  const { username, password } = req.body
+  const { username, password, inviteCode } = req.body
   if (!username || !password) {
     return res.status(400).json({ error: "用户名和密码不能为空" })
   }
@@ -46,15 +50,37 @@ router.post("/register", (req, res) => {
     return res.status(409).json({ error: "用户名已存在" })
   }
 
+  // 检查邀请码
+  let inviterId = null
+  if (inviteCode) {
+    const inviter = db.prepare("SELECT id FROM users WHERE invite_code = ?").get(inviteCode.trim().toUpperCase())
+    if (inviter) {
+      inviterId = inviter.id
+    }
+  }
+
   const id = "u_" + crypto.randomUUID().replace(/-/g, "").slice(0, 16)
   const passwordHash = bcrypt.hashSync(password, 12)
+  const inviteCodeForNewUser = generateInviteCode()
 
-  db.prepare("INSERT INTO users (id, username, password_hash) VALUES (?, ?, ?)").run(id, username, passwordHash)
+  db.prepare("INSERT INTO users (id, username, password_hash, invite_code, invited_by) VALUES (?, ?, ?, ?, ?)").run(id, username, passwordHash, inviteCodeForNewUser, inviterId)
+  
+  // 初始化 AI 使用次数
+  db.prepare("INSERT OR IGNORE INTO ai_usage (user_id, remaining_count, total_used) VALUES (?, 10, 0)").run(id)
+  
+  // 如果有邀请人，记录并给双方奖励
+  if (inviterId) {
+    db.prepare("INSERT INTO invites (inviter_id, invitee_id) VALUES (?, ?)").run(inviterId, id)
+    // 给邀请人 +10 次
+    db.prepare("UPDATE ai_usage SET remaining_count = remaining_count + 10 WHERE user_id = ?").run(inviterId)
+    // 给被邀请人 +10 次（额外奖励）
+    db.prepare("UPDATE ai_usage SET remaining_count = remaining_count + 10 WHERE user_id = ?").run(id)
+  }
 
   const token = generateToken({ userId: id, username })
   res.json({
     token,
-    user: { id, username, createdAt: new Date().toISOString() },
+    user: { id, username, createdAt: new Date().toISOString(), inviteCode: inviteCodeForNewUser },
   })
 })
 
@@ -76,14 +102,25 @@ router.post("/login", (req, res) => {
   const token = generateToken({ userId: user.id, username: user.username })
   res.json({
     token,
-    user: { id: user.id, username: user.username, createdAt: user.created_at },
+    user: { id: user.id, username: user.username, createdAt: user.created_at, inviteCode: user.invite_code },
   })
 })
 
 router.get("/me", authMiddleware, (req, res) => {
-  const user = db.prepare("SELECT id, username, created_at FROM users WHERE id = ?").get(req.userId)
+  const user = db.prepare("SELECT id, username, created_at, invite_code FROM users WHERE id = ?").get(req.userId)
   if (!user) return res.status(404).json({ error: "用户不存在" })
-  res.json({ id: user.id, username: user.username, createdAt: user.created_at })
+  
+  const usage = db.prepare("SELECT * FROM ai_usage WHERE user_id = ?").get(req.userId) || { remaining_count: 10, total_used: 0 }
+  const inviteCount = db.prepare("SELECT COUNT(*) as count FROM invites WHERE inviter_id = ?").get(req.userId)?.count || 0
+
+  res.json({
+    id: user.id,
+    username: user.username,
+    createdAt: user.created_at,
+    inviteCode: user.invite_code,
+    aiUsage: { remaining: usage.remaining_count, totalUsed: usage.total_used },
+    inviteCount,
+  })
 })
 
 router.put("/password", authMiddleware, (req, res) => {
@@ -106,6 +143,19 @@ router.put("/password", authMiddleware, (req, res) => {
   const newHash = bcrypt.hashSync(newPassword, 12)
   db.prepare("UPDATE users SET password_hash = ? WHERE id = ?").run(newHash, req.userId)
   res.json({ ok: true })
+})
+
+// 获取邀请记录
+router.get("/invites", authMiddleware, (req, res) => {
+  const invites = db.prepare(`
+    SELECT i.created_at, u.username as invitee_username
+    FROM invites i
+    JOIN users u ON i.invitee_id = u.id
+    WHERE i.inviter_id = ?
+    ORDER BY i.created_at DESC
+  `).all(req.userId)
+  
+  res.json(invites)
 })
 
 export default router

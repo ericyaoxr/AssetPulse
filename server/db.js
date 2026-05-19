@@ -50,7 +50,28 @@ db.exec(`
     id TEXT PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    invite_code TEXT UNIQUE NOT NULL,
+    invited_by TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (invited_by) REFERENCES users(id) ON DELETE SET NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS invites (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    inviter_id TEXT NOT NULL,
+    invitee_id TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(inviter_id, invitee_id),
+    FOREIGN KEY (inviter_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (invitee_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS ai_usage (
+    user_id TEXT PRIMARY KEY,
+    remaining_count INTEGER NOT NULL DEFAULT 10,
+    total_used INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
   );
 
   CREATE TABLE IF NOT EXISTS assets (
@@ -113,14 +134,43 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_assets_status ON assets(user_id, status);
   CREATE INDEX IF NOT EXISTS idx_trash_user_id ON trash(user_id);
   CREATE INDEX IF NOT EXISTS idx_settings_user_id ON settings(user_id);
+  CREATE INDEX IF NOT EXISTS idx_users_invite_code ON users(invite_code);
+  CREATE INDEX IF NOT EXISTS idx_invites_inviter ON invites(inviter_id);
 `)
+
+// 为已有用户补 invite_code（如果不存在）
+function addInviteCodeIfNeeded() {
+  const cols = db.prepare("PRAGMA table_info(users)").all().map(c => c.name)
+  if (!cols.includes("invite_code")) {
+    try {
+      db.exec("ALTER TABLE users ADD COLUMN invite_code TEXT UNIQUE")
+      // 为已存在用户生成邀请码
+      const users = db.prepare("SELECT id FROM users WHERE invite_code IS NULL").all()
+      users.forEach(u => {
+        const code = Math.random().toString(36).slice(2, 8).toUpperCase()
+        db.prepare("UPDATE users SET invite_code = ? WHERE id = ?").run(code, u.id)
+      })
+    } catch (e) {
+      console.error("Warning: Failed to add invite_code column:", e.message)
+    }
+  }
+  if (!cols.includes("invited_by")) {
+    try {
+      db.exec("ALTER TABLE users ADD COLUMN invited_by TEXT REFERENCES users(id)")
+    } catch (e) {
+      console.error("Warning: Failed to add invited_by column:", e.message)
+    }
+  }
+}
+
+addInviteCodeIfNeeded()
 
 const columns = db.prepare("PRAGMA table_info(assets)").all().map(c => c.name)
 if (!columns.includes("tags")) {
   try {
     db.exec("ALTER TABLE assets ADD COLUMN tags TEXT NOT NULL DEFAULT '[]'")
   } catch (e) {
-    console.error("Warning: Failed to add tags column (database may be read-only):", e.message)
+    console.error("Warning: Failed to add tags column:", e.message)
   }
 }
 

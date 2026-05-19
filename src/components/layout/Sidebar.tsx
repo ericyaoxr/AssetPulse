@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom"
 import {
   LayoutDashboard, Package, Activity,
   Trash2, TrendingUp, ChevronDown, LogOut,
-  Settings, Sparkles, DatabaseBackup, User, Palette, Trophy, Users, Bell, ShieldAlert, BarChart3, Globe, Code, Wand2, Clock
+  Settings, Sparkles, DatabaseBackup, User, Palette, Trophy, Users, Bell, ShieldAlert, BarChart3, Globe, Code, Wand2, Clock, Zap
 } from "lucide-react"
 import { useAssetStore } from "@/store/useAssetStore"
 import { useAuthStore } from "@/store/useAuthStore"
@@ -178,22 +178,33 @@ export default function Sidebar() {
 
       <div className="border-t border-edge-subtle px-3 py-4">
         {currentUser && (
-          <div className="mb-4 flex items-center gap-3 rounded-lg bg-surface px-3 py-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-light text-sm font-bold text-accent">
-              {currentUser.username.charAt(0).toUpperCase()}
+          <>
+            <div className="mb-3 flex items-center gap-3 rounded-lg bg-surface px-3 py-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-light text-sm font-bold text-accent">
+                {currentUser.username.charAt(0).toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="truncate text-sm font-medium text-content-primary">{currentUser.username}</p>
+                <p className="text-xs text-content-muted">已登录</p>
+              </div>
+              <button
+                onClick={logout}
+                title="退出登录"
+                className="text-content-muted transition-colors hover:text-red-400"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="truncate text-sm font-medium text-content-primary">{currentUser.username}</p>
-              <p className="text-xs text-content-muted">已登录</p>
-            </div>
-            <button
-              onClick={logout}
-              title="退出登录"
-              className="text-content-muted transition-colors hover:text-red-400"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
-          </div>
+            <Link to="/settings/account" className="mb-4 flex items-center gap-2 rounded-lg bg-surface px-3 py-2 hover:bg-surface-hover transition-colors">
+              <Zap className="h-4 w-4 text-yellow-500" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-content-primary">AI 剩余</p>
+              </div>
+              <span className="font-mono text-sm font-bold text-content-secondary">
+                {currentUser.aiUsage?.remaining ?? 0}
+              </span>
+            </Link>
+          </>
         )}
 
         <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-content-muted">

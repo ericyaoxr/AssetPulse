@@ -11,6 +11,9 @@ export interface UserProfile {
   id: string
   username: string
   createdAt: string
+  inviteCode: string
+  aiUsage: { remaining: number; totalUsed: number }
+  inviteCount: number
 }
 
 export const DEFAULT_CATEGORIES = [
