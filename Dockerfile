@@ -29,6 +29,7 @@ RUN chmod +x /app/docker-entrypoint.sh
 
 ENV PORT=8642
 ENV DATA_DIR=/app/data
+ENV DIST_DIR=/app/dist
 EXPOSE 8642
 
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
