@@ -13,7 +13,6 @@ RUN npm install --registry=https://registry.npmmirror.com
 COPY server/ ./
 
 FROM node:22-alpine
-RUN apk add --no-cache su-exec
 WORKDIR /app
 COPY --from=server /app/node_modules ./node_modules
 COPY --from=server /app/*.js ./
@@ -23,9 +22,7 @@ COPY --from=server /app/middleware ./middleware
 COPY --from=server /app/utils ./utils
 COPY --from=build /app/dist ./dist
 
-RUN mkdir -p /app/data && \
-    addgroup -S appgroup && adduser -S appuser -G appgroup && \
-    chown -R appuser:appgroup /app/data
+RUN mkdir -p /app/data && chmod 777 /app/data
 
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh

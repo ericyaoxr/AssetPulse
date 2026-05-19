@@ -28,6 +28,16 @@ if (fs.existsSync(DB_PATH)) {
       fs.chmodSync(DB_PATH, 0o666)
     } catch {}
   }
+  for (const ext of ["wal", "shm"]) {
+    const extPath = `${DB_PATH}-${ext}`
+    if (fs.existsSync(extPath)) {
+      try {
+        fs.accessSync(extPath, fs.constants.W_OK)
+      } catch {
+        try { fs.chmodSync(extPath, 0o666) } catch {}
+      }
+    }
+  }
 }
 
 const db = new Database(DB_PATH)
@@ -107,7 +117,11 @@ db.exec(`
 
 const columns = db.prepare("PRAGMA table_info(assets)").all().map(c => c.name)
 if (!columns.includes("tags")) {
-  db.exec("ALTER TABLE assets ADD COLUMN tags TEXT NOT NULL DEFAULT '[]'")
+  try {
+    db.exec("ALTER TABLE assets ADD COLUMN tags TEXT NOT NULL DEFAULT '[]'")
+  } catch (e) {
+    console.error("Warning: Failed to add tags column (database may be read-only):", e.message)
+  }
 }
 
 export default db
