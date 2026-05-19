@@ -2,7 +2,7 @@ name: Deploy to Netlify
 
 on:
   push:
-    branches: [main, feature-phase-1]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -11,30 +11,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 22
           cache: npm
-          
-      - name: Install dependencies
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: Install frontend dependencies
         run: npm ci || npm install
-        
-      - name: Build
+
+      - name: Install Netlify CLI
+        run: npm install -g netlify-cli
+
+      - name: Build frontend
         run: npm run build
         env:
           VITE_API_BASE_URL: ""
-          
+
       - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v3.0
-        with:
-          publish-dir: ./dist
-          production-deploy: true
-          deploy-message: "Deploy from GitHub Actions"
-          enable-pull-request-comment: true
-          enable-commit-comment: true
-          overwrites-pull-request-comment: true
+        run: netlify deploy --prod --dir=dist --message "Deploy from GitHub Actions"
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
