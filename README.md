@@ -7,6 +7,9 @@
 - **资产管理** — 记录资产购买价格、使用天数、回收金额，自动计算日均成本
 - **AI 拍照识别** — 拍照上传，AI 自动识别物品名称、分类和价格
 - **AI 估值** — 接入 OpenAI 兼容 API，一键估算资产当前二手市场价值
+- **AI 资产顾问** — 智能体检报告、购买推荐、替代方案建议
+- **邀请好友** — 分享邀请码，双方各获 10 次 AI 使用次数
+- **AI 次数管理** — 侧边栏和设置页实时显示剩余/已用次数
 - **多状态追踪** — 使用中 / 已回收 / 已报废，状态变更时自动重算
 - **盈亏复盘** — 可视化日均成本趋势、分类排名、状态分布
 - **数据导入导出** — 支持 Excel / CSV / JSON 格式
@@ -20,9 +23,9 @@
 |---|---|
 | 前端 | React 18 + TypeScript + Vite + Tailwind CSS |
 | 状态管理 | Zustand |
-| 后端 | Express + JWT 认证 |
+| 后端 | Express + JWT 认证 + AES-256-GCM 加密 |
 | 数据库 | SQLite (better-sqlite3) |
-| 部署 | Docker / Vercel |
+| 部署 | Docker / Vercel Serverless |
 
 ## 快速开始
 
@@ -112,16 +115,17 @@ docker run -d \
   assetpulse
 ```
 
-### Vercel 部署（预览模式）
+### Vercel 部署
 
-支持部署到 Vercel，后端 API 不可用时自动降级为浏览器本地存储模式：
+支持部署到 Vercel，后端 API 通过 Serverless Functions 运行，后端不可用时自动降级为浏览器本地存储模式：
 
 1. 访问 https://vercel.com/new
 2. 导入 GitHub 仓库 `ericyaoxr/AssetPulse`
 3. Framework Preset 选择 **Vite**
-4. 点击 Deploy
+4. 在 Environment Variables 中添加 `JWT_SECRET`
+5. 点击 Deploy
 
-> 📌 Vercel 模式下数据保存在浏览器 localStorage，适合 UI 预览。如需完整功能，请使用 Docker 部署。
+> 📌 Vercel Serverless 模式下 SQLite 数据存储在 `/tmp`，函数冷启动后数据会丢失，适合演示和测试。如需数据持久化，请使用 Docker 部署。
 
 ### 远程服务器部署
 
@@ -202,26 +206,35 @@ docker compose restart
 3. 填入 API Key
 4. 保存后即可使用拍照识别和 AI 估值功能
 
+### AI 使用次数
+
+- 新用户默认 10 次 AI 使用次数
+- 每次使用 AI 识别、估值、体检报告或推荐，消耗 1 次次数
+- 邀请好友注册，双方各获 10 次额外次数
+- 在侧边栏和账户设置页可查看剩余次数
+
 ## 项目结构
 
 ```
 AssetPulse/
+├── api/                     # Vercel Serverless 入口
+│   └── index.mjs            # serverless-http 适配
 ├── server/                  # 后端服务
 │   ├── index.js             # Express 入口
-│   ├── db.js                # SQLite 数据库初始化
+│   ├── db.js                # SQLite 数据库初始化与迁移
 │   ├── middleware/
 │   │   └── auth.js          # JWT 认证中间件
 │   ├── utils/
 │   │   ├── crypto.js        # AES-256-GCM 加解密
 │   │   └── json.js          # JSON 安全解析
 │   └── routes/
-│       ├── auth.js          # 注册/登录/修改密码
+│       ├── auth.js          # 注册/登录/邀请码/AI次数
 │       ├── assets.js        # 资产 CRUD
 │       ├── trash.js         # 回收站
 │       ├── categories.js    # 分类管理
 │       ├── locations.js     # 位置管理
 │       ├── settings.js      # 用户设置（键值对）
-│       ├── ai.js            # AI 识别/估值
+│       ├── ai.js            # AI 识别/估值/体检/推荐
 │       └── backup.js        # 数据备份导入/导出
 ├── src/                     # 前端应用
 │   ├── components/          # UI 组件
@@ -238,30 +251,61 @@ AssetPulse/
 
 ## API 接口
 
+### 认证
+
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| POST | `/api/auth/register` | 注册 |
+| POST | `/api/auth/register` | 注册（支持邀请码） |
 | POST | `/api/auth/login` | 登录 |
-| GET | `/api/auth/me` | 获取当前用户 |
+| GET | `/api/auth/me` | 获取当前用户（含邀请码、AI次数） |
 | PUT | `/api/auth/password` | 修改密码 |
+| GET | `/api/auth/invites` | 获取邀请记录 |
+
+### 资产
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
 | GET | `/api/assets` | 资产列表 |
 | POST | `/api/assets` | 创建资产 |
 | PUT | `/api/assets/:id` | 更新资产 |
 | DELETE | `/api/assets/:id` | 删除资产（移入回收站） |
+
+### 回收站
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
 | GET | `/api/trash` | 回收站列表 |
 | POST | `/api/trash/restore/:id` | 恢复资产 |
 | DELETE | `/api/trash/:id` | 永久删除 |
 | DELETE | `/api/trash` | 清空回收站 |
+
+### 分类与位置
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
 | GET | `/api/categories` | 分类列表 |
 | PUT | `/api/categories` | 批量保存分类 |
 | GET | `/api/locations` | 位置列表 |
 | PUT | `/api/locations` | 批量保存位置 |
+
+### 设置与备份
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
 | GET | `/api/settings` | 获取所有设置 |
 | GET | `/api/settings/:key` | 获取指定设置 |
 | PUT | `/api/settings/:key` | 保存设置 |
 | GET | `/api/backup/export` | 导出备份 |
 | POST | `/api/backup/import` | 导入备份 |
+
+### AI
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
 | POST | `/api/ai/recognize` | AI 图片识别 |
+| POST | `/api/ai/valuate` | AI 估值 |
+| POST | `/api/ai/health-check` | AI 资产体检报告 |
+| POST | `/api/ai/recommendations` | AI 购买/替代推荐 |
 
 ## 日均成本计算
 
