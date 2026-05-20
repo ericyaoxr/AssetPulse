@@ -15,6 +15,7 @@ data/
 node22/
 .netlify-config/
 assetpulse-latest.tar
+.env
 
 # Editor directories and files
 .vscode/*
