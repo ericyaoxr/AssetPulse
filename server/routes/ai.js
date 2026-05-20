@@ -4,6 +4,10 @@ import { authMiddleware } from "../middleware/auth.js"
 import { safeParseJSON } from "../utils/json.js"
 import { decrypt } from "../utils/crypto.js"
 
+const DEFAULT_AI_BASE_URL = process.env.DEFAULT_AI_BASE_URL || ""
+const DEFAULT_AI_API_KEY = process.env.DEFAULT_AI_API_KEY || ""
+const DEFAULT_AI_MODEL = process.env.DEFAULT_AI_MODEL || ""
+
 const ALLOWED_AI_HOSTS = [
   "api.openai.com",
   "api.deepseek.com",
@@ -57,6 +61,30 @@ function checkAndConsumeAIUsage(userId) {
   return { ok: true }
 }
 
+function getUserAIConfig(userId) {
+  const configRow = db.prepare("SELECT value FROM settings WHERE user_id = ? AND key = ?").get(userId, "ai_config")
+  if (!configRow) return null
+  const decrypted = decrypt(configRow.value)
+  const rawValue = decrypted || configRow.value
+  const parsed = safeParseJSON(rawValue)
+  if (!parsed) return null
+  if (!parsed.apiKey || !parsed.baseUrl || !parsed.model) return null
+  return parsed
+}
+
+function getBuiltInAIConfig() {
+  if (!DEFAULT_AI_API_KEY || !DEFAULT_AI_BASE_URL || !DEFAULT_AI_MODEL) return null
+  return { apiKey: DEFAULT_AI_API_KEY, baseUrl: DEFAULT_AI_BASE_URL, model: DEFAULT_AI_MODEL }
+}
+
+function resolveAIConfig(userId) {
+  const userConfig = getUserAIConfig(userId)
+  if (userConfig) return { config: userConfig, isBuiltIn: false }
+  const builtInConfig = getBuiltInAIConfig()
+  if (builtInConfig) return { config: builtInConfig, isBuiltIn: true }
+  return null
+}
+
 const router = Router()
 
 router.post("/recognize", authMiddleware, async (req, res) => {
@@ -65,33 +93,20 @@ router.post("/recognize", authMiddleware, async (req, res) => {
     return res.status(400).json({ error: "请提供图片数据" })
   }
 
-  const check = checkAndConsumeAIUsage(req.userId)
-  if (!check.ok) {
-    return res.status(402).json({ error: check.error })
-  }
-
-  const configRow = db.prepare("SELECT value FROM settings WHERE user_id = ? AND key = ?").get(req.userId, "ai_config")
-  if (!configRow) {
-    const anyConfig = db.prepare("SELECT key, user_id FROM settings WHERE key = ?").all("ai_config")
-    console.error("AI config not found for user:", req.userId, "all ai_config rows:", JSON.stringify(anyConfig))
+  const resolved = resolveAIConfig(req.userId)
+  if (!resolved) {
     return res.status(400).json({ error: "请先配置 AI 设置" })
   }
 
-  let config
-  const decrypted = decrypt(configRow.value)
-  const rawValue = decrypted || configRow.value
-  const parsed = safeParseJSON(rawValue)
-  if (!parsed) {
-    console.error("AI config parse failed, decrypted:", decrypted ? "yes" : "no", "rawValue prefix:", rawValue.substring(0, 50))
-    return res.status(400).json({ error: "AI 配置格式错误" })
-  }
-  config = parsed
-
-  if (!config.apiKey || !config.baseUrl || !config.model) {
-    return res.status(400).json({ error: "AI 配置不完整，请检查 API Key、Base URL 和模型" })
+  if (resolved.isBuiltIn) {
+    const check = checkAndConsumeAIUsage(req.userId)
+    if (!check.ok) {
+      return res.status(402).json({ error: check.error })
+    }
   }
 
-  if (!isAllowedAIUrl(config.baseUrl)) {
+  const config = resolved.config
+  if (!resolved.isBuiltIn && !isAllowedAIUrl(config.baseUrl)) {
     return res.status(400).json({ error: "不支持的 AI 服务地址，仅允许已知的 AI 服务商" })
   }
 
@@ -235,33 +250,20 @@ router.post("/valuate", authMiddleware, async (req, res) => {
     return res.status(400).json({ error: "请提供资产信息" })
   }
 
-  const check = checkAndConsumeAIUsage(req.userId)
-  if (!check.ok) {
-    return res.status(402).json({ error: check.error })
-  }
-
-  const configRow = db.prepare("SELECT value FROM settings WHERE user_id = ? AND key = ?").get(req.userId, "ai_config")
-  if (!configRow) {
-    const anyConfig = db.prepare("SELECT key, user_id FROM settings WHERE key = ?").all("ai_config")
-    console.error("AI config not found for user:", req.userId, "all ai_config rows:", JSON.stringify(anyConfig))
+  const resolved = resolveAIConfig(req.userId)
+  if (!resolved) {
     return res.status(400).json({ error: "请先配置 AI 设置" })
   }
 
-  let config
-  const decrypted = decrypt(configRow.value)
-  const rawValue = decrypted || configRow.value
-  const parsed = safeParseJSON(rawValue)
-  if (!parsed) {
-    console.error("AI config parse failed, decrypted:", decrypted ? "yes" : "no", "rawValue prefix:", rawValue.substring(0, 50))
-    return res.status(400).json({ error: "AI 配置格式错误" })
-  }
-  config = parsed
-
-  if (!config.apiKey || !config.baseUrl || !config.model) {
-    return res.status(400).json({ error: "AI 配置不完整" })
+  if (resolved.isBuiltIn) {
+    const check = checkAndConsumeAIUsage(req.userId)
+    if (!check.ok) {
+      return res.status(402).json({ error: check.error })
+    }
   }
 
-  if (!isAllowedAIUrl(config.baseUrl)) {
+  const config = resolved.config
+  if (!resolved.isBuiltIn && !isAllowedAIUrl(config.baseUrl)) {
     return res.status(400).json({ error: "不支持的 AI 服务地址" })
   }
 
@@ -373,30 +375,20 @@ router.post("/health-check", authMiddleware, async (req, res) => {
     return res.status(400).json({ error: "请提供资产信息" })
   }
 
-  const check = checkAndConsumeAIUsage(req.userId)
-  if (!check.ok) {
-    return res.status(402).json({ error: check.error })
-  }
-
-  const configRow = db.prepare("SELECT value FROM settings WHERE user_id = ? AND key = ?").get(req.userId, "ai_config")
-  if (!configRow) {
+  const resolved = resolveAIConfig(req.userId)
+  if (!resolved) {
     return res.status(400).json({ error: "请先配置 AI 设置" })
   }
 
-  let config
-  const decrypted = decrypt(configRow.value)
-  const rawValue = decrypted || configRow.value
-  const parsed = safeParseJSON(rawValue)
-  if (!parsed) {
-    return res.status(400).json({ error: "AI 配置格式错误" })
-  }
-  config = parsed
-
-  if (!config.apiKey || !config.baseUrl || !config.model) {
-    return res.status(400).json({ error: "AI 配置不完整" })
+  if (resolved.isBuiltIn) {
+    const check = checkAndConsumeAIUsage(req.userId)
+    if (!check.ok) {
+      return res.status(402).json({ error: check.error })
+    }
   }
 
-  if (!isAllowedAIUrl(config.baseUrl)) {
+  const config = resolved.config
+  if (!resolved.isBuiltIn && !isAllowedAIUrl(config.baseUrl)) {
     return res.status(400).json({ error: "不支持的 AI 服务地址" })
   }
 
@@ -529,30 +521,20 @@ router.post("/recommendations", authMiddleware, async (req, res) => {
     return res.status(400).json({ error: "请提供资产信息" })
   }
 
-  const check = checkAndConsumeAIUsage(req.userId)
-  if (!check.ok) {
-    return res.status(402).json({ error: check.error })
-  }
-
-  const configRow = db.prepare("SELECT value FROM settings WHERE user_id = ? AND key = ?").get(req.userId, "ai_config")
-  if (!configRow) {
+  const resolved = resolveAIConfig(req.userId)
+  if (!resolved) {
     return res.status(400).json({ error: "请先配置 AI 设置" })
   }
 
-  let config
-  const decrypted = decrypt(configRow.value)
-  const rawValue = decrypted || configRow.value
-  const parsed = safeParseJSON(rawValue)
-  if (!parsed) {
-    return res.status(400).json({ error: "AI 配置格式错误" })
-  }
-  config = parsed
-
-  if (!config.apiKey || !config.baseUrl || !config.model) {
-    return res.status(400).json({ error: "AI 配置不完整" })
+  if (resolved.isBuiltIn) {
+    const check = checkAndConsumeAIUsage(req.userId)
+    if (!check.ok) {
+      return res.status(402).json({ error: check.error })
+    }
   }
 
-  if (!isAllowedAIUrl(config.baseUrl)) {
+  const config = resolved.config
+  if (!resolved.isBuiltIn && !isAllowedAIUrl(config.baseUrl)) {
     return res.status(400).json({ error: "不支持的 AI 服务地址" })
   }
 

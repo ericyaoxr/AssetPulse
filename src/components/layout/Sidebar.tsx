@@ -195,15 +195,17 @@ export default function Sidebar() {
                 <LogOut className="h-4 w-4" />
               </button>
             </div>
-            <Link to="/settings/account" className="mb-4 flex items-center gap-2 rounded-lg bg-surface px-3 py-2 hover:bg-surface-hover transition-colors">
-              <Zap className="h-4 w-4 text-yellow-500" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-content-primary">AI 剩余</p>
-              </div>
-              <span className="font-mono text-sm font-bold text-content-secondary">
-                {currentUser.aiUsage?.remaining ?? 0}
-              </span>
-            </Link>
+            {!currentUser?.hasOwnAIConfig && (
+              <Link to="/settings/account" className="mb-4 flex items-center gap-2 rounded-lg bg-surface px-3 py-2 hover:bg-surface-hover transition-colors">
+                <Zap className="h-4 w-4 text-yellow-500" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-content-primary">AI 剩余</p>
+                </div>
+                <span className="font-mono text-sm font-bold text-content-secondary">
+                  {currentUser?.aiUsage?.remaining ?? 0}
+                </span>
+              </Link>
+            )}
           </>
         )}
 

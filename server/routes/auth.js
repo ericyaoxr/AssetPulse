@@ -112,6 +112,7 @@ router.get("/me", authMiddleware, (req, res) => {
   
   const usage = db.prepare("SELECT * FROM ai_usage WHERE user_id = ?").get(req.userId) || { remaining_count: 10, total_used: 0 }
   const inviteCount = db.prepare("SELECT COUNT(*) as count FROM invites WHERE inviter_id = ?").get(req.userId)?.count || 0
+  const hasOwnAIConfig = !!db.prepare("SELECT value FROM settings WHERE user_id = ? AND key = ?").get(req.userId, "ai_config")
 
   res.json({
     id: user.id,
@@ -120,6 +121,7 @@ router.get("/me", authMiddleware, (req, res) => {
     inviteCode: user.invite_code,
     aiUsage: { remaining: usage.remaining_count, totalUsed: usage.total_used },
     inviteCount,
+    hasOwnAIConfig,
   })
 })
 

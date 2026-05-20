@@ -89,22 +89,24 @@ export default function AccountSettings() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-6 space-y-4">
-        <h2 className="flex items-center gap-2 text-lg font-semibold text-content-primary">
-          <Zap className="h-5 w-5 text-yellow-500" /> AI 使用次数
-        </h2>
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-content-muted">剩余次数</div>
-          <div className="text-xl font-bold text-content-primary">{currentUser?.aiUsage.remaining ?? 0}</div>
+      {!currentUser?.hasOwnAIConfig && (
+        <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-6 space-y-4">
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-content-primary">
+            <Zap className="h-5 w-5 text-yellow-500" /> AI 使用次数
+          </h2>
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-content-muted">剩余次数</div>
+            <div className="text-xl font-bold text-content-primary">{currentUser?.aiUsage.remaining ?? 0}</div>
+          </div>
+          <div className="h-2 w-full rounded-full bg-edge overflow-hidden">
+            <div className="h-full bg-accent" style={{ width: `${Math.min(100, (currentUser?.aiUsage.remaining ?? 0) / 100 * 100)}%` }} />
+          </div>
+          <div className="flex items-center justify-between text-xs text-content-muted">
+            <div>已使用：{currentUser?.aiUsage.totalUsed ?? 0} 次</div>
+            <div>邀请好友，双方各得10次！</div>
+          </div>
         </div>
-        <div className="h-2 w-full rounded-full bg-edge overflow-hidden">
-          <div className="h-full bg-accent" style={{ width: `${Math.min(100, (currentUser?.aiUsage.remaining ?? 0) / 100 * 100)}%` }} />
-        </div>
-        <div className="flex items-center justify-between text-xs text-content-muted">
-          <div>已使用：{currentUser?.aiUsage.totalUsed ?? 0} 次</div>
-          <div>邀请好友，双方各得10次！</div>
-        </div>
-      </div>
+      )}
 
       <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-6 space-y-4">
         <h2 className="flex items-center gap-2 text-lg font-semibold text-content-primary">

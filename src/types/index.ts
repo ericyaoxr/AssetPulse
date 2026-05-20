@@ -14,6 +14,7 @@ export interface UserProfile {
   inviteCode: string
   aiUsage: { remaining: number; totalUsed: number }
   inviteCount: number
+  hasOwnAIConfig: boolean
 }
 
 export const DEFAULT_CATEGORIES = [
