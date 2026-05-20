@@ -3,8 +3,15 @@ import { fileURLToPath } from "url"
 import path from "path"
 import fs from "fs"
 
+console.log("AssetPulse db.js loading [v2026-05-20]")
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const DATA_DIR = process.env.VERCEL ? "/tmp/assetpulse-data" : (process.env.DATA_DIR || path.join(__dirname, "..", "data"))
+const isServerless = !!(process.env.VERCEL || process.env.NETLIFY)
+const DATA_DIR = isServerless
+  ? "/tmp/assetpulse-data"
+  : (process.env.DATA_DIR || path.join(__dirname, "..", "data"))
+
+console.log("DATA_DIR:", DATA_DIR, "isServerless:", isServerless)
 
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true })
@@ -49,7 +56,19 @@ function safeExec(sql) {
   try {
     db.exec(sql)
   } catch (e) {
-    console.error("DB init warning:", e.message)
+    console.error("DB safeExec warning:", e.message)
+  }
+}
+
+function addColumnIfMissing(table, column, definition) {
+  try {
+    const cols = db.prepare("PRAGMA table_info(" + table + ")").all().map(c => c.name)
+    if (!cols.includes(column)) {
+      db.exec("ALTER TABLE " + table + " ADD COLUMN " + column + " " + definition)
+      console.log("DB migration: added column", table + "." + column)
+    }
+  } catch (e) {
+    console.error("DB migration warning for " + table + "." + column + ":", e.message)
   }
 }
 
@@ -59,6 +78,9 @@ safeExec(`CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 )`)
+
+addColumnIfMissing("users", "invite_code", "TEXT")
+addColumnIfMissing("users", "invited_by", "TEXT")
 
 safeExec(`CREATE TABLE IF NOT EXISTS invites (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -102,6 +124,8 @@ safeExec(`CREATE TABLE IF NOT EXISTS assets (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 )`)
 
+addColumnIfMissing("assets", "tags", "TEXT NOT NULL DEFAULT '[]'")
+
 safeExec(`CREATE TABLE IF NOT EXISTS trash (
   asset_id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
@@ -139,33 +163,23 @@ safeExec("CREATE INDEX IF NOT EXISTS idx_assets_status ON assets(user_id, status
 safeExec("CREATE INDEX IF NOT EXISTS idx_trash_user_id ON trash(user_id)")
 safeExec("CREATE INDEX IF NOT EXISTS idx_settings_user_id ON settings(user_id)")
 
-function addColumnIfMissing(table, column, definition) {
-  const cols = db.prepare("PRAGMA table_info(" + table + ")").all().map(c => c.name)
-  if (!cols.includes(column)) {
+try {
+  const usersWithoutCode = db.prepare("SELECT id FROM users WHERE invite_code IS NULL").all()
+  usersWithoutCode.forEach(u => {
+    const code = Math.random().toString(36).slice(2, 8).toUpperCase()
     try {
-      db.exec("ALTER TABLE " + table + " ADD COLUMN " + column + " " + definition)
-      console.log("Added column:", table + "." + column)
+      db.prepare("UPDATE users SET invite_code = ? WHERE id = ?").run(code, u.id)
     } catch (e) {
-      console.error("Warning: Failed to add " + table + "." + column + ":", e.message)
+      console.error("Warning: Failed to set invite_code for user:", u.id, e.message)
     }
-  }
+  })
+} catch (e) {
+  console.error("Warning: invite_code backfill failed:", e.message)
 }
-
-addColumnIfMissing("users", "invite_code", "TEXT UNIQUE")
-addColumnIfMissing("users", "invited_by", "TEXT REFERENCES users(id)")
-addColumnIfMissing("assets", "tags", "TEXT NOT NULL DEFAULT '[]'")
-
-const usersWithoutCode = db.prepare("SELECT id FROM users WHERE invite_code IS NULL").all()
-usersWithoutCode.forEach(u => {
-  const code = Math.random().toString(36).slice(2, 8).toUpperCase()
-  try {
-    db.prepare("UPDATE users SET invite_code = ? WHERE id = ?").run(code, u.id)
-  } catch (e) {
-    console.error("Warning: Failed to set invite_code for user:", u.id, e.message)
-  }
-})
 
 safeExec("CREATE INDEX IF NOT EXISTS idx_users_invite_code ON users(invite_code)")
 safeExec("CREATE INDEX IF NOT EXISTS idx_invites_inviter ON invites(inviter_id)")
+
+console.log("AssetPulse db.js initialized successfully")
 
 export default db
