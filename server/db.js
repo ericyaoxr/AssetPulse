@@ -6,7 +6,7 @@ import fs from "fs"
 console.log("AssetPulse db.js loading [v2026-05-20]")
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const isServerless = !!(process.env.VERCEL || process.env.NETLIFY)
+const isServerless = !!process.env.VERCEL
 const DATA_DIR = isServerless
   ? "/tmp/assetpulse-data"
   : (process.env.DATA_DIR || path.join(__dirname, "..", "data"))

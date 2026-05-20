@@ -66,7 +66,7 @@ app.get("*", (req, res) => {
   }
 })
 
-if (!process.env.VERCEL && !process.env.NETLIFY) {
+if (!process.env.VERCEL) {
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`AssetPulse server running on http://0.0.0.0:${PORT}`)
   })
