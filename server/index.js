@@ -1,7 +1,12 @@
-import express from "express"
-import cors from "cors"
+import { config } from "dotenv"
 import path from "path"
 import { fileURLToPath } from "url"
+
+const __dirname = fileURLToPath(new URL(".", import.meta.url))
+config({ path: path.join(__dirname, "..", ".env") })
+
+import express from "express"
+import cors from "cors"
 import authRoutes from "./routes/auth.js"
 import assetRoutes from "./routes/assets.js"
 import trashRoutes from "./routes/trash.js"
@@ -11,7 +16,6 @@ import backupRoutes from "./routes/backup.js"
 import settingsRoutes from "./routes/settings.js"
 import aiRoutes from "./routes/ai.js"
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PORT = process.env.PORT || 8642
 
 const app = express()

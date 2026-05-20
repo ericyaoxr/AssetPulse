@@ -8,6 +8,10 @@ export function isDemoMode(): boolean {
   return _backendAvailable === false
 }
 
+export function resetBackendCheck(): void {
+  _backendAvailable = null
+}
+
 async function checkBackend(): Promise<boolean> {
   if (_backendAvailable !== null) return _backendAvailable
   try {
@@ -45,13 +49,26 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
   if (token) headers["Authorization"] = `Bearer ${token}`
 
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers })
-  if (res.status === 401) { clearToken(); throw new Error("登录已过期，请重新登录") }
-  if (!res.ok) {
-    const data = await res.json().catch(() => null)
-    throw new Error(data?.error || `请求失败 (${res.status})`)
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 60000)
+  const isAIRequest = path.startsWith("/ai/")
+
+  try {
+    const res = await fetch(`${API_BASE}${path}`, { ...options, headers, signal: controller.signal })
+    if (res.status === 401) { clearToken(); throw new Error("登录已过期，请重新登录") }
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || `请求失败 (${res.status})`)
+    }
+    return res.json()
+  } catch (e) {
+    if (e instanceof DOMException && e.name === "AbortError") {
+      throw new Error(isAIRequest ? "AI 请求超时，请稍后重试" : "请求超时，请稍后重试")
+    }
+    throw e
+  } finally {
+    clearTimeout(timeout)
   }
-  return res.json()
 }
 
 function localProxy<T>(path: string, options: RequestInit = {}): T {

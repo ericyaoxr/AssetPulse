@@ -8,6 +8,10 @@ const DEFAULT_AI_BASE_URL = process.env.DEFAULT_AI_BASE_URL || ""
 const DEFAULT_AI_API_KEY = process.env.DEFAULT_AI_API_KEY || ""
 const DEFAULT_AI_MODEL = process.env.DEFAULT_AI_MODEL || ""
 
+console.log("[AI Config] DEFAULT_AI_BASE_URL:", DEFAULT_AI_BASE_URL ? "loaded" : "missing")
+console.log("[AI Config] DEFAULT_AI_API_KEY:", DEFAULT_AI_API_KEY ? "loaded" : "missing")
+console.log("[AI Config] DEFAULT_AI_MODEL:", DEFAULT_AI_MODEL || "missing")
+
 const ALLOWED_AI_HOSTS = [
   "api.openai.com",
   "api.deepseek.com",
@@ -152,7 +156,7 @@ router.post("/recognize", authMiddleware, async (req, res) => {
     }
 
     const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 30000)
+    const timeout = setTimeout(() => controller.abort(), 60000)
 
     const response = await fetch(url, {
       method: "POST",
@@ -299,7 +303,7 @@ router.post("/valuate", authMiddleware, async (req, res) => {
 
   try {
     const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 30000)
+    const timeout = setTimeout(() => controller.abort(), 60000)
 
     const response = await fetch(url, {
       method: "POST",
@@ -376,6 +380,7 @@ router.post("/health-check", authMiddleware, async (req, res) => {
   }
 
   const resolved = resolveAIConfig(req.userId)
+  console.log("[health-check] resolved:", resolved ? `isBuiltIn=${resolved.isBuiltIn}, model=${resolved.config.model}` : "null")
   if (!resolved) {
     return res.status(400).json({ error: "请先配置 AI 设置" })
   }
@@ -431,7 +436,7 @@ ${activeAssets.map(a => `- ${a.name}（${a.category}，¥${a.purchasePrice}，${
 
   try {
     const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 30000)
+    const timeout = setTimeout(() => controller.abort(), 60000)
 
     const response = await fetch(url, {
       method: "POST",
@@ -522,6 +527,7 @@ router.post("/recommendations", authMiddleware, async (req, res) => {
   }
 
   const resolved = resolveAIConfig(req.userId)
+  console.log("[recommendations] resolved:", resolved ? `isBuiltIn=${resolved.isBuiltIn}, model=${resolved.config.model}` : "null")
   if (!resolved) {
     return res.status(400).json({ error: "请先配置 AI 设置" })
   }
@@ -573,7 +579,7 @@ ${activeAssets.map(a => `- ${a.name}（${a.category}，¥${a.purchasePrice}，ID
 
   try {
     const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 30000)
+    const timeout = setTimeout(() => controller.abort(), 60000)
 
     const response = await fetch(url, {
       method: "POST",
