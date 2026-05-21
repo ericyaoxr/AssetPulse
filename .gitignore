@@ -17,6 +17,10 @@ node22/
 assetpulse-latest.tar
 .env
 
+# Test files
+test_*.mjs
+server/start.js
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
