@@ -373,6 +373,47 @@ router.post("/valuate", authMiddleware, async (req, res) => {
   }
 })
 
+function saveReport(userId, type, data) {
+  const id = crypto.randomUUID()
+  db.prepare("INSERT INTO ai_reports (id, user_id, type, data) VALUES (?, ?, ?, ?)").run(
+    id, userId, type, JSON.stringify(data)
+  )
+  return id
+}
+
+router.get("/reports", authMiddleware, (req, res) => {
+  const rows = db.prepare(
+    "SELECT id, type, created_at FROM ai_reports WHERE user_id = ? ORDER BY created_at DESC LIMIT 20"
+  ).all(req.userId)
+  res.json(rows.map(r => ({
+    id: r.id,
+    type: r.type,
+    createdAt: r.created_at,
+  })))
+})
+
+router.get("/reports/:id", authMiddleware, (req, res) => {
+  const row = db.prepare(
+    "SELECT * FROM ai_reports WHERE id = ? AND user_id = ?"
+  ).get(req.params.id, req.userId)
+  if (!row) return res.status(404).json({ error: "报告不存在" })
+  res.json({
+    id: row.id,
+    type: row.type,
+    createdAt: row.created_at,
+    data: JSON.parse(row.data),
+  })
+})
+
+router.delete("/reports/:id", authMiddleware, (req, res) => {
+  const row = db.prepare(
+    "SELECT id FROM ai_reports WHERE id = ? AND user_id = ?"
+  ).get(req.params.id, req.userId)
+  if (!row) return res.status(404).json({ error: "报告不存在" })
+  db.prepare("DELETE FROM ai_reports WHERE id = ?").run(req.params.id)
+  res.json({ ok: true })
+})
+
 router.post("/health-check", authMiddleware, async (req, res) => {
   const { assets } = req.body
   if (!assets || !Array.isArray(assets)) {
@@ -488,7 +529,7 @@ ${activeAssets.map(a => `- ${a.name}（${a.category}，¥${a.purchasePrice}，${
       }
     }
 
-    res.json({
+    const result = {
       overallScore: Number(parsed.overallScore) || 50,
       summary: String(parsed.summary || ""),
       recommendations: (parsed.recommendations || []).map((r) => ({
@@ -510,7 +551,12 @@ ${activeAssets.map(a => `- ${a.name}（${a.category}，¥${a.purchasePrice}，${
           amount: Number(b.amount || 0),
         })),
       },
-    })
+    }
+
+    const reportId = saveReport(req.userId, "health_check", result)
+    result.id = reportId
+
+    res.json(result)
   } catch (e) {
     if (e.name === "AbortError") {
       return res.status(504).json({ error: "AI API 请求超时，请稍后重试" })
@@ -631,7 +677,7 @@ ${activeAssets.map(a => `- ${a.name}（${a.category}，¥${a.purchasePrice}，ID
       }
     }
 
-    res.json({
+    const result = {
       nextBuys: (parsed.nextBuys || []).map((item) => ({
         id: crypto.randomUUID(),
         name: String(item.name || ""),
@@ -657,7 +703,11 @@ ${activeAssets.map(a => `- ${a.name}（${a.category}，¥${a.purchasePrice}，ID
         similarityScore: Number(item.similarityScore || 0.5),
         type: "better_option",
       })),
-    })
+    }
+
+    saveReport(req.userId, "recommendations", result)
+
+    res.json(result)
   } catch (e) {
     if (e.name === "AbortError") {
       return res.status(504).json({ error: "AI API 请求超时，请稍后重试" })

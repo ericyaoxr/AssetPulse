@@ -161,6 +161,17 @@ safeExec(`CREATE TABLE IF NOT EXISTS settings (
 safeExec("CREATE INDEX IF NOT EXISTS idx_assets_user_id ON assets(user_id)")
 safeExec("CREATE INDEX IF NOT EXISTS idx_assets_status ON assets(user_id, status)")
 safeExec("CREATE INDEX IF NOT EXISTS idx_trash_user_id ON trash(user_id)")
+safeExec(`CREATE TABLE IF NOT EXISTS ai_reports (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  type TEXT NOT NULL DEFAULT 'health_check',
+  data TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+)`)
+
+safeExec("CREATE INDEX IF NOT EXISTS idx_ai_reports_user ON ai_reports(user_id, created_at DESC)")
+
 safeExec("CREATE INDEX IF NOT EXISTS idx_settings_user_id ON settings(user_id)")
 
 try {

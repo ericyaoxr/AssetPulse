@@ -1,31 +1,103 @@
-import { useState } from "react"
-import { Sparkles, TrendingUp, AlertTriangle, CheckCircle, Clock, Loader2, RefreshCw, DollarSign } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { Sparkles, TrendingUp, AlertTriangle, CheckCircle, Clock, Loader2, RefreshCw, DollarSign, Trash2, FileText, ChevronRight } from "lucide-react"
 import { useAssetStore } from "@/store/useAssetStore"
 import { useAIStore } from "@/store/useAIStore"
-import { api } from "@/utils/api"
+import { api, type AIReportSummary } from "@/utils/api"
 import { useToast } from "@/contexts/ToastContext"
 import { useAuthStore } from "@/store/useAuthStore"
 import { formatCurrency } from "@/utils/format"
-import type { HealthRecommendation, ExpensePrediction } from "@/types"
+import type { HealthRecommendation, ExpensePrediction, HealthCheckResult, RecommendationsResult } from "@/types"
+
+interface HealthCheckDisplay {
+  id: string
+  createdAt: string
+  overallScore: number
+  summary: string
+  recommendations: HealthRecommendation[]
+  futureExpensePrediction: ExpensePrediction
+}
+
+interface RecommendationsDisplay {
+  nextBuys: { id: string; name: string; category: string; priceRange: { min: number; max: number }; reason: string; similarityScore: number }[]
+  betterOptions: { id: string; name: string; category: string; priceRange: { min: number; max: number }; reason: string; relatedAssetId?: string; similarityScore: number }[]
+}
 
 export default function AIAdvisorPage() {
   const { assets } = useAssetStore()
-  const { healthChecks, recommendations, addHealthCheck, setRecommendations } = useAIStore()
+  const { addHealthCheck, setRecommendations } = useAIStore()
   const { refreshUser } = useAuthStore()
   const { info, success, error } = useToast()
   const [loading, setLoading] = useState(false)
   const [loadingRecommendations, setLoadingRecommendations] = useState(false)
-  const [currentCheck, setCurrentCheck] = useState<{
-    id: string
-    createdAt: string
-    overallScore: number
-    summary: string
-    recommendations: HealthRecommendation[]
-    futureExpensePrediction: ExpensePrediction
-  } | null>(null)
+  const [currentCheck, setCurrentCheck] = useState<HealthCheckDisplay | null>(null)
+  const [currentRecommendations, setCurrentRecommendations] = useState<RecommendationsDisplay | null>(null)
+  const [reports, setReports] = useState<AIReportSummary[]>([])
+  const [loadingReports, setLoadingReports] = useState(false)
+  const [selectedReportId, setSelectedReportId] = useState<string | null>(null)
+  const [loadingDetail, setLoadingDetail] = useState(false)
 
   const activeAssets = assets.filter(a => a.status === "active")
-  const latestCheck = healthChecks[0]
+
+  const loadReports = useCallback(async () => {
+    setLoadingReports(true)
+    try {
+      const list = await api.ai.reports()
+      setReports(list)
+      if (list.length > 0 && !currentCheck && !currentRecommendations) {
+        setSelectedReportId(list[0].id)
+      }
+    } catch (e) {
+      console.error("Failed to load reports:", e)
+    } finally {
+      setLoadingReports(false)
+    }
+  }, [currentCheck, currentRecommendations])
+
+  useEffect(() => {
+    loadReports()
+  }, [loadReports])
+
+  useEffect(() => {
+    if (!selectedReportId) return
+    if (currentCheck?.id === selectedReportId) return
+    if (currentRecommendations) return
+
+    const loadDetail = async () => {
+      setLoadingDetail(true)
+      try {
+        const detail = await api.ai.reportDetail(selectedReportId!)
+        if (!detail) {
+          setCurrentCheck(null)
+          setCurrentRecommendations(null)
+          return
+        }
+        if (detail.type === "health_check") {
+          const d = detail.data as unknown as HealthCheckResult
+          setCurrentCheck({
+            id: detail.id,
+            createdAt: detail.createdAt,
+            overallScore: d.overallScore,
+            summary: d.summary,
+            recommendations: d.recommendations,
+            futureExpensePrediction: d.futureExpensePrediction,
+          })
+          setCurrentRecommendations(null)
+        } else if (detail.type === "recommendations") {
+          const d = detail.data as unknown as RecommendationsResult
+          setCurrentRecommendations({
+            nextBuys: d.nextBuys,
+            betterOptions: d.betterOptions,
+          })
+          setCurrentCheck(null)
+        }
+      } catch (e) {
+        console.error("Failed to load report detail:", e)
+      } finally {
+        setLoadingDetail(false)
+      }
+    }
+    loadDetail()
+  }, [selectedReportId, currentCheck, currentRecommendations])
 
   const generateHealthCheck = async () => {
     if (activeAssets.length === 0) {
@@ -35,11 +107,12 @@ export default function AIAdvisorPage() {
 
     setLoading(true)
     setCurrentCheck(null)
+    setCurrentRecommendations(null)
     try {
       const result = await api.ai.healthCheck(assets)
 
-      const check = {
-        id: crypto.randomUUID(),
+      const check: HealthCheckDisplay = {
+        id: result.id || crypto.randomUUID(),
         createdAt: new Date().toISOString(),
         overallScore: result.overallScore,
         summary: result.summary,
@@ -50,7 +123,8 @@ export default function AIAdvisorPage() {
       addHealthCheck(check)
       setCurrentCheck(check)
       await refreshUser()
-      success("资产体检报告已生成")
+      await loadReports()
+      success("资产体检报告已生成并保存")
     } catch (err) {
       error(err instanceof Error ? err.message : "生成报告失败")
     } finally {
@@ -65,17 +139,45 @@ export default function AIAdvisorPage() {
     }
 
     setLoadingRecommendations(true)
+    setCurrentCheck(null)
+    setCurrentRecommendations(null)
     try {
       const result = await api.ai.recommendations(assets)
 
       setRecommendations(result)
+      setCurrentRecommendations({
+        nextBuys: result.nextBuys,
+        betterOptions: result.betterOptions,
+      })
       await refreshUser()
-      success("推荐已生成")
+      await loadReports()
+      success("推荐已生成并保存")
     } catch (err) {
       error(err instanceof Error ? err.message : "生成推荐失败")
     } finally {
       setLoadingRecommendations(false)
     }
+  }
+
+  const handleDeleteReport = async (reportId: string) => {
+    try {
+      await api.ai.deleteReport(reportId)
+      setReports(prev => prev.filter(r => r.id !== reportId))
+      if (selectedReportId === reportId) {
+        setSelectedReportId(null)
+        setCurrentCheck(null)
+        setCurrentRecommendations(null)
+      }
+      success("报告已删除")
+    } catch (e) {
+      error(e instanceof Error ? e.message : "删除失败")
+    }
+  }
+
+  const handleSelectReport = (reportId: string) => {
+    setSelectedReportId(reportId)
+    setCurrentCheck(null)
+    setCurrentRecommendations(null)
   }
 
   const getScoreColor = (score: number) => {
@@ -107,7 +209,8 @@ export default function AIAdvisorPage() {
     )
   }
 
-  const displayCheck = currentCheck || latestCheck
+  const displayCheck = currentCheck
+  const displayRecommendations = currentRecommendations
 
   return (
     <div className="space-y-6">
@@ -141,10 +244,16 @@ export default function AIAdvisorPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-6">
-            <h2 className="text-lg font-semibold text-content-primary mb-4">资产体检报告</h2>
-            
-            {displayCheck ? (
+          {loadingDetail && (
+            <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-10 text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto text-accent" />
+              <p className="mt-3 text-sm text-content-muted">加载报告中...</p>
+            </div>
+          )}
+
+          {!loadingDetail && displayCheck && (
+            <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-6">
+              <h2 className="text-lg font-semibold text-content-primary mb-4">资产体检报告</h2>
               <div className="space-y-6">
                 <div className="flex items-center gap-6">
                   <div className="text-center">
@@ -187,25 +296,21 @@ export default function AIAdvisorPage() {
                   </div>
                 )}
               </div>
-            ) : (
-              <div className="text-center py-10 text-content-muted">
-                点击"生成体检报告"开始分析您的资产
-              </div>
-            )}
-          </div>
+            </div>
+          )}
 
-          {(recommendations.nextBuys.length > 0 || recommendations.betterOptions.length > 0) && (
+          {!loadingDetail && displayRecommendations && (
             <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-6">
               <h2 className="text-lg font-semibold text-content-primary mb-4">AI 推荐</h2>
-              
-              {recommendations.nextBuys.length > 0 && (
+
+              {displayRecommendations.nextBuys.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-md font-medium text-content-primary mb-3 flex items-center gap-2">
                     <TrendingUp className="h-4 w-4 text-green-400" />
                     下一个可能买的
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {recommendations.nextBuys.map((item) => (
+                    {displayRecommendations.nextBuys.map((item) => (
                       <div key={item.id} className="rounded-lg border border-edge p-4 bg-white/5">
                         <div className="font-medium text-content-primary">{item.name}</div>
                         <div className="text-sm text-content-muted">{item.category}</div>
@@ -225,14 +330,14 @@ export default function AIAdvisorPage() {
                 </div>
               )}
 
-              {recommendations.betterOptions.length > 0 && (
+              {displayRecommendations.betterOptions.length > 0 && (
                 <div>
                   <h3 className="text-md font-medium text-content-primary mb-3 flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4 text-yellow-400" />
                     更划算的选择
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {recommendations.betterOptions.map((item) => {
+                    {displayRecommendations.betterOptions.map((item) => {
                       const relatedAsset = assets.find(a => a.id === item.relatedAssetId)
                       return (
                         <div key={item.id} className="rounded-lg border border-edge p-4 bg-white/5">
@@ -258,16 +363,23 @@ export default function AIAdvisorPage() {
               )}
             </div>
           )}
-        </div>
 
-        <div className="space-y-6">
+          {!loadingDetail && !displayCheck && !displayRecommendations && (
+            <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-6">
+              <h2 className="text-lg font-semibold text-content-primary mb-4">资产体检报告</h2>
+              <div className="text-center py-10 text-content-muted">
+                点击"生成体检报告"开始分析您的资产
+              </div>
+            </div>
+          )}
+
           {displayCheck?.futureExpensePrediction && (
             <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-6">
               <h2 className="text-lg font-semibold text-content-primary mb-4 flex items-center gap-2">
                 <Clock className="h-5 w-5 text-accent" />
                 未来支出预测
               </h2>
-              
+
               <div className="space-y-4">
                 <div className="rounded-lg border border-edge p-4 bg-white/5">
                   <div className="text-sm text-content-muted">未来 30 天</div>
@@ -275,14 +387,14 @@ export default function AIAdvisorPage() {
                     {formatCurrency(displayCheck.futureExpensePrediction.next30Days)}
                   </div>
                 </div>
-                
+
                 <div className="rounded-lg border border-edge p-4 bg-white/5">
                   <div className="text-sm text-content-muted">未来 90 天</div>
                   <div className="text-2xl font-bold text-content-primary mt-1">
                     {formatCurrency(displayCheck.futureExpensePrediction.next90Days)}
                   </div>
                 </div>
-                
+
                 <div className="rounded-lg border border-edge p-4 bg-white/5">
                   <div className="text-sm text-content-muted">未来 1 年</div>
                   <div className="text-2xl font-bold text-content-primary mt-1">
@@ -306,30 +418,63 @@ export default function AIAdvisorPage() {
               </div>
             </div>
           )}
+        </div>
 
-          {healthChecks.length > 1 && (
-            <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-6">
-              <h2 className="text-lg font-semibold text-content-primary mb-4">历史报告</h2>
+        <div className="space-y-6">
+          <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-6">
+            <h2 className="text-lg font-semibold text-content-primary mb-4 flex items-center gap-2">
+              <FileText className="h-5 w-5 text-accent" />
+              历史报告
+            </h2>
+
+            {loadingReports ? (
+              <div className="py-6 text-center">
+                <Loader2 className="h-5 w-5 animate-spin mx-auto text-accent" />
+              </div>
+            ) : reports.length === 0 ? (
+              <p className="py-6 text-center text-sm text-content-faint">暂无历史报告</p>
+            ) : (
               <div className="space-y-2">
-                {healthChecks.slice(1, 6).map((check) => (
-                  <button
-                    key={check.id}
-                    onClick={() => setCurrentCheck(check)}
-                    className="w-full text-left rounded-lg border border-edge p-3 hover:bg-white/5 transition-colors"
+                {reports.map((report) => (
+                  <div
+                    key={report.id}
+                    className={`group rounded-lg border p-3 transition-colors cursor-pointer ${
+                      selectedReportId === report.id
+                        ? "border-accent/40 bg-accent/5"
+                        : "border-edge hover:bg-white/5"
+                    }`}
+                    onClick={() => handleSelectReport(report.id)}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-content-primary">
-                        {new Date(check.createdAt).toLocaleDateString("zh-CN")}
-                      </span>
-                      <span className={`text-sm font-medium ${getScoreColor(check.overallScore)}`}>
-                        {check.overallScore}分
-                      </span>
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        {report.type === "health_check" ? (
+                          <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-blue-500/10 text-blue-400">
+                            <RefreshCw className="h-3 w-3" />体检
+                          </span>
+                        ) : (
+                          <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-purple-500/10 text-purple-400">
+                            <TrendingUp className="h-3 w-3" />推荐
+                          </span>
+                        )}
+                        <span className="text-sm text-content-primary truncate">
+                          {new Date(report.createdAt).toLocaleString("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDeleteReport(report.id) }}
+                          className="shrink-0 rounded p-1 text-content-faint hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                        <ChevronRight className="h-4 w-4 text-content-faint shrink-0" />
+                      </div>
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

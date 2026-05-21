@@ -139,6 +139,8 @@ function localProxy<T>(path: string, options: RequestInit = {}): T {
       nextBuys: [],
       betterOptions: []
     }) as T
+    if (action === "reports") return Promise.resolve([]) as T
+    if (action.startsWith("reports/")) return Promise.resolve(null) as T
   }
 
   return Promise.reject(new Error("Demo 模式不支持此操作")) as T
@@ -160,6 +162,16 @@ export interface ImageRecognitionResult {
 export interface InviteRecord {
   createdAt: string
   inviteeUsername: string
+}
+
+export interface AIReportSummary {
+  id: string
+  type: "health_check" | "recommendations"
+  createdAt: string
+}
+
+export interface AIReportDetail extends AIReportSummary {
+  data: Record<string, unknown>
 }
 
 export const api = {
@@ -270,5 +282,11 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ assets }),
       }),
+    reports: () =>
+      request<AIReportSummary[]>("/ai/reports"),
+    reportDetail: (id: string) =>
+      request<AIReportDetail>(`/ai/reports/${id}`),
+    deleteReport: (id: string) =>
+      request<{ ok: boolean }>(`/ai/reports/${id}`, { method: "DELETE" }),
   },
 }

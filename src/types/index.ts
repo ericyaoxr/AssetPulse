@@ -292,6 +292,7 @@ export interface AIRecommendationItem {
 }
 
 export interface HealthCheckResult {
+  id?: string
   overallScore: number
   summary: string
   recommendations: HealthRecommendation[]
