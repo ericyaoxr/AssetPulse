@@ -481,7 +481,7 @@ const AssetDetail = ({ asset }: AssetDetailProps) => {
               </p>
             </div>
             <p className="mt-4 text-xs text-content-faint">
-              生成于 {new Date((currentStory || existingStory)?.createdAt || "").toLocaleString("zh-CN")}
+              生成于 {new Date((currentStory || existingStory)?.createdAt || "").toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}
             </p>
           </div>
         </div>

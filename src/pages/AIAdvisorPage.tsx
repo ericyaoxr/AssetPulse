@@ -265,7 +265,7 @@ export default function AIAdvisorPage() {
                   <div className="flex-1">
                     <p className="text-content-primary">{displayCheck.summary}</p>
                     <p className="text-xs text-content-muted mt-2">
-                      生成于 {new Date(displayCheck.createdAt).toLocaleString("zh-CN")}
+                      生成于 {new Date(displayCheck.createdAt).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}
                     </p>
                   </div>
                 </div>
@@ -457,7 +457,7 @@ export default function AIAdvisorPage() {
                           </span>
                         )}
                         <span className="text-sm text-content-primary truncate">
-                          {new Date(report.createdAt).toLocaleString("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                          {new Date(report.createdAt).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                         </span>
                       </div>
                       <div className="flex items-center gap-1">

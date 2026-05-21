@@ -244,7 +244,7 @@ export default function RemindersPage() {
                     {reminder.message}
                   </p>
                   <p className="text-xs text-accent mt-1">
-                    {new Date(reminder.dueDate).toLocaleDateString()} 到期
+                    {new Date(reminder.dueDate).toLocaleDateString("zh-CN", { timeZone: "Asia/Shanghai" })} 到期
                   </p>
                 </div>
                 <button
@@ -276,7 +276,7 @@ export default function RemindersPage() {
                     {reminder.title}
                   </p>
                   <p className="text-xs text-content-muted mt-0.5">
-                    {new Date(reminder.triggeredAt!).toLocaleDateString()} 触发
+                    {new Date(reminder.triggeredAt!).toLocaleDateString("zh-CN", { timeZone: "Asia/Shanghai" })} 触发
                   </p>
                 </div>
                 <button

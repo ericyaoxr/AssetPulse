@@ -20,7 +20,12 @@ export function formatDays(days: number): string {
 
 export function formatDate(dateStr: string | null): string {
   if (!dateStr) return "-"
-  return new Date(dateStr).toLocaleDateString("zh-CN")
+  return new Date(dateStr).toLocaleDateString("zh-CN", { timeZone: "Asia/Shanghai" })
+}
+
+export function formatDateTime(dateStr: string | null): string {
+  if (!dateStr) return "-"
+  return new Date(dateStr).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })
 }
 
 export function getStatusLabel(status: string): string {

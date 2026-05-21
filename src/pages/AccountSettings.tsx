@@ -83,7 +83,7 @@ export default function AccountSettings() {
           {currentUser?.createdAt && (
             <div className="flex items-center gap-2 text-sm text-content-tertiary">
               <Calendar className="h-4 w-4" />
-              注册时间：{new Date(currentUser.createdAt).toLocaleDateString("zh-CN")}
+              注册时间：{new Date(currentUser.createdAt).toLocaleDateString("zh-CN", { timeZone: "Asia/Shanghai" })}
             </div>
           )}
         </div>
@@ -132,7 +132,7 @@ export default function AccountSettings() {
               {invites.map((inv, idx) => (
                 <div key={idx} className="flex items-center justify-between rounded-lg px-3 py-2 bg-surface">
                   <span className="text-sm text-content-primary">{inv.inviteeUsername}</span>
-                  <span className="text-xs text-content-muted">{new Date(inv.createdAt).toLocaleDateString("zh-CN")}</span>
+                  <span className="text-xs text-content-muted">{new Date(inv.createdAt).toLocaleDateString("zh-CN", { timeZone: "Asia/Shanghai" })}</span>
                 </div>
               ))}
             </div>
