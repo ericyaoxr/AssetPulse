@@ -5,6 +5,7 @@ import StatsCards from "@/components/dashboard/StatsCards"
 import CostRanking from "@/components/dashboard/CostRanking"
 import TrendChart from "@/components/dashboard/TrendChart"
 import AIValuationOverview from "@/components/dashboard/AIValuationOverview"
+import WelcomeGuide from "@/components/WelcomeGuide"
 import { ShareCard } from "@/components/share/ShareCard"
 import { ReportShareTemplate } from "@/components/share/ReportShareTemplate"
 import { formatCurrency, formatDays } from "@/utils/format"
@@ -12,6 +13,7 @@ import { useThemeVar } from "@/hooks/useThemeVar"
 
 export default function Dashboard() {
   const { assets, recalculateAll } = useAssetStore()
+  const activeAssets = assets.filter((a) => a.status === "active")
 
   useEffect(() => {
     recalculateAll()
@@ -63,6 +65,10 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {activeAssets.length === 0 ? (
+        <WelcomeGuide />
+      ) : (
+      <>
       <StatsCards assets={assets} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -142,6 +148,8 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+      </>
+      )}
     </div>
   )
 }

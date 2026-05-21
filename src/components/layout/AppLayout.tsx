@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom"
 import { Activity } from "lucide-react"
 import Sidebar from "@/components/layout/Sidebar"
 import MobileNav from "@/components/layout/MobileNav"
+import OnboardingModal from "@/components/OnboardingModal"
 import { useAssetStore } from "@/store/useAssetStore"
 import { useAuthStore } from "@/store/useAuthStore"
 import AuthPage from "@/pages/AuthPage"
@@ -93,6 +94,7 @@ export default function AppLayout() {
       </main>
 
       <MobileNav />
+      <OnboardingModal />
     </div>
   )
 }
