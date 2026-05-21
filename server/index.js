@@ -1,9 +1,14 @@
-import { config } from "dotenv"
 import path from "path"
 import { fileURLToPath } from "url"
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url))
-config({ path: path.join(__dirname, "..", ".env") })
+
+try {
+  const { config } = await import("dotenv")
+  config({ path: path.join(__dirname, "..", ".env") })
+} catch {
+  // dotenv not available (e.g. Vercel), env vars injected by platform
+}
 
 import express from "express"
 import cors from "cors"
