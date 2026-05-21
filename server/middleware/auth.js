@@ -1,19 +1,21 @@
 import jwt from "jsonwebtoken"
 
-const JWT_SECRET = process.env.JWT_SECRET
-if (!JWT_SECRET) {
-  console.error("FATAL: JWT_SECRET environment variable is required. Set it before starting the server.")
-  process.exit(1)
+function getJWTSecret() {
+  const secret = process.env.JWT_SECRET
+  if (!secret) {
+    throw new Error("JWT_SECRET environment variable is required")
+  }
+  return secret
 }
 const JWT_EXPIRES = "7d"
 
 export function generateToken(payload) {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES })
+  return jwt.sign(payload, getJWTSecret(), { expiresIn: JWT_EXPIRES })
 }
 
 export function verifyToken(token) {
   try {
-    return jwt.verify(token, JWT_SECRET)
+    return jwt.verify(token, getJWTSecret())
   } catch {
     return null
   }

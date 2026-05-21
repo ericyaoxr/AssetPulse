@@ -1,16 +1,16 @@
 import crypto from "crypto"
 
 const FALLBACK_SECRET = "assetpulse_fallback_secret_do_not_use_in_production"
-const ENCRYPTION_KEY = process.env.JWT_SECRET || FALLBACK_SECRET
 const ALGORITHM = "aes-256-gcm"
 const IV_LENGTH = 12
 const AUTH_TAG_LENGTH = 16
 
 function getKey() {
-  if (!ENCRYPTION_KEY) {
+  const secret = process.env.JWT_SECRET || FALLBACK_SECRET
+  if (!secret) {
     throw new Error("JWT_SECRET environment variable not set")
   }
-  return crypto.createHash("sha256").update(ENCRYPTION_KEY).digest()
+  return crypto.createHash("sha256").update(secret).digest()
 }
 
 export function encrypt(text) {

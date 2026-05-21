@@ -1,7 +1,7 @@
 import path from "path"
 import { fileURLToPath } from "url"
 
-const __dirname = fileURLToPath(new URL(".", import.meta.url))
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 try {
   const { config } = await import("dotenv")

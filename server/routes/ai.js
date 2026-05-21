@@ -4,13 +4,13 @@ import { authMiddleware } from "../middleware/auth.js"
 import { safeParseJSON } from "../utils/json.js"
 import { decrypt } from "../utils/crypto.js"
 
-const DEFAULT_AI_BASE_URL = process.env.DEFAULT_AI_BASE_URL || ""
-const DEFAULT_AI_API_KEY = process.env.DEFAULT_AI_API_KEY || ""
-const DEFAULT_AI_MODEL = process.env.DEFAULT_AI_MODEL || ""
-
-console.log("[AI Config] DEFAULT_AI_BASE_URL:", DEFAULT_AI_BASE_URL ? "loaded" : "missing")
-console.log("[AI Config] DEFAULT_AI_API_KEY:", DEFAULT_AI_API_KEY ? "loaded" : "missing")
-console.log("[AI Config] DEFAULT_AI_MODEL:", DEFAULT_AI_MODEL || "missing")
+function getBuiltInAIConfig() {
+  const apiKey = process.env.DEFAULT_AI_API_KEY || ""
+  const baseUrl = process.env.DEFAULT_AI_BASE_URL || ""
+  const model = process.env.DEFAULT_AI_MODEL || ""
+  if (!apiKey || !baseUrl || !model) return null
+  return { apiKey, baseUrl, model }
+}
 
 const ALLOWED_AI_HOSTS = [
   "api.openai.com",
@@ -74,11 +74,6 @@ function getUserAIConfig(userId) {
   if (!parsed) return null
   if (!parsed.apiKey || !parsed.baseUrl || !parsed.model) return null
   return parsed
-}
-
-function getBuiltInAIConfig() {
-  if (!DEFAULT_AI_API_KEY || !DEFAULT_AI_BASE_URL || !DEFAULT_AI_MODEL) return null
-  return { apiKey: DEFAULT_AI_API_KEY, baseUrl: DEFAULT_AI_BASE_URL, model: DEFAULT_AI_MODEL }
 }
 
 function resolveAIConfig(userId) {
