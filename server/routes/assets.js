@@ -29,12 +29,12 @@ router.post("/", (req, res) => {
   const now = new Date().toISOString()
 
   db.prepare(`
-    INSERT INTO assets (id, user_id, name, status, category, location, image_url,
+    INSERT INTO assets (id, user_id, name, model, status, category, location, image_url,
       purchase_date, purchase_price, end_date, recycle_amount, target_daily_cost,
       effective_days, daily_cost, rating, note, tags, ai_valuation, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
-    id, req.userId, a.name, a.status || "active", a.category || "", a.location || "",
+    id, req.userId, a.name, a.model || "", a.status || "active", a.category || "", a.location || "",
     a.imageUrl || null, a.purchaseDate, a.purchasePrice || 0, a.endDate || null,
     a.recycleAmount != null ? a.recycleAmount : null, a.targetDailyCost != null ? a.targetDailyCost : null,
     a.effectiveDays || 0, a.dailyCost || 0, a.rating || null, a.note || "",
@@ -64,12 +64,12 @@ router.put("/:id", (req, res) => {
   const now = new Date().toISOString()
 
   db.prepare(`
-    UPDATE assets SET name=?, status=?, category=?, location=?, image_url=?,
+    UPDATE assets SET name=?, model=?, status=?, category=?, location=?, image_url=?,
       purchase_date=?, purchase_price=?, end_date=?, recycle_amount=?, target_daily_cost=?,
       effective_days=?, daily_cost=?, rating=?, note=?, tags=?, ai_valuation=?, updated_at=?
     WHERE id=? AND user_id=?
   `).run(
-    a.name ?? existing.name, a.status ?? existing.status, a.category ?? existing.category,
+    a.name ?? existing.name, a.model ?? existing.model, a.status ?? existing.status, a.category ?? existing.category,
     a.location ?? existing.location, a.imageUrl !== undefined ? a.imageUrl : existing.image_url,
     a.purchaseDate ?? existing.purchase_date, a.purchasePrice ?? existing.purchase_price,
     a.endDate !== undefined ? a.endDate : existing.end_date,
@@ -104,6 +104,7 @@ function formatAsset(row) {
     id: row.id,
     userId: row.user_id,
     name: row.name,
+    model: row.model,
     status: row.status,
     category: row.category,
     location: row.location,

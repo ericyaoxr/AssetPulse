@@ -95,6 +95,7 @@ export const useAssetStore = create<AssetStore>((set, get) => ({
 
     const asset = await api.assets.create({
       name: form.name,
+      model: form.model,
       status: form.status,
       category: form.category,
       location: form.location,
@@ -128,6 +129,7 @@ export const useAssetStore = create<AssetStore>((set, get) => ({
 
     const updated = await api.assets.update(id, {
       name: form.name,
+      model: form.model,
       status: form.status,
       category: form.category,
       location: form.location,
@@ -234,6 +236,7 @@ export const useAssetStore = create<AssetStore>((set, get) => ({
           id: partial.id || "",
           userId: partial.userId || "",
           name: partial.name || "",
+          model: partial.model || "",
           status: partial.status || "active",
           category: partial.category || "",
           location: partial.location || "",

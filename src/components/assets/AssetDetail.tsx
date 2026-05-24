@@ -174,6 +174,9 @@ const AssetDetail = ({ asset }: AssetDetailProps) => {
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-2xl font-bold text-content-primary">{asset.name}</h2>
+          {asset.model && (
+            <p className="text-sm text-content-muted mt-1">{asset.model}</p>
+          )}
           <div className="mt-2"><StatusBadge status={asset.status} /></div>
         </div>
         <div className="flex gap-2">

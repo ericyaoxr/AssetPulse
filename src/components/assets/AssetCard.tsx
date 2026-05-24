@@ -66,6 +66,9 @@ function AssetCard({ asset }: AssetCardProps) {
             <h3 className="text-content-primary font-medium text-sm leading-snug line-clamp-2">
               {asset.name}
             </h3>
+            {asset.model && (
+              <p className="text-xs text-content-muted mt-0.5">{asset.model}</p>
+            )}
             <div className="flex items-center gap-4 text-xs text-content-tertiary mt-1.5">
               <span className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />

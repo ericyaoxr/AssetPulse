@@ -125,6 +125,7 @@ safeExec(`CREATE TABLE IF NOT EXISTS assets (
 )`)
 
 addColumnIfMissing("assets", "tags", "TEXT NOT NULL DEFAULT '[]'")
+addColumnIfMissing("assets", "model", "TEXT NOT NULL DEFAULT ''")
 
 safeExec(`CREATE TABLE IF NOT EXISTS trash (
   asset_id TEXT PRIMARY KEY,

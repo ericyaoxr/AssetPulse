@@ -75,6 +75,7 @@ export const localApi = {
       const now = new Date().toISOString()
       const asset: Asset = {
         id: uid(), userId: DEMO_USER_ID, name: partial.name || "",
+        model: partial.model || "",
         status: partial.status || "active", category: partial.category || "",
         location: partial.location || "", imageUrl: partial.imageUrl || null,
         tags: partial.tags || [], purchaseDate: partial.purchaseDate || "",

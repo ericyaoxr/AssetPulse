@@ -35,6 +35,7 @@ export interface Asset {
   id: string
   userId: string
   name: string
+  model: string
   status: AssetStatus
   category: string
   location: string
@@ -62,6 +63,7 @@ export interface DeletedAsset {
 
 export interface AssetFormData {
   name: string
+  model: string
   status: AssetStatus
   category: string
   location: string

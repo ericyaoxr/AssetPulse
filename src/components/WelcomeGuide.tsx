@@ -48,6 +48,7 @@ export default function WelcomeGuide() {
       for (const item of SAMPLE_ASSETS) {
         await addAsset({
           name: item.name,
+          model: "",
           category: item.category,
           purchasePrice: item.purchasePrice,
           purchaseDate: item.purchaseDate,

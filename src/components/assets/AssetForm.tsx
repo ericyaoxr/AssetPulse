@@ -195,6 +195,7 @@ function DatePicker({ value, onChange, label }: { value: string; onChange: (v: s
 
 export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatchSubmit }: AssetFormProps) => {
   const [name, setName] = useState(initialData?.name ?? "")
+  const [model, setModel] = useState(initialData?.model ?? "")
   const [status, setStatus] = useState<AssetStatus>(initialData?.status ?? "active")
   const [category, setCategory] = useState(initialData?.category ?? "")
   const [location, setLocation] = useState(initialData?.location ?? "")
@@ -324,6 +325,7 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
             const matchedCategory = matchCategory(item.category)
             return {
               name: item.brand ? `${item.brand} ${item.name}` : item.name,
+              model: "",
               status: "active" as AssetStatus,
               category: matchedCategory || "",
               location: "",
@@ -393,7 +395,7 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     onSubmit({
-      name, status, category, location, imageUrl, tags,
+      name, model, status, category, location, imageUrl, tags,
       purchaseDate, purchasePrice: parseFloat(purchasePrice),
       endDate, recycleAmount: parseFloat(recycleAmount) || 0,
       targetDailyCost: parseFloat(targetDailyCost) || 0,
@@ -407,6 +409,12 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
       <div>
         <label className="block text-sm text-content-secondary mb-1">资产名称</label>
         <input type="text" value={name} onChange={(e) => setName(e.target.value)} required
+          className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-content-primary text-sm outline-none focus:border-accent/30" />
+      </div>
+
+      <div>
+        <label className="block text-sm text-content-secondary mb-1">资产型号</label>
+        <input type="text" value={model} onChange={(e) => setModel(e.target.value)}
           className="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-content-primary text-sm outline-none focus:border-accent/30" />
       </div>
 
