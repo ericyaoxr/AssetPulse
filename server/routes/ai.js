@@ -712,4 +712,132 @@ ${activeAssets.map(a => `- ${a.name}（${a.category}，¥${a.purchasePrice}，ID
   }
 })
 
+router.post("/used-valuation", authMiddleware, async (req, res) => {
+  const resolved = resolveAIConfig(req.userId)
+  if (!resolved) return res.status(400).json({ error: "请先配置 AI 设置" })
+  if (resolved.isBuiltIn) {
+    const check = checkAndConsumeAIUsage(req.userId)
+    if (!check.ok) return res.status(402).json({ error: check.error })
+  }
+
+  const { assets } = req.body
+  if (!assets || !Array.isArray(assets) || assets.length === 0) {
+    return res.status(400).json({ error: "请提供资产列表" })
+  }
+
+  const assetList = assets.map(a => ({
+    id: a.id,
+    name: a.name,
+    model: a.model || "",
+    category: a.category,
+    purchasePrice: a.purchasePrice,
+    purchaseDate: a.purchaseDate,
+  }))
+
+  const prompt = `你是一个专业的二手资产估价师。请根据以下资产信息，为每件资产估算当前的二手市场价值，并给出处理建议。
+
+资产列表：
+${JSON.stringify(assetList, null, 2)}
+
+请按以下JSON格式返回结果（不要包含其他内容）：
+{
+  "items": [
+    {
+      "assetId": "资产ID",
+      "estimatedValue": 估算二手价格（数字，单位：元）,
+      "depreciationRate": 折旧率（0-1之间的小数，1表示完全折旧）,
+      "suggestion": "处理建议（如：建议出售/建议继续使用/建议以旧换新/建议捐赠等）"
+    }
+  ]
+}
+
+估价参考因素：
+1. 资产品类（数码电子折旧快，家具折旧慢）
+2. 购入价格和时间
+3. 市场二手行情
+4. 品牌保值率
+
+注意：estimatedValue 是估算的当前二手市场可售价格，depreciationRate = (购入价 - 二手估价) / 购入价`
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 60000)
+
+  try {
+    const response = await fetch(`${resolved.config.baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${resolved.config.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: resolved.config.model,
+        messages: [
+          { role: "system", content: "你是一个专业的二手资产估价师，擅长根据资产信息评估二手市场价值。请始终返回有效的JSON格式。" },
+          { role: "user", content: prompt },
+        ],
+        temperature: 0.3,
+        max_tokens: 3000,
+      }),
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeout)
+
+    if (!response.ok) {
+      return res.status(502).json({ error: `AI API 请求失败 (${response.status})` })
+    }
+
+    const data = await response.json()
+    const content = data?.choices?.[0]?.message?.content
+    if (!content) {
+      return res.status(502).json({ error: "AI API 返回内容为空" })
+    }
+
+    let parsed
+    try {
+      parsed = JSON.parse(content)
+    } catch {
+      const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/)
+      if (codeBlockMatch) {
+        try {
+          parsed = JSON.parse(codeBlockMatch[1].trim())
+        } catch {
+          return res.status(502).json({ error: "AI 返回内容无法解析为JSON" })
+        }
+      } else {
+        return res.status(502).json({ error: "AI 返回内容无法解析为JSON" })
+      }
+    }
+
+    const now = new Date()
+    const items = (parsed.items || []).map((item) => {
+      const asset = assets.find(a => a.id === item.assetId)
+      const purchaseDate = asset?.purchaseDate ? new Date(asset.purchaseDate) : now
+      const ageDays = Math.max(0, Math.floor((now - purchaseDate) / (1000 * 60 * 60 * 24)))
+      return {
+        assetId: String(item.assetId || ""),
+        name: asset?.name || "",
+        model: asset?.model || "",
+        category: asset?.category || "",
+        originalPrice: Number(asset?.purchasePrice || 0),
+        purchaseDate: asset?.purchaseDate || "",
+        ageDays,
+        estimatedValue: Number(item.estimatedValue || 0),
+        depreciationRate: Number(item.depreciationRate || 0),
+        suggestion: String(item.suggestion || ""),
+      }
+    })
+
+    saveReport(req.userId, "used_valuation", { items })
+
+    res.json({ items })
+  } catch (e) {
+    if (e.name === "AbortError") {
+      return res.status(504).json({ error: "AI API 请求超时，请稍后重试" })
+    }
+    console.error("Used valuation error:", e.message)
+    res.status(500).json({ error: "生成估价失败，请稍后重试" })
+  }
+})
+
 export default router

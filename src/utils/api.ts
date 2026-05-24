@@ -141,6 +141,7 @@ function localProxy<T>(path: string, options: RequestInit = {}): T {
     }) as T
     if (action === "reports") return Promise.resolve([]) as T
     if (action.startsWith("reports/")) return Promise.resolve(null) as T
+    if (action === "used-valuation") return Promise.resolve({ items: [] }) as T
   }
 
   return Promise.reject(new Error("Demo 模式不支持此操作")) as T
@@ -288,5 +289,19 @@ export const api = {
       request<AIReportDetail>(`/ai/reports/${id}`),
     deleteReport: (id: string) =>
       request<{ ok: boolean }>(`/ai/reports/${id}`, { method: "DELETE" }),
+    usedValuation: (assets: import("@/types").Asset[]) =>
+      request<{ items: Array<{
+        assetId: string; name: string; model: string; category: string;
+        originalPrice: number; purchaseDate: string; ageDays: number;
+        estimatedValue: number; depreciationRate: number; suggestion: string;
+      }> }>("/ai/used-valuation", {
+        method: "POST",
+        body: JSON.stringify({ assets }),
+      }),
+    saveUsedValuation: (items: unknown[]) =>
+      request<{ ok: boolean }>("/ai/used-valuation", {
+        method: "POST",
+        body: JSON.stringify({ items }),
+      }),
   },
 }

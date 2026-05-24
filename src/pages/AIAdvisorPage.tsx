@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react"
-import { Sparkles, TrendingUp, AlertTriangle, CheckCircle, Clock, Loader2, RefreshCw, DollarSign, Trash2, FileText, ChevronRight } from "lucide-react"
+import { Sparkles, TrendingUp, AlertTriangle, CheckCircle, Clock, Loader2, RefreshCw, DollarSign, Trash2, FileText, ChevronRight, ShoppingCart, Download, PackageSearch } from "lucide-react"
 import { useAssetStore } from "@/store/useAssetStore"
 import { useAIStore } from "@/store/useAIStore"
 import { api, type AIReportSummary } from "@/utils/api"
@@ -22,6 +22,52 @@ interface RecommendationsDisplay {
   betterOptions: { id: string; name: string; category: string; priceRange: { min: number; max: number }; reason: string; relatedAssetId?: string; similarityScore: number }[]
 }
 
+interface UsedValuationItem {
+  assetId: string
+  name: string
+  model: string
+  category: string
+  originalPrice: number
+  purchaseDate: string
+  ageDays: number
+  estimatedValue: number
+  depreciationRate: number
+  suggestion: string
+}
+
+function openSearch(name: string) {
+  const jd = `https://search.jd.com/Search?keyword=${encodeURIComponent(name)}`
+  window.open(jd, "_blank", "noopener,noreferrer")
+}
+
+function downloadValuationList(items: UsedValuationItem[]) {
+  const header = "资产名称,型号,分类,购入价格,购入日期,使用天数,二手估价,折旧率,处理建议"
+  const rows = items.map(i =>
+    [
+      i.name,
+      i.model,
+      i.category,
+      i.originalPrice,
+      i.purchaseDate,
+      i.ageDays,
+      i.estimatedValue.toFixed(2),
+      (i.depreciationRate * 100).toFixed(1) + "%",
+      i.suggestion,
+    ].join(",")
+  )
+  const totalOriginal = items.reduce((s, i) => s + i.originalPrice, 0)
+  const totalUsed = items.reduce((s, i) => s + i.estimatedValue, 0)
+  const summary = `\n\n合计,${items.length} 件资产,${formatCurrency(totalOriginal)},,${formatCurrency(totalUsed)},折损 ${formatCurrency(totalOriginal - totalUsed)}`
+  const csv = "\uFEFF" + header + "\n" + rows.join("\n") + summary
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = url
+  a.download = `二手估价清单_${new Date().toLocaleDateString("zh-CN", { timeZone: "Asia/Shanghai" }).replace(/\//g, "-")}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 export default function AIAdvisorPage() {
   const { assets } = useAssetStore()
   const { addHealthCheck, setRecommendations } = useAIStore()
@@ -29,8 +75,10 @@ export default function AIAdvisorPage() {
   const { info, success, error } = useToast()
   const [loading, setLoading] = useState(false)
   const [loadingRecommendations, setLoadingRecommendations] = useState(false)
+  const [loadingValuation, setLoadingValuation] = useState(false)
   const [currentCheck, setCurrentCheck] = useState<HealthCheckDisplay | null>(null)
   const [currentRecommendations, setCurrentRecommendations] = useState<RecommendationsDisplay | null>(null)
+  const [valuationItems, setValuationItems] = useState<UsedValuationItem[]>([])
   const [reports, setReports] = useState<AIReportSummary[]>([])
   const [loadingReports, setLoadingReports] = useState(false)
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null)
@@ -108,6 +156,7 @@ export default function AIAdvisorPage() {
     setLoading(true)
     setCurrentCheck(null)
     setCurrentRecommendations(null)
+    setValuationItems([])
     try {
       const result = await api.ai.healthCheck(assets)
 
@@ -141,6 +190,7 @@ export default function AIAdvisorPage() {
     setLoadingRecommendations(true)
     setCurrentCheck(null)
     setCurrentRecommendations(null)
+    setValuationItems([])
     try {
       const result = await api.ai.recommendations(assets)
 
@@ -156,6 +206,35 @@ export default function AIAdvisorPage() {
       error(err instanceof Error ? err.message : "生成推荐失败")
     } finally {
       setLoadingRecommendations(false)
+    }
+  }
+
+  const generateUsedValuation = async () => {
+    if (activeAssets.length === 0) {
+      info("请先添加一些资产")
+      return
+    }
+
+    setLoadingValuation(true)
+    setValuationItems([])
+    try {
+      const result = await api.ai.usedValuation(activeAssets)
+      setValuationItems(result.items)
+      saveReport(result)
+      await loadReports()
+      success("二手估价清单已生成")
+    } catch (err) {
+      error(err instanceof Error ? err.message : "生成估价失败")
+    } finally {
+      setLoadingValuation(false)
+    }
+  }
+
+  const saveReport = async (data: { items: UsedValuationItem[] }) => {
+    try {
+      await api.ai.saveUsedValuation(data.items)
+    } catch {
+      // silent
     }
   }
 
@@ -222,7 +301,15 @@ export default function AIAdvisorPage() {
           </h1>
           <p className="mt-1 text-sm text-content-tertiary">智能分析您的资产，提供专业建议</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap justify-end">
+          <button
+            onClick={generateUsedValuation}
+            disabled={loadingValuation}
+            className="flex items-center gap-2 rounded-lg border border-edge px-4 py-2 text-sm font-medium text-content-secondary hover:bg-surface disabled:opacity-50"
+          >
+            {loadingValuation ? <Loader2 className="h-4 w-4 animate-spin" /> : <PackageSearch className="h-4 w-4" />}
+            二手估价
+          </button>
           <button
             onClick={generateRecommendations}
             disabled={loadingRecommendations}
@@ -288,6 +375,15 @@ export default function AIAdvisorPage() {
                               </div>
                               <p className="text-sm text-content-secondary">{rec.description}</p>
                               <p className="text-xs text-content-muted mt-1">{rec.reason}</p>
+                              {(rec.type === "buy" || rec.type === "sell") && rec.assetName && (
+                                <button
+                                  onClick={() => openSearch(rec.assetName)}
+                                  className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-accent/10 px-3 py-1 text-xs font-medium text-accent hover:bg-accent/20 transition-colors"
+                                >
+                                  <ShoppingCart className="h-3.5 w-3.5" />
+                                  去搜索
+                                </button>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -321,8 +417,17 @@ export default function AIAdvisorPage() {
                           </span>
                         </div>
                         <p className="text-xs text-content-muted mt-2">{item.reason}</p>
-                        <div className="mt-2 text-xs text-content-tertiary">
-                          相似度: {(item.similarityScore * 100).toFixed(0)}%
+                        <div className="flex items-center justify-between mt-3">
+                          <span className="text-xs text-content-tertiary">
+                            相似度: {(item.similarityScore * 100).toFixed(0)}%
+                          </span>
+                          <button
+                            onClick={() => openSearch(item.name)}
+                            className="inline-flex items-center gap-1.5 rounded-md bg-accent/10 px-3 py-1 text-xs font-medium text-accent hover:bg-accent/20 transition-colors"
+                          >
+                            <ShoppingCart className="h-3.5 w-3.5" />
+                            去搜索
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -355,6 +460,15 @@ export default function AIAdvisorPage() {
                             </span>
                           </div>
                           <p className="text-xs text-content-muted mt-2">{item.reason}</p>
+                          <div className="mt-3">
+                            <button
+                              onClick={() => openSearch(item.name)}
+                              className="inline-flex items-center gap-1.5 rounded-md bg-accent/10 px-3 py-1 text-xs font-medium text-accent hover:bg-accent/20 transition-colors"
+                            >
+                              <ShoppingCart className="h-3.5 w-3.5" />
+                              去搜索
+                            </button>
+                          </div>
                         </div>
                       )
                     })}
@@ -364,7 +478,82 @@ export default function AIAdvisorPage() {
             </div>
           )}
 
-          {!loadingDetail && !displayCheck && !displayRecommendations && (
+          {valuationItems.length > 0 && (
+            <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-content-primary flex items-center gap-2">
+                  <PackageSearch className="h-5 w-5 text-accent" />
+                  批量二手估价清单
+                </h2>
+                <button
+                  onClick={() => downloadValuationList(valuationItems)}
+                  className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover"
+                >
+                  <Download className="h-4 w-4" />
+                  下载清单
+                </button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-edge text-left">
+                      <th className="pb-3 pr-4 font-medium text-content-muted">资产名称</th>
+                      <th className="pb-3 pr-4 font-medium text-content-muted">型号</th>
+                      <th className="pb-3 pr-4 font-medium text-content-muted">分类</th>
+                      <th className="pb-3 pr-4 font-medium text-content-muted text-right">购入价</th>
+                      <th className="pb-3 pr-4 font-medium text-content-muted text-right">使用天数</th>
+                      <th className="pb-3 pr-4 font-medium text-content-muted text-right">二手估价</th>
+                      <th className="pb-3 pr-4 font-medium text-content-muted text-right">折旧率</th>
+                      <th className="pb-3 font-medium text-content-muted">建议</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {valuationItems.map((item) => (
+                      <tr key={item.assetId} className="border-b border-edge/50 hover:bg-white/5">
+                        <td className="py-3 pr-4 text-content-primary font-medium">{item.name}</td>
+                        <td className="py-3 pr-4 text-content-secondary">{item.model || "-"}</td>
+                        <td className="py-3 pr-4 text-content-secondary">{item.category}</td>
+                        <td className="py-3 pr-4 text-content-primary text-right">{formatCurrency(item.originalPrice)}</td>
+                        <td className="py-3 pr-4 text-content-secondary text-right">{item.ageDays} 天</td>
+                        <td className="py-3 pr-4 text-accent text-right font-medium">{formatCurrency(item.estimatedValue)}</td>
+                        <td className="py-3 pr-4 text-right">
+                          <span className={`px-2 py-0.5 rounded text-xs ${
+                            item.depreciationRate > 0.7 ? "bg-red-500/20 text-red-400" :
+                            item.depreciationRate > 0.4 ? "bg-yellow-500/20 text-yellow-400" :
+                            "bg-green-500/20 text-green-400"
+                          }`}>
+                            {(item.depreciationRate * 100).toFixed(0)}%
+                          </span>
+                        </td>
+                        <td className="py-3 text-content-secondary">{item.suggestion}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t border-edge">
+                      <td colSpan={3} className="pt-3 font-medium text-content-primary">
+                        合计 ({valuationItems.length} 件)
+                      </td>
+                      <td className="pt-3 text-right font-medium text-content-primary">
+                        {formatCurrency(valuationItems.reduce((s, i) => s + i.originalPrice, 0))}
+                      </td>
+                      <td></td>
+                      <td className="pt-3 text-right font-bold text-accent">
+                        {formatCurrency(valuationItems.reduce((s, i) => s + i.estimatedValue, 0))}
+                      </td>
+                      <td className="pt-3 text-right text-content-muted">
+                        折损 {formatCurrency(valuationItems.reduce((s, i) => s + i.originalPrice - i.estimatedValue, 0))}
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {!loadingDetail && !displayCheck && !displayRecommendations && valuationItems.length === 0 && (
             <div className="rounded-xl border border-edge bg-surface backdrop-blur-md p-6">
               <h2 className="text-lg font-semibold text-content-primary mb-4">资产体检报告</h2>
               <div className="text-center py-10 text-content-muted">
@@ -451,9 +640,13 @@ export default function AIAdvisorPage() {
                           <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-blue-500/10 text-blue-400">
                             <RefreshCw className="h-3 w-3" />体检
                           </span>
-                        ) : (
+                        ) : report.type === "recommendations" ? (
                           <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-purple-500/10 text-purple-400">
                             <TrendingUp className="h-3 w-3" />推荐
+                          </span>
+                        ) : (
+                          <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-orange-500/10 text-orange-400">
+                            <PackageSearch className="h-3 w-3" />估价
                           </span>
                         )}
                         <span className="text-sm text-content-primary truncate">
