@@ -728,14 +728,27 @@ router.post("/used-valuation", authMiddleware, async (req, res) => {
     return res.status(400).json({ error: "请提供资产列表" })
   }
 
-  const assetList = assets.map(a => ({
-    id: a.id,
-    name: a.name,
-    model: a.model || "",
-    category: a.category,
-    purchasePrice: a.purchasePrice,
-    purchaseDate: a.purchaseDate,
-  }))
+  const assetList = assets.map(a => {
+    const item = {
+      id: a.id,
+      name: a.name,
+      model: a.model || "",
+      category: a.category,
+      purchasePrice: a.purchasePrice,
+      purchaseDate: a.purchaseDate,
+    }
+    if (a.aiValuation && a.aiValuation.estimatedValue) {
+      item.existingValuation = {
+        estimatedValue: a.aiValuation.estimatedValue,
+        confidenceLow: a.aiValuation.confidenceLow,
+        confidenceHigh: a.aiValuation.confidenceHigh,
+        depreciationRate: a.aiValuation.depreciationRate,
+        marketTrend: a.aiValuation.marketTrend,
+        estimatedAt: a.aiValuation.estimatedAt,
+      }
+    }
+    return item
+  })
 
   const prompt = `你是一个专业的二手资产估价师。请根据以下资产信息，为每件资产估算当前的二手市场价值，并给出处理建议。
 
@@ -756,11 +769,15 @@ ${JSON.stringify(assetList, null, 2)}
 
 估价参考因素：
 1. 资产品类（数码电子折旧快，家具折旧慢）
-2. 购入价格和时间
-3. 市场二手行情
+2. 购入价格和使用时间
+3. 闲鱼等二手交易平台的市场均价（请根据你的知识估算该物品在闲鱼上的当前二手成交价）
 4. 品牌保值率
+5. 如果资产已有之前的AI估价（existingValuation字段），请参考该估价，结合最新市场行情进行调整
 
-注意：estimatedValue 是估算的当前二手市场可售价格，depreciationRate = (购入价 - 二手估价) / 购入价`
+注意：
+- estimatedValue 是估算的当前二手市场可售价格，参考闲鱼同类物品的成交均价
+- depreciationRate = (购入价 - 二手估价) / 购入价
+- 如果已有existingValuation，优先参考其估价区间，但需根据市场变化适当调整`
 
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 120000)
@@ -779,7 +796,7 @@ ${JSON.stringify(assetList, null, 2)}
           { role: "user", content: prompt },
         ],
         temperature: 0.3,
-        max_tokens: 3000,
+        max_tokens: 4000,
       }),
       signal: controller.signal,
     })
