@@ -1,7 +1,7 @@
 import { Router } from "express"
 import db from "../db.js"
 import { authMiddleware } from "../middleware/auth.js"
-import { safeParseJSON } from "../utils/json.js"
+import { safeParseJSON, toISODate } from "../utils/json.js"
 
 const router = Router()
 router.use(authMiddleware)
@@ -120,8 +120,8 @@ function formatAsset(row) {
     rating: row.rating,
     note: row.note,
     aiValuation: row.ai_valuation ? safeParseJSON(row.ai_valuation) : null,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    createdAt: toISODate(row.created_at),
+    updatedAt: toISODate(row.updated_at),
   }
 }
 

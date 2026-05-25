@@ -1,7 +1,7 @@
 import { Router } from "express"
 import db from "../db.js"
 import { authMiddleware } from "../middleware/auth.js"
-import { safeParseJSON } from "../utils/json.js"
+import { safeParseJSON, toISODate } from "../utils/json.js"
 import { decrypt } from "../utils/crypto.js"
 
 function getBuiltInAIConfig() {
@@ -386,7 +386,7 @@ router.get("/reports", authMiddleware, (req, res) => {
   res.json(rows.map(r => ({
     id: r.id,
     type: r.type,
-    createdAt: r.created_at,
+    createdAt: toISODate(r.created_at),
   })))
 })
 
@@ -398,7 +398,7 @@ router.get("/reports/:id", authMiddleware, (req, res) => {
   res.json({
     id: row.id,
     type: row.type,
-    createdAt: row.created_at,
+    createdAt: toISODate(row.created_at),
     data: JSON.parse(row.data),
   })
 })

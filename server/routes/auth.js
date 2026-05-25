@@ -3,6 +3,7 @@ import db from "../db.js"
 import { generateToken, authMiddleware } from "../middleware/auth.js"
 import { createRequire } from 'module'
 import crypto from "crypto"
+import { toISODate } from "../utils/json.js"
 
 const require = createRequire(import.meta.url)
 let bcrypt
@@ -102,7 +103,7 @@ router.post("/login", (req, res) => {
   const token = generateToken({ userId: user.id, username: user.username })
   res.json({
     token,
-    user: { id: user.id, username: user.username, createdAt: user.created_at, inviteCode: user.invite_code },
+    user: { id: user.id, username: user.username, createdAt: toISODate(user.created_at), inviteCode: user.invite_code },
   })
 })
 
@@ -117,7 +118,7 @@ router.get("/me", authMiddleware, (req, res) => {
   res.json({
     id: user.id,
     username: user.username,
-    createdAt: user.created_at,
+    createdAt: toISODate(user.created_at),
     inviteCode: user.invite_code,
     aiUsage: { remaining: usage.remaining_count, totalUsed: usage.total_used },
     inviteCount,
@@ -157,7 +158,10 @@ router.get("/invites", authMiddleware, (req, res) => {
     ORDER BY i.created_at DESC
   `).all(req.userId)
   
-  res.json(invites)
+  res.json(invites.map(i => ({
+    createdAt: toISODate(i.created_at),
+    inviteeUsername: i.invitee_username,
+  })))
 })
 
 export default router

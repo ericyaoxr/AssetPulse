@@ -1,7 +1,7 @@
 import { Router } from "express"
 import db from "../db.js"
 import { authMiddleware } from "../middleware/auth.js"
-import { safeParseJSON } from "../utils/json.js"
+import { safeParseJSON, toISODate } from "../utils/json.js"
 
 const router = Router()
 router.use(authMiddleware)
@@ -50,7 +50,7 @@ router.delete("/", (req, res) => {
 function formatTrash(row) {
   return {
     asset: safeParseJSON(row.asset_data) || {},
-    deletedAt: row.deleted_at,
+    deletedAt: toISODate(row.deleted_at),
     userId: row.user_id,
   }
 }
