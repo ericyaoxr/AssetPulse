@@ -283,6 +283,9 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
     if (selected.length === 1) {
       const item = selected[0]
       setName(item.brand ? `${item.brand} ${item.name}` : item.name)
+      if (item.model) {
+        setModel(item.model)
+      }
       if (item.category) {
         const matched = matchCategory(item.category)
         if (matched) {
@@ -325,7 +328,7 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
             const matchedCategory = matchCategory(item.category)
             return {
               name: item.brand ? `${item.brand} ${item.name}` : item.name,
-              model: "",
+              model: item.model || "",
               status: "active" as AssetStatus,
               category: matchedCategory || "",
               location: "",
@@ -348,6 +351,9 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
       } else {
         const item = selected[0]
         setName(item.brand ? `${item.brand} ${item.name}` : item.name)
+        if (item.model) {
+          setModel(item.model)
+        }
         if (item.category) {
           const matched = matchCategory(item.category)
           if (matched) {
@@ -708,6 +714,9 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
                   <div className="font-medium text-content-primary">
                     {item.brand ? `${item.brand} ${item.name}` : item.name}
                   </div>
+                  {item.model && (
+                    <div className="text-xs text-content-muted mt-0.5">型号：{item.model}</div>
+                  )}
                   <div className="flex items-center gap-2 mt-1 text-sm text-content-tertiary">
                     <span>{matchCategory(item.category) || item.category}</span>
                     <span>•</span>

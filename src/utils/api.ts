@@ -50,8 +50,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   if (token) headers["Authorization"] = `Bearer ${token}`
 
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 60000)
   const isAIRequest = path.startsWith("/ai/")
+  const timeout = setTimeout(() => controller.abort(), isAIRequest ? 120000 : 60000)
 
   try {
     const res = await fetch(`${API_BASE}${path}`, { ...options, headers, signal: controller.signal })
@@ -149,6 +149,7 @@ function localProxy<T>(path: string, options: RequestInit = {}): T {
 
 export interface ImageRecognitionItem {
   name: string
+  model: string
   category: string
   estimatedPrice: number
   brand: string

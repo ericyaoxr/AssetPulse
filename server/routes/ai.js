@@ -130,10 +130,11 @@ router.post("/recognize", authMiddleware, async (req, res) => {
 请以JSON格式回复，包含以下字段：
 - items：物品数组，每个物品包含：
   - name：物品名称（简洁准确，如"iPhone 15 Pro"、"戴森V12吸尘器"、"宜家马尔姆抽屉柜"）
+  - model：物品型号（具体型号信息，如"iPhone 15 Pro Max 256G"、"V12 Detect Slim"、"A2784"等，如无法确定则为空字符串）
   - category：物品分类（从以下选项中选择最匹配的：数码电子、硬通货、非标品、生活家居、服饰鞋包、运动健身、游戏娱乐、学习教育、其他）
   - estimatedPrice：估算的购买价格（数值，单位：元，如果是订单截图则读取每个物品的订单金额，否则根据物品型号和市场价格估算）
   - brand：品牌（如无法确定则为空字符串）
-  - description：物品简要描述（包括外观特征、型号等，50字以内）
+  - description：物品简要描述（包括外观特征等，50字以内）
   - purchaseDate：购入日期（格式：YYYY-MM-DD，从订单截图中识别下单日期/支付日期；如无法确定则为空字符串）
 
 如果图片中无法识别出明确的物品，请返回：
@@ -213,6 +214,7 @@ router.post("/recognize", authMiddleware, async (req, res) => {
     if (parsed.items && Array.isArray(parsed.items)) {
       items = parsed.items.map((item) => ({
         name: String(item.name || ""),
+        model: String(item.model || ""),
         category: String(item.category || "其他"),
         estimatedPrice: Number(item.estimatedPrice) || 0,
         brand: String(item.brand || ""),
@@ -222,6 +224,7 @@ router.post("/recognize", authMiddleware, async (req, res) => {
     } else {
       const singleItem = {
         name: String(parsed.name || ""),
+        model: String(parsed.model || ""),
         category: String(parsed.category || "其他"),
         estimatedPrice: Number(parsed.estimatedPrice) || 0,
         brand: String(parsed.brand || ""),
@@ -760,10 +763,10 @@ ${JSON.stringify(assetList, null, 2)}
 注意：estimatedValue 是估算的当前二手市场可售价格，depreciationRate = (购入价 - 二手估价) / 购入价`
 
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 60000)
+  const timeout = setTimeout(() => controller.abort(), 120000)
 
   try {
-    const response = await fetch(`${resolved.config.baseUrl}/chat/completions`, {
+    const response = await fetch(`${resolved.config.baseUrl.replace(/\/+$/, "")}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
