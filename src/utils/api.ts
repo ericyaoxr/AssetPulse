@@ -168,7 +168,7 @@ export interface InviteRecord {
 
 export interface AIReportSummary {
   id: string
-  type: "health_check" | "recommendations"
+  type: "health_check" | "recommendations" | "used_valuation"
   createdAt: string
 }
 
@@ -298,11 +298,6 @@ export const api = {
       }> }>("/ai/used-valuation", {
         method: "POST",
         body: JSON.stringify({ assets }),
-      }),
-    saveUsedValuation: (items: unknown[]) =>
-      request<{ ok: boolean }>("/ai/used-valuation", {
-        method: "POST",
-        body: JSON.stringify({ items }),
       }),
   },
 }

@@ -130,6 +130,7 @@ export default function AIAdvisorPage() {
             futureExpensePrediction: d.futureExpensePrediction,
           })
           setCurrentRecommendations(null)
+          setValuationItems([])
         } else if (detail.type === "recommendations") {
           const d = detail.data as unknown as RecommendationsResult
           setCurrentRecommendations({
@@ -137,6 +138,12 @@ export default function AIAdvisorPage() {
             betterOptions: d.betterOptions,
           })
           setCurrentCheck(null)
+          setValuationItems([])
+        } else if (detail.type === "used_valuation") {
+          const d = detail.data as { items: UsedValuationItem[] }
+          setValuationItems(d.items || [])
+          setCurrentCheck(null)
+          setCurrentRecommendations(null)
         }
       } catch (e) {
         console.error("Failed to load report detail:", e)
@@ -220,21 +227,12 @@ export default function AIAdvisorPage() {
     try {
       const result = await api.ai.usedValuation(activeAssets)
       setValuationItems(result.items)
-      saveReport(result)
       await loadReports()
       success("二手估价清单已生成")
     } catch (err) {
       error(err instanceof Error ? err.message : "生成估价失败")
     } finally {
       setLoadingValuation(false)
-    }
-  }
-
-  const saveReport = async (data: { items: UsedValuationItem[] }) => {
-    try {
-      await api.ai.saveUsedValuation(data.items)
-    } catch {
-      // silent
     }
   }
 
@@ -257,6 +255,7 @@ export default function AIAdvisorPage() {
     setSelectedReportId(reportId)
     setCurrentCheck(null)
     setCurrentRecommendations(null)
+    setValuationItems([])
   }
 
   const getScoreColor = (score: number) => {
