@@ -45,9 +45,9 @@ function downloadValuationList(items: UsedValuationItem[]) {
   const rows = items.map(i =>
     [
       i.name,
-      i.model,
+      i.model || "",
       i.category,
-      i.originalPrice,
+      i.originalPrice.toFixed(2),
       i.purchaseDate,
       i.ageDays,
       i.estimatedValue.toFixed(2),
@@ -57,8 +57,8 @@ function downloadValuationList(items: UsedValuationItem[]) {
   )
   const totalOriginal = items.reduce((s, i) => s + i.originalPrice, 0)
   const totalUsed = items.reduce((s, i) => s + i.estimatedValue, 0)
-  const summary = `\n\n合计,${items.length} 件资产,${formatCurrency(totalOriginal)},,${formatCurrency(totalUsed)},折损 ${formatCurrency(totalOriginal - totalUsed)}`
-  const csv = "\uFEFF" + header + "\n" + rows.join("\n") + summary
+  const summary = `合计 (${items.length} 件),,,${totalOriginal.toFixed(2)},,,${totalUsed.toFixed(2)},折损 ${(totalOriginal - totalUsed).toFixed(2)},`
+  const csv = "\uFEFF" + header + "\n" + rows.join("\n") + "\n" + summary
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8" })
   const url = URL.createObjectURL(blob)
   const a = document.createElement("a")
@@ -542,9 +542,16 @@ export default function AIAdvisorPage() {
                         {formatCurrency(valuationItems.reduce((s, i) => s + i.estimatedValue, 0))}
                       </td>
                       <td className="pt-3 text-right text-content-muted">
+                        {(() => {
+                          const totalOriginal = valuationItems.reduce((s, i) => s + i.originalPrice, 0)
+                          const totalUsed = valuationItems.reduce((s, i) => s + i.estimatedValue, 0)
+                          const avgRate = totalOriginal > 0 ? (totalOriginal - totalUsed) / totalOriginal : 0
+                          return `${(avgRate * 100).toFixed(0)}%`
+                        })()}
+                      </td>
+                      <td className="pt-3 text-right text-content-muted">
                         折损 {formatCurrency(valuationItems.reduce((s, i) => s + i.originalPrice - i.estimatedValue, 0))}
                       </td>
-                      <td></td>
                     </tr>
                   </tfoot>
                 </table>
