@@ -235,6 +235,9 @@ export default function AnalyticsPage() {
                     </div>
                     <div>
                       <p className="font-medium text-content-primary text-sm">{asset.name}</p>
+                      {asset.model && (
+                        <p className="text-xs text-content-muted">{asset.model}</p>
+                      )}
                       <p className="text-xs text-content-muted">{asset.category}</p>
                     </div>
                   </div>
@@ -267,6 +270,9 @@ export default function AnalyticsPage() {
                     </div>
                     <div>
                       <p className="font-medium text-content-primary text-sm">{asset.name}</p>
+                      {asset.model && (
+                        <p className="text-xs text-content-muted">{asset.model}</p>
+                      )}
                       <p className="text-xs text-content-muted">已使用 {formatDays(asset.effectiveDays)}</p>
                     </div>
                   </div>

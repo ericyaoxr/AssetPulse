@@ -86,6 +86,19 @@ export function AssetShareTemplate({ asset }: AssetShareTemplateProps) {
           {asset.name}
         </h2>
 
+        {asset.model && (
+          <p
+            style={{
+              fontSize: 13,
+              color: textSecondary,
+              margin: 0,
+              marginBottom: 16,
+            }}
+          >
+            {asset.model}
+          </p>
+        )}
+
         <div
           style={{
             background: isLight ? "rgba(0,122,255,0.06)" : "rgba(16,185,129,0.08)",

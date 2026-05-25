@@ -98,6 +98,9 @@ export default function Dashboard() {
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-content-primary truncate mr-2">{a.name}</span>
+                      {a.model && (
+                        <span className="text-xs text-content-muted truncate">{a.model}</span>
+                      )}
                       <span className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${isProfit ? "bg-accent-light text-accent" : "bg-red-500/20 text-red-400"}`}>
                         {isProfit ? "盈利" : "亏损"}
                       </span>

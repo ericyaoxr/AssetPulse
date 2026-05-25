@@ -282,7 +282,7 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
 
     if (selected.length === 1) {
       const item = selected[0]
-      setName(item.brand ? `${item.brand} ${item.name}` : item.name)
+      setName(item.name)
       if (item.model) {
         setModel(item.model)
       }
@@ -327,7 +327,7 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
             }
             const matchedCategory = matchCategory(item.category)
             return {
-              name: item.brand ? `${item.brand} ${item.name}` : item.name,
+              name: item.name,
               model: item.model || "",
               status: "active" as AssetStatus,
               category: matchedCategory || "",
@@ -350,7 +350,7 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
         onBatchSubmit(forms)
       } else {
         const item = selected[0]
-        setName(item.brand ? `${item.brand} ${item.name}` : item.name)
+        setName(item.name)
         if (item.model) {
           setModel(item.model)
         }
@@ -712,7 +712,7 @@ export const AssetForm = ({ initialData, onSubmit, onCancel, submitting, onBatch
                 </button>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-content-primary">
-                    {item.brand ? `${item.brand} ${item.name}` : item.name}
+                    {item.name}
                   </div>
                   {item.model && (
                     <div className="text-xs text-content-muted mt-0.5">型号：{item.model}</div>

@@ -59,6 +59,9 @@ export default function Trash() {
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <h3 className="truncate text-content-primary font-medium">{item.asset.name}</h3>
+                {item.asset.model && (
+                  <p className="text-xs text-content-muted mt-0.5">{item.asset.model}</p>
+                )}
                 <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-content-tertiary">
                   <span className="rounded-full bg-white/10 px-2 py-0.5">{item.asset.category}</span>
                   <span>删除于 {formatDate(item.deletedAt)}</span>

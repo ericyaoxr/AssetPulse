@@ -76,6 +76,9 @@ export default function Review() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="text-content-primary font-medium">{asset.name}</h3>
+                    {asset.model && (
+                      <span className="text-xs text-content-muted ml-2">{asset.model}</span>
+                    )}
                     <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-content-tertiary">
                       {asset.category}
                     </span>

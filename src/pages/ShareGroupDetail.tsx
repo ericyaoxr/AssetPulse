@@ -286,6 +286,9 @@ export default function ShareGroupDetail() {
                       }`}
                     >
                       <p className="font-medium text-content-primary">{asset.name}</p>
+                      {asset.model && (
+                        <p className="text-xs text-content-muted">{asset.model}</p>
+                      )}
                       <p className="text-xs text-content-muted">{asset.category}</p>
                     </button>
                   ))

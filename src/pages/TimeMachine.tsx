@@ -221,6 +221,9 @@ export default function TimeMachine() {
                       <h4 className="font-medium text-content-primary cursor-pointer hover:text-accent" onClick={() => navigate(`/assets/${asset.id}`)}>
                         {asset.name}
                       </h4>
+                      {asset.model && (
+                        <p className="text-xs text-content-muted">{asset.model}</p>
+                      )}
                       <p className="text-sm text-content-muted">{asset.category} · {formatDate(asset.purchaseDate)}</p>
                     </div>
                   </div>
