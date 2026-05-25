@@ -25,6 +25,8 @@ const PORT = process.env.PORT || 8642
 
 const app = express()
 
+app.set("trust proxy", 1)
+
 const corsOrigin = process.env.CORS_ORIGIN || ""
 const corsOptions = corsOrigin
   ? { origin: corsOrigin.split(",").map(s => s.trim()), credentials: true }
